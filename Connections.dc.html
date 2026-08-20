@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { background: #121924; -webkit-font-smoothing: antialiased; }
+  a { color: #f7981d; text-decoration: none; }
+  a:hover { color: #ffa940; }
+</style>
+</helmet>
+<div style="min-height:100vh; background:#121924; background-image:linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px); background-size:44px 44px; font-family:'Space Grotesk',sans-serif; color:#e6e9ee; padding:34px 40px 64px;">
+
+  <header style="max-width:1240px; margin:0 auto 24px; display:flex; justify-content:space-between; align-items:flex-end; gap:24px; flex-wrap:wrap; border-bottom:1px solid rgba(255,255,255,0.14); padding-bottom:20px;">
+    <div>
+      <a href="Hub.dc.html" style="display:inline-block; font-family:'IBM Plex Mono',monospace; font-size:11px; color:#f7981d; text-decoration:none; margin-bottom:10px;">← Hub</a>
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:2.5px; text-transform:uppercase; color:#9fb0ca; margin-bottom:8px;">Connections</div>
+      <h1 style="margin:0; font-size:30px; font-weight:700; letter-spacing:-0.5px;">Port &amp; Power Mapping</h1>
+      <p style="margin:8px 0 0; font-size:14px; color:#9fb0ca; max-width:640px; line-height:1.5;">Add devices, then click a free port on the left, a free port on the right, to wire them. Data links join network ports; power links join a PDU outlet to a device PSU inlet.</p>
+    </div>
+    <div style="display:flex; gap:8px;">
+      <button onClick="{{ onExport }}" title="Download connections (JSON)" style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#e6e9ee; background:#212c3e; border:1px solid rgba(255,255,255,0.14); border-radius:7px; padding:7px 13px; cursor:pointer;">Save file</button>
+      <button onClick="{{ onExportCsv }}" title="Download patch schedule (CSV)" style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#e6e9ee; background:#212c3e; border:1px solid rgba(255,255,255,0.14); border-radius:7px; padding:7px 13px; cursor:pointer;">CSV</button>
+      <label title="Open connections" style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#e6e9ee; background:#212c3e; border:1px solid rgba(255,255,255,0.14); border-radius:7px; padding:7px 13px; cursor:pointer;">Open file<input type="file" accept="application/json,.json" onChange="{{ onImport }}" style="display:none;" /></label>
+      <button onClick="{{ onReset }}" title="Clear all" style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#8296b3; background:transparent; border:1px solid rgba(255,255,255,0.14); border-radius:7px; padding:7px 13px; cursor:pointer;">Reset</button>
+    </div>
+  </header>
+
+  <div style="max-width:1240px; margin:0 auto;">
+
+    <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; background:#1b2432; border:1px solid rgba(255,255,255,0.14); border-radius:10px; padding:12px 16px; margin-bottom:22px;">
+      <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:#9fb0ca;">Add device</span>
+      <select value="{{ addModel }}" onChange="{{ onAddModelChange }}" style="font-family:'IBM Plex Mono',monospace; font-size:12.5px; padding:7px 10px; border-radius:7px; border:1px solid rgba(255,255,255,0.14); background:#212c3e; color:#e6e9ee;">
+        <sc-for list="{{ modelOptions }}" as="o" hint-placeholder-count="6">
+          <option value="{{ o.id }}">{{ o.label }}</option>
+        </sc-for>
+      </select>
+      <input type="text" value="{{ addName }}" placeholder="hostname (e.g. spine9)" onChange="{{ onAddNameChange }}" style="font-family:'IBM Plex Mono',monospace; font-size:12.5px; padding:7px 10px; border-radius:7px; border:1px solid rgba(255,255,255,0.14); background:#212c3e; color:#e6e9ee; min-width:200px;" />
+      <button onClick="{{ onAddDevice }}" style="font-family:'IBM Plex Mono',monospace; font-size:12.5px; font-weight:600; color:#fff; background:#f7981d; border:none; border-radius:7px; padding:8px 15px; cursor:pointer;">+ Add</button>
+      <sc-if value="{{ hasPlanner }}" hint-placeholder-val="{{ true }}">
+        <span style="width:1px; height:20px; background:#ddd8d0; margin:0 2px;"></span>
+        <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:#9fb0ca;">From planner</span>
+        <sc-for list="{{ plannerLayouts }}" as="pl" hint-placeholder-count="1">
+          <button onClick="{{ pl.onClick }}" title="Import devices from this saved cabinet layout" style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#e6e9ee; background:#212c3e; border:1px solid rgba(255,255,255,0.14); border-radius:7px; padding:7px 11px; cursor:pointer;">⇩ {{ pl.label }}</button>
+        </sc-for>
+      </sc-if>
+      <span style="flex:1;"></span>
+      <span style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#8296b3;">{{ deviceCount }} devices · {{ linkCount }} links</span>
+    </div>
+
+    <sc-if value="{{ hasPending }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex; align-items:center; gap:12px; background:rgba(247,152,29,0.12); border:1px solid rgba(247,152,29,0.4); border-radius:9px; padding:10px 16px; margin-bottom:18px;">
+        <span style="font-family:'IBM Plex Mono',monospace; font-size:12.5px; color:#f7981d;">Wiring from <strong>{{ pendingLabel }}</strong> — click a matching free port on the other device.</span>
+        <button onClick="{{ onCancelPending }}" style="margin-left:auto; font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:#f7981d; background:transparent; border:1px solid rgba(247,152,29,0.4); border-radius:6px; padding:5px 10px; cursor:pointer;">Cancel</button>
+      </div>
+    </sc-if>
+
+    <div style="display:flex; gap:22px; flex-wrap:wrap; align-items:flex-start;">
+      <sc-for list="{{ panels }}" as="panel" hint-placeholder-count="2">
+        <div style="flex:1 1 420px; min-width:340px;">
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:1.5px; text-transform:uppercase; color:#9fb0ca;">{{ panel.side }}</span>
+            <select value="{{ panel.devId }}" onChange="{{ panel.onChange }}" style="flex:1; font-family:'IBM Plex Mono',monospace; font-size:13px; padding:8px 10px; border-radius:8px; border:1px solid rgba(255,255,255,0.14); background:#212c3e; color:#e6e9ee;">
+              <option value="">— select device —</option>
+              <sc-for list="{{ panel.devOptions }}" as="d" hint-placeholder-count="4">
+                <option value="{{ d.id }}">{{ d.label }}</option>
+              </sc-for>
+            </select>
+            <sc-if value="{{ panel.hasDev }}" hint-placeholder-val="{{ true }}">
+              <button onClick="{{ panel.onRemoveDev }}" title="Remove device" style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#9fb0ca; background:transparent; border:1px solid rgba(255,255,255,0.14); border-radius:6px; padding:6px 9px; cursor:pointer;">✕</button>
+            </sc-if>
+          </div>
+
+          <div style="background:#0d1219; border:1px solid #161d2b; border-radius:11px; padding:16px; min-height:220px;">
+            <sc-if value="{{ panel.hasDev }}" hint-placeholder-val="{{ true }}">
+              <div style="font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:600; color:#eceff4; margin-bottom:3px;">{{ panel.devName }}</div>
+              <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#8296b3; margin-bottom:14px;">{{ panel.devModel }} &nbsp;·&nbsp; {{ panel.usage }}</div>
+              <sc-for list="{{ panel.groups }}" as="g" hint-placeholder-count="3">
+                <div style="margin-bottom:14px;">
+                  <div style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:1px; text-transform:uppercase; color:#9fb0ca; margin-bottom:7px;">{{ g.label }}</div>
+                  <div style="display:flex; flex-wrap:wrap; gap:5px;">
+                    <sc-for list="{{ g.ports }}" as="p" hint-placeholder-count="8">
+                      <button onClick="{{ p.onClick }}" title="{{ p.title }}" style="font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:500; padding:5px 8px; border-radius:5px; border:1px solid {{ p.border }}; background: {{ p.bg }}; color: {{ p.color }}; cursor: {{ p.cursor }}; box-shadow: {{ p.glow }};">{{ p.label }}</button>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-for>
+              <sc-if value="{{ panel.noPorts }}" hint-placeholder-val="{{ true }}">
+                <div style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#9fb0ca;">No front-panel ports (rear I/O only).</div>
+              </sc-if>
+            </sc-if>
+            <sc-if value="{{ panel.empty }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex; align-items:center; justify-content:center; height:180px; font-family:'IBM Plex Mono',monospace; font-size:12.5px; color:#9fb0ca;">Select a device to see its ports</div>
+            </sc-if>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="margin-top:30px;">
+      <div style="display:flex; align-items:center; gap:14px; margin-bottom:12px;">
+        <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:2px; text-transform:uppercase; color:#9fb0ca;">Connections</span>
+        <span style="flex:1; height:1px; background:rgba(255,255,255,0.13);"></span>
+      </div>
+      <sc-if value="{{ hasLinks }}" hint-placeholder-val="{{ true }}">
+        <div style="border:1px solid rgba(255,255,255,0.14); border-radius:10px; overflow:hidden;">
+          <sc-for list="{{ links }}" as="l" hint-placeholder-count="6">
+            <div style="display:flex; align-items:center; gap:14px; padding:11px 16px; background:#212c3e; border-bottom:1px solid rgba(255,255,255,0.08);">
+              <span style="flex:0 0 auto; font-family:'IBM Plex Mono',monospace; font-size:10px; font-weight:600; letter-spacing:0.5px; padding:3px 8px; border-radius:999px; color:#fff; background: {{ l.kindColor }};">{{ l.kind }}</span>
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:12.5px; color:#e6e9ee;">{{ l.a }}</span>
+              <span style="color:#9fb0ca;">→</span>
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:12.5px; color:#e6e9ee;">{{ l.b }}</span>
+              <input type="text" value="{{ l.label }}" placeholder="cable id / notes" onChange="{{ l.onLabel }}" style="margin-left:14px; flex:0 1 200px; min-width:120px; font-family:'IBM Plex Mono',monospace; font-size:11.5px; padding:4px 8px; border-radius:6px; border:1px solid rgba(255,255,255,0.12); background:#121924; color:#9fb0ca;" />
+              <button onClick="{{ l.onRemove }}" title="Remove" style="font-family:'IBM Plex Mono',monospace; font-size:14px; color:#9fb0ca; background:transparent; border:none; cursor:pointer;">×</button>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+      <sc-if value="{{ noLinks }}" hint-placeholder-val="{{ true }}">
+        <div style="border:1px dashed rgba(255,255,255,0.18); border-radius:10px; padding:26px; text-align:center; font-family:'IBM Plex Mono',monospace; font-size:12.5px; color:#9fb0ca;">No connections yet — wire two ports above to begin.</div>
+      </sc-if>
+    </div>
+
+    <sc-if value="{{ hasPdus }}" hint-placeholder-val="{{ true }}">
+      <div style="margin-top:30px;">
+        <div style="display:flex; align-items:center; gap:14px; margin-bottom:12px;">
+          <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:2px; text-transform:uppercase; color:#9fb0ca;">PDU load</span>
+          <span style="flex:1; height:1px; background:rgba(255,255,255,0.13);"></span>
+        </div>
+        <div style="display:flex; flex-wrap:wrap; gap:14px;">
+          <sc-for list="{{ pduLoad }}" as="pd" hint-placeholder-count="2">
+            <div style="flex:1 1 240px; background:#212c3e; border:1px solid rgba(255,255,255,0.14); border-radius:10px; padding:14px 16px;">
+              <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:9px;">
+                <span style="font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:600; color:#e6e9ee;">{{ pd.name }}</span>
+                <span style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#8296b3;">{{ pd.used }}/{{ pd.total }}</span>
+              </div>
+              <div style="height:8px; border-radius:999px; background:#33405a; overflow:hidden;">
+                <div style="height:100%; width: {{ pd.pct }}; background: {{ pd.barColor }};"></div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{}">
+class Component extends DCLogic {
+  state = { devices: null, links: [], addModel: 'qfx5200-32c', addName: '', panelA: '', panelB: '', pending: null };
+  storageKey = 'cabplanner.v1.connections';
+
+  componentDidMount() {
+    import('./catalog.js').then(mod => {
+      this.CAT = mod.CATALOG; this.portsOf = mod.portsOf; this.TYPES = mod.PORT_TYPES; this.K2M = mod.KIND_TO_MODEL;
+      let saved = null;
+      try { const raw = window.localStorage.getItem(this.storageKey); if (raw) saved = JSON.parse(raw); } catch (_) {}
+      this.setState({
+        devices: (saved && saved.devices) || [],
+        links: (saved && saved.links) || [],
+        ready: true,
+      });
+    });
+  }
+  componentDidUpdate(pp, ps) {
+    if (this.state.ready && (ps.devices !== this.state.devices || ps.links !== this.state.links)) {
+      try { window.localStorage.setItem(this.storageKey, JSON.stringify({ devices: this.state.devices, links: this.state.links })); } catch (_) {}
+    }
+  }
+
+  isPower(t) { return t === 'C13' || t === 'C19' || t === 'C14' || t === 'POWER'; }
+  uid() { return 'x' + Date.now().toString(36) + Math.floor(Math.random() * 1e4).toString(36); }
+
+  addDevice() {
+    const model = this.state.addModel;
+    const name = (this.state.addName || '').trim() || (this.CAT[model].short + '-' + ((this.state.devices || []).length + 1));
+    this.setState(s => ({ devices: [...s.devices, { id: this.uid(), model, name }], addName: '' }));
+  }
+  removeDevice(devId) {
+    this.setState(s => ({
+      devices: s.devices.filter(d => d.id !== devId),
+      links: s.links.filter(l => l.a.devId !== devId && l.b.devId !== devId),
+      panelA: s.panelA === devId ? '' : s.panelA,
+      panelB: s.panelB === devId ? '' : s.panelB,
+      pending: (s.pending && s.pending.devId === devId) ? null : s.pending,
+    }));
+  }
+  removeLink(id) { this.setState(s => ({ links: s.links.filter(l => l.id !== id) })); }
+  setLinkLabel(id, label) { this.setState(s => ({ links: s.links.map(l => l.id === id ? { ...l, label } : l) })); }
+
+  exportCsv() {
+    const rows = [['kind','A_device','A_port','A_type','B_device','B_port','B_type','label']];
+    this.state.links.forEach(l => rows.push([
+      l.kind, this.nameOf(l.a.devId), l.a.addr, l.a.type,
+      this.nameOf(l.b.devId), l.b.addr, l.b.type, (l.label||'').replace(/"/g,'""')
+    ]));
+    const csv = rows.map(r => r.map(c => /[,"\n]/.test(c) ? '"'+c+'"' : c).join(',')).join('\n');
+    try {
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob); const a = document.createElement('a');
+      a.href = url; a.download = 'patch-schedule.csv'; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (_) {}
+  }
+
+  linkOf(devId, addr) {
+    return this.state.links.find(l => (l.a.devId === devId && l.a.addr === addr) || (l.b.devId === devId && l.b.addr === addr));
+  }
+
+  clickPort(devId, addr, type) {
+    if (this.linkOf(devId, addr)) return; // already used
+    const p = this.state.pending;
+    if (!p) { this.setState({ pending: { devId, addr, type } }); return; }
+    if (p.devId === devId && p.addr === addr) { this.setState({ pending: null }); return; }
+    if (p.devId === devId) { this.setState({ pending: { devId, addr, type } }); return; } // same device, reselect
+    // compatibility: power<->power, data<->data
+    if (this.isPower(p.type) !== this.isPower(type)) {
+      window.alert('Incompatible: ' + (this.isPower(p.type) ? 'power' : 'data') + ' port can\u2019t link to a ' + (this.isPower(type) ? 'power' : 'data') + ' port.');
+      return;
+    }
+    const kind = this.isPower(type) ? 'power' : 'data';
+    const link = { id: this.uid(), kind, a: { ...p }, b: { devId, addr, type } };
+    this.setState(s => ({ links: [...s.links, link], pending: null }));
+  }
+
+  plannerKeys() {
+    const out = [];
+    try {
+      for (let i = 0; i < window.localStorage.length; i++) {
+        const k = window.localStorage.key(i);
+        if (k && k.indexOf('cabplanner.v1.') === 0 && k.indexOf('connections') < 0) {
+          out.push({ key: k, label: k.replace('cabplanner.v1.', '') });
+        }
+      }
+    } catch (_) {}
+    return out;
+  }
+
+  importFromPlanner(key) {
+    let racks = null;
+    try { const raw = window.localStorage.getItem(key); if (raw) racks = JSON.parse(raw); } catch (_) {}
+    if (!racks || !Array.isArray(racks)) { window.alert('No saved layout found for "' + key + '". Open the planner, make an edit so it saves, then import.'); return; }
+    const existing = new Set((this.state.devices || []).map(d => d.src).filter(Boolean));
+    const add = []; let skipped = 0;
+    racks.forEach((rack, ri) => {
+      (rack.cells || []).forEach(cell => {
+        const model = this.K2M[cell.kind];
+        if (!model || !this.CAT[model]) { if (cell.kind !== 'reserved') skipped++; return; }
+        const src = key + '#' + ri + '#' + cell.id;
+        if (existing.has(src)) return;
+        const sideTag = cell.side && cell.side !== 'full' ? '-' + cell.side : '';
+        const auto = (rack.name ? rack.name.split(' ')[0] : 'CAB') + '-U' + cell.top + sideTag;
+        const name = (cell.name && cell.name.trim()) ? cell.name.trim() : auto;
+        add.push({ id: this.uid(), model, name, src });
+      });
+    });
+    if (!add.length) { window.alert(skipped ? 'Nothing new to import (all slots already added or unmapped).' : 'That layout has no placed gear yet.'); return; }
+    this.setState(s => ({ devices: [...s.devices, ...add] }));
+    window.alert('Imported ' + add.length + ' device(s) from "' + key + '"' + (skipped ? ' · ' + skipped + ' unmapped slot(s) skipped.' : '.'));
+  }
+
+  exportJson() {
+    try {
+      const blob = new Blob([JSON.stringify({ devices: this.state.devices, links: this.state.links }, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob); const a = document.createElement('a');
+      a.href = url; a.download = 'connections.json'; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (_) {}
+  }
+  importJson(e) {
+    const f = e.target.files && e.target.files[0]; if (!f) return;
+    const r = new FileReader();
+    r.onload = () => { try { const p = JSON.parse(r.result); if (p && p.devices) this.setState({ devices: p.devices, links: p.links || [] }); } catch (_) { window.alert('Could not read that file.'); } };
+    r.readAsText(f); e.target.value = '';
+  }
+  resetAll() { if (window.confirm('Clear all devices and connections?')) this.setState({ devices: [], links: [], pending: null }); }
+
+  nameOf(devId) { const d = (this.state.devices || []).find(x => x.id === devId); return d ? d.name : '?'; }
+
+  buildPanel(side, devId, onChange) {
+    const devices = this.state.devices || [];
+    const devOptions = devices.map(d => ({ id: d.id, label: d.name + '  ·  ' + this.CAT[d.model].short }));
+    const dev = devices.find(d => d.id === devId);
+    if (!dev) return { side, devId: devId || '', devOptions, onChange, hasDev: false, empty: true, groups: [], noPorts: false, usage: '' };
+    const model = this.CAT[dev.model];
+    const flat = this.portsOf(dev.model);
+    const usedCount = flat.filter(p => this.linkOf(dev.id, p.addr)).length;
+    const usage = flat.length ? (usedCount + '/' + flat.length + ' ports used') : 'no front ports';
+    const byGroup = {};
+    flat.forEach(p => { (byGroup[p.groupLabel] = byGroup[p.groupLabel] || []).push(p); });
+    const pending = this.state.pending;
+    const groups = Object.keys(byGroup).map(gl => ({
+      label: gl,
+      ports: byGroup[gl].map(p => {
+        const link = this.linkOf(dev.id, p.addr);
+        const used = !!link;
+        const isPending = pending && pending.devId === dev.id && pending.addr === p.addr;
+        const tdef = this.TYPES[p.type] || { color: '#94a3b8' };
+        let bg = '#2d3a4e', color = '#e6e9ee', border = '#42506e', title = p.addr + ' · ' + p.type, cursor = 'pointer', glow = 'none';
+        if (used) { const other = (link.a.devId === dev.id) ? link.b : link.a; bg = '#161d2b'; color = '#8296b3'; border = '#2d3a4e'; cursor = 'not-allowed'; title = p.addr + ' → ' + this.nameOf(other.devId) + ':' + other.addr; }
+        else if (isPending) { bg = tdef.color; color = '#161d2b'; border = '#fff'; glow = '0 0 0 2px #f7981d'; }
+        else { border = tdef.color + '66'; }
+        return { label: p.addr, bg, color, border, cursor, glow, title, onClick: () => this.clickPort(dev.id, p.addr, p.type) };
+      }),
+    }));
+    return { side, devId, devOptions, onChange, hasDev: true, empty: false, devName: dev.name, devModel: model.name, usage, groups, noPorts: flat.length === 0, onRemoveDev: () => this.removeDevice(dev.id) };
+  }
+
+  renderVals() {
+    if (!this.state.ready) {
+      return { modelOptions: [], panels: [], links: [], pduLoad: [], plannerLayouts: [], hasPlanner: false, deviceCount: 0, linkCount: 0, addModel: '', addName: '', hasPending: false, hasLinks: false, noLinks: true, hasPdus: false, hasBothPanels: false, onExportCsv: () => {} };
+    }
+    const CAT = this.CAT;
+    const modelOptions = Object.keys(CAT).map(id => ({ id, label: CAT[id].short }));
+    const plannerLayouts = this.plannerKeys().map(k => ({ label: k.label, onClick: () => this.importFromPlanner(k.key) }));
+    const panels = [
+      this.buildPanel('Device A', this.state.panelA, (e) => this.setState({ panelA: e.target.value })),
+      this.buildPanel('Device B', this.state.panelB, (e) => this.setState({ panelB: e.target.value })),
+    ];
+    const links = this.state.links.map(l => ({
+      kind: l.kind, kindColor: l.kind === 'power' ? '#d1332e' : '#0ea5e9',
+      a: this.nameOf(l.a.devId) + ' : ' + l.a.addr,
+      b: this.nameOf(l.b.devId) + ' : ' + l.b.addr,
+      label: l.label || '',
+      onLabel: (e) => this.setLinkLabel(l.id, e.target.value),
+      onRemove: () => this.removeLink(l.id),
+    }));
+    const pdus = (this.state.devices || []).filter(d => CAT[d.model].category === 'pdu');
+    const pduLoad = pdus.map(d => {
+      const total = this.portsOf(d.model).filter(p => this.isPower(p.type)).length;
+      const used = this.state.links.filter(l => (l.a.devId === d.id && this.isPower(l.a.type)) || (l.b.devId === d.id && this.isPower(l.b.type))).length;
+      const pct = total ? Math.round(used / total * 100) : 0;
+      return { name: d.name, used, total, pct: pct + '%', barColor: pct >= 90 ? '#d1332e' : pct >= 70 ? '#f7981d' : '#34d399' };
+    });
+    const pending = this.state.pending;
+    return {
+      modelOptions, panels, links, pduLoad, plannerLayouts, hasPlanner: plannerLayouts.length > 0,
+      addModel: this.state.addModel, addName: this.state.addName,
+      onAddModelChange: (e) => this.setState({ addModel: e.target.value }),
+      onAddNameChange: (e) => this.setState({ addName: e.target.value }),
+      onAddDevice: () => this.addDevice(),
+      deviceCount: (this.state.devices || []).length, linkCount: this.state.links.length,
+      hasPending: !!pending, pendingLabel: pending ? (this.nameOf(pending.devId) + ' : ' + pending.addr) : '',
+      onCancelPending: () => this.setState({ pending: null }),
+      hasLinks: links.length > 0, noLinks: links.length === 0,
+      hasPdus: pduLoad.length > 0,
+      onExport: () => this.exportJson(), onImport: (e) => this.importJson(e), onReset: () => this.resetAll(), onExportCsv: () => this.exportCsv(),
+    };
+  }
+}
+</script>
+</body>
+</html>

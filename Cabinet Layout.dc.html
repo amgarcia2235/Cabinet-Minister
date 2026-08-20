@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { background: #121924; -webkit-font-smoothing: antialiased; }
+  a { color: #f7981d; text-decoration: none; }
+  a:hover { color: #ffa940; }
+  [contenteditable]:focus { outline: none; }
+  .phwrap { position: relative; }
+  .phwrap.showph::before { content: attr(data-ph); position: absolute; left: 0; top: 50%; transform: translateY(-50%); color: #7b8290; font-style: italic; pointer-events: none; white-space: nowrap; overflow: hidden; max-width: 100%; text-overflow: ellipsis; }
+  .phwrap.phright.showph::before { left: auto; right: 0; }
+  .phwrap.showph:focus-within::before { content: none; }
+</style>
+</helmet>
+<div style="min-height:100vh; background:#121924; background-image:linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px); background-size:44px 44px; font-family:'Space Grotesk',sans-serif; color:#e6e9ee; padding:40px 44px 64px;">
+
+  <header style="max-width:1220px; margin:0 auto 24px; display:flex; justify-content:space-between; align-items:flex-end; gap:24px; flex-wrap:wrap; border-bottom:1px solid rgba(255,255,255,0.14); padding-bottom:20px;">
+    <div>
+      <a href="Hub.dc.html" style="display:inline-block; font-family:'IBM Plex Mono',monospace; font-size:11px; color:#f7981d; text-decoration:none; margin-bottom:10px;">← Hub</a>
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:2.5px; text-transform:uppercase; color:#9fb0ca; margin-bottom:8px;">Rack Elevation · Front View</div>
+      <h1 style="margin:0; font-size:32px; font-weight:700; letter-spacing:-0.5px;">Interactive Cabinet Planner</h1>
+      <p style="margin:8px 0 0; font-size:15px; color:#9fb0ca; max-width:640px; line-height:1.5;">Interactive rack planner with our boot hardware chassis taken into consideration. Each U is dual-sided — cold and hot slots fill independently. Click a slot to add gear, drag a device to move it, and drag its bottom handle to span multiple Us on one side.</p>
+    </div>
+    <div style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#8296b3; text-align:right; line-height:1.7;">
+      <div>47U &nbsp;·&nbsp; front view</div>
+      <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:8px;">
+        <button onClick="{{ onExport }}" title="Download your layout as a file" style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#e6e9ee; background:#212c3e; border:1px solid rgba(255,255,255,0.14); border-radius:7px; padding:6px 12px; cursor:pointer;" style-hover="border-color:#9fb0ca;">Save file</button>
+        <label title="Open a saved layout file" style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#e6e9ee; background:#212c3e; border:1px solid rgba(255,255,255,0.14); border-radius:7px; padding:6px 12px; cursor:pointer;" style-hover="border-color:#9fb0ca;">Open file<input type="file" accept="application/json,.json" onChange="{{ onImport }}" style="display:none;" /></label>
+        <button onClick="{{ onReset }}" title="Reset to default layout" style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#8296b3; background:transparent; border:1px solid rgba(255,255,255,0.14); border-radius:7px; padding:6px 12px; cursor:pointer;" style-hover="color:#b91c1c; border-color:#fca5a5;">Reset</button>
+      </div>
+      <div style="margin-top:6px; color:#9fb0ca; font-size:11px;">Auto-saves in this browser</div>
+    </div>
+  </header>
+
+  <div style="max-width:1220px; margin:0 auto 30px; background:#1b2432; border:1px solid rgba(255,255,255,0.14); border-radius:10px; padding:16px 20px;">
+    <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+      <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:2px; text-transform:uppercase; color:#9fb0ca;">Key</span>
+      <span style="flex:1; height:1px; background:rgba(255,255,255,0.13);"></span>
+    </div>
+    <div style="display:flex; flex-wrap:wrap; gap:10px 26px; align-items:center;">
+      <sc-for list="{{ legend }}" as="item" hint-placeholder-count="11">
+        <span style="display:inline-flex; align-items:center; gap:8px; font-size:13px; color:#d5d9e0; font-weight:500;">
+          <span style="width:13px; height:13px; border-radius:3px; background: {{ item.accent }};"></span>{{ item.label }}
+        </span>
+      </sc-for>
+      <span style="display:inline-flex; align-items:center; gap:8px; font-size:13px; color:#d5d9e0; font-weight:500;">
+        <span style="width:13px; height:13px; border-radius:3px; background:#38bdf8;"></span>Cold-aisle facing
+      </span>
+      <span style="display:inline-flex; align-items:center; gap:8px; font-size:13px; color:#d5d9e0; font-weight:500;">
+        <span style="width:13px; height:13px; border-radius:3px; background:#f87171;"></span>Hot-aisle facing
+      </span>
+    </div>
+  </div>
+
+  <div style="max-width:1320px; margin:0 auto; display:flex; gap:44px; flex-wrap:wrap; align-items:flex-start; justify-content:center;">
+    <sc-for list="{{ racks }}" as="rack" hint-placeholder-count="2">
+      <div style="flex:1 1 560px; max-width:620px;">
+        <div style="margin-bottom:14px; display:flex; align-items:baseline; gap:10px;">
+          <h2 contentEditable="true" suppressContentEditableWarning="{{ true }}" onBlur="{{ rack.onRenameName }}" title="Click to rename" style="margin:0; font-size:20px; font-weight:600; outline:none; cursor:text;">{{ rack.name }}</h2>
+          <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; padding:3px 9px; border-radius:999px; background: {{ rack.badgeBg }}; color: {{ rack.badgeFg }}; font-weight:500; letter-spacing:0.5px;">{{ rack.badge }}</span>
+          <span title="Occupied / free rack units" style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#8296b3;">{{ rack.cap }}</span>
+          <sc-if value="{{ rack.canRemove }}" hint-placeholder-val="{{ true }}">
+            <button onClick="{{ rack.onRemove }}" title="Remove cabinet" style="margin-left:auto; font-family:'IBM Plex Mono',monospace; font-size:11px; color:#9fb0ca; background:transparent; border:1px solid rgba(255,255,255,0.14); border-radius:6px; padding:3px 9px; cursor:pointer;" style-hover="color:#b91c1c; border-color:#fca5a5;">remove</button>
+          </sc-if>
+        </div>
+
+        <div style="background:#0d1219; border:1px solid #161d2b; border-radius:10px; padding:14px 12px; box-shadow:0 18px 40px -22px rgba(0,0,0,0.55);">
+          <div style="display:grid; grid-template-columns:28px 1fr 1fr; column-gap:6px; padding:0 4px 10px; font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:1.5px; color:#8296b3; text-transform:uppercase;">
+            <span></span>
+            <span style="text-align:left;">◀ Cold aisle</span>
+            <span style="text-align:right;">Hot aisle ▶</span>
+          </div>
+          <div style="display:grid; grid-template-columns:28px 1fr 1fr; column-gap:6px; row-gap:2px; grid-auto-rows: {{ rowH }}px;">
+            <sc-for list="{{ rack.items }}" as="it" hint-placeholder-count="47">
+
+              <sc-if value="{{ it.isULabel }}" hint-placeholder-val="{{ true }}">
+                <div contentEditable="true" suppressContentEditableWarning="{{ true }}" onBlur="{{ it.onRenameU }}" title="Click to edit U label" style="grid-column:1; grid-row: {{ it.gridRow }}; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:10px; color:#9fb0ca; outline:none; cursor:text;">{{ it.uLabel }}</div>
+              </sc-if>
+
+              <sc-if value="{{ it.isEmpty }}" hint-placeholder-val="{{ true }}">
+                <div onClick="{{ it.onOpenAdd }}" onDragEnter="{{ it.onDragEnter }}" onDragOver="{{ it.onDragOver }}" onDrop="{{ it.onDrop }}" title="Click to add" style="position:relative; grid-column: {{ it.gridCol }}; grid-row: {{ it.gridRow }}; display:flex; align-items:center; justify-content:center; border-radius:5px; background:#2d3a4e; border:1px dashed #273246; box-shadow: {{ it.dropOutline }}; cursor:pointer;" style-hover="border-color:#9fb0ca;">
+                  <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:#4b4640;">+ add</span>
+                  <sc-if value="{{ it.addOpen }}" hint-placeholder-val="{{ true }}">
+                    <div onClick="{{ it.onOpenAdd }}" style="position:fixed; inset:0; z-index:55;"></div>
+                    <div style="position:absolute; left:0; top:calc(100% + 4px); z-index:60; background:#161d2b; border:1px solid #44403c; border-radius:9px; padding:7px; width:300px; box-shadow:0 16px 40px rgba(0,0,0,0.55);">
+                      <div style="font-family:'IBM Plex Mono',monospace; font-size:9.5px; letter-spacing:1px; text-transform:uppercase; color:#8296b3; padding:2px 4px 8px;">Add to U{{ it.uLabel }} · {{ it.sideLabel }}</div>
+                      <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px;">
+                        <sc-for list="{{ it.addItems }}" as="opt" hint-placeholder-count="10">
+                          <button onClick="{{ opt.onClick }}" style="text-align:left; font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:#e6e9ee; background:#0d1219; border:1px solid #42506e; border-radius:6px; padding:8px 10px; cursor:pointer;" style-hover="background:#292524; border-color:#8296b3;">{{ opt.label }}</button>
+                        </sc-for>
+                      </div>
+                    </div>
+                  </sc-if>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ it.isLeftCell }}" hint-placeholder-val="{{ true }}">
+                <div draggable="true" onDragStart="{{ it.onDragStart }}" onDragEnter="{{ it.onDragEnter }}" onDragOver="{{ it.onDragOver }}" onDrop="{{ it.onDrop }}" onDragEnd="{{ it.onDragEnd }}" title="Drag to move · drag bottom handle to span" style="position:relative; grid-column: {{ it.gridCol }}; grid-row: {{ it.gridRow }}; display:flex; align-items:center; gap:6px; padding:0 11px; border-radius:5px; border-left:4px solid {{ it.accent }}; background: {{ it.tint }}; overflow:hidden; cursor:grab; box-shadow: {{ it.dropOutline }};">
+                  <sc-if value="{{ it.badge }}" hint-placeholder-val="{{ true }}">
+                    <span style="flex:0 0 auto; font-family:'IBM Plex Mono',monospace; font-size:9px; font-weight:700; letter-spacing:0.5px; padding:2px 5px; border-radius:3px; color:#161d2b; background: {{ it.badgeColor }};">{{ it.badge }}</span>
+                  </sc-if>
+                  <input type="text" value="{{ it.name }}" placeholder="{{ it.namePh }}" onMouseDown="{{ it.onNameMouseDown }}" onChange="{{ it.onNameChange }}" onBlur="{{ it.onRenameName }}" title="Click to rename" style="flex:1; min-width:0; background:transparent; border:none; outline:none; padding:0; font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:500; color:#eceff4; text-align:left;" />
+                  <button onClick="{{ it.onClear }}" title="Remove" style="flex:0 0 auto; width:18px; height:18px; display:flex; align-items:center; justify-content:center; padding:0; border:none; border-radius:4px; background:transparent; color:#9fb0ca; font-size:15px; line-height:1; cursor:pointer;" style-hover="background:rgba(0,0,0,0.35); color:#fff;">×</button>
+                  <div draggable="false" onMouseDown="{{ it.onResizeMouseDown }}" onPointerDown="{{ it.onResizeDown }}" onPointerMove="{{ it.onResizeMove }}" onPointerUp="{{ it.onResizeUp }}" title="Drag to span Us" style="position:absolute; left:8px; right:8px; bottom:0; height:8px; cursor:ns-resize; display:flex; align-items:center; justify-content:center;"><span style="width:26px; height:3px; border-radius:2px; background:rgba(255,255,255,0.28);"></span></div>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ it.isHotCell }}" hint-placeholder-val="{{ true }}">
+                <div draggable="true" onDragStart="{{ it.onDragStart }}" onDragEnter="{{ it.onDragEnter }}" onDragOver="{{ it.onDragOver }}" onDrop="{{ it.onDrop }}" onDragEnd="{{ it.onDragEnd }}" title="Drag to move · drag bottom handle to span" style="position:relative; grid-column: {{ it.gridCol }}; grid-row: {{ it.gridRow }}; display:flex; align-items:center; gap:6px; padding:0 11px; border-radius:5px; border-right:4px solid {{ it.accent }}; background: {{ it.tint }}; overflow:hidden; cursor:grab; box-shadow: {{ it.dropOutline }};">
+                  <button onClick="{{ it.onClear }}" title="Remove" style="flex:0 0 auto; width:18px; height:18px; display:flex; align-items:center; justify-content:center; padding:0; border:none; border-radius:4px; background:transparent; color:#9fb0ca; font-size:15px; line-height:1; cursor:pointer;" style-hover="background:rgba(0,0,0,0.35); color:#fff;">×</button>
+                  <input type="text" value="{{ it.name }}" placeholder="{{ it.namePh }}" onMouseDown="{{ it.onNameMouseDown }}" onChange="{{ it.onNameChange }}" onBlur="{{ it.onRenameName }}" title="Click to rename" style="flex:1; min-width:0; background:transparent; border:none; outline:none; padding:0; font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:500; color:#eceff4; text-align:right;" />
+                  <sc-if value="{{ it.badge }}" hint-placeholder-val="{{ true }}">
+                    <span style="flex:0 0 auto; font-family:'IBM Plex Mono',monospace; font-size:9px; font-weight:700; letter-spacing:0.5px; padding:2px 5px; border-radius:3px; color:#161d2b; background: {{ it.badgeColor }};">{{ it.badge }}</span>
+                  </sc-if>
+                  <div draggable="false" onMouseDown="{{ it.onResizeMouseDown }}" onPointerDown="{{ it.onResizeDown }}" onPointerMove="{{ it.onResizeMove }}" onPointerUp="{{ it.onResizeUp }}" title="Drag to span Us" style="position:absolute; left:8px; right:8px; bottom:0; height:8px; cursor:ns-resize; display:flex; align-items:center; justify-content:center;"><span style="width:26px; height:3px; border-radius:2px; background:rgba(255,255,255,0.28);"></span></div>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ it.isFullCell }}" hint-placeholder-val="{{ true }}">
+                <div draggable="true" onDragStart="{{ it.onDragStart }}" onDragEnter="{{ it.onDragEnter }}" onDragOver="{{ it.onDragOver }}" onDrop="{{ it.onDrop }}" onDragEnd="{{ it.onDragEnd }}" title="Drag to move" style="position:relative; grid-column:2 / 4; grid-row: {{ it.gridRow }}; display:flex; align-items:center; gap:6px; padding:0 12px; border-radius:5px; border-left:4px solid {{ it.accent }}; background: {{ it.tint }}; overflow:hidden; cursor:grab; box-shadow: {{ it.dropOutline }};">
+                  <sc-if value="{{ it.badge }}" hint-placeholder-val="{{ true }}">
+                    <span style="flex:0 0 auto; font-family:'IBM Plex Mono',monospace; font-size:9px; font-weight:700; letter-spacing:0.5px; padding:2px 5px; border-radius:3px; color:#161d2b; background: {{ it.badgeColor }};">{{ it.badge }}</span>
+                  </sc-if>
+                  <input type="text" value="{{ it.name }}" placeholder="{{ it.namePh }}" onMouseDown="{{ it.onNameMouseDown }}" onChange="{{ it.onNameChange }}" onBlur="{{ it.onRenameName }}" title="Click to rename" style="flex:1; min-width:0; background:transparent; border:none; outline:none; padding:0; font-family:'IBM Plex Mono',monospace; font-size:12.5px; font-weight:500; color:#eceff4; text-align:left;" />
+                  <button onClick="{{ it.onClear }}" title="Remove" style="flex:0 0 auto; width:18px; height:18px; display:flex; align-items:center; justify-content:center; padding:0; border:none; border-radius:4px; background:transparent; color:#9fb0ca; font-size:15px; line-height:1; cursor:pointer;" style-hover="background:rgba(0,0,0,0.35); color:#fff;">×</button>
+                </div>
+              </sc-if>
+
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </sc-for>
+
+    <div style="flex:0 0 auto; align-self:center;">
+      <button onClick="{{ onAddCabinet }}" title="Add a blank cabinet" style="font-family:'IBM Plex Mono',monospace; font-size:13px; color:#9fb0ca; background:#1b2432; border:1px dashed rgba(255,255,255,0.18); border-radius:10px; padding:14px 18px; cursor:pointer; white-space:nowrap;" style-hover="border-color:#9fb0ca; color:#e6e9ee;">+ Add cabinet</button>
+    </div>
+  </div>
+
+  <template id="__bundler_thumbnail">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <rect width="120" height="120" fill="#1c1917"/>
+      <rect x="42" y="18" width="36" height="84" rx="4" fill="none" stroke="#9fb0ca" stroke-width="2"/>
+      <rect x="47" y="24" width="26" height="7" rx="1.5" fill="#2dd4bf"/>
+      <rect x="47" y="34" width="26" height="7" rx="1.5" fill="#f7981d"/>
+      <rect x="47" y="44" width="11" height="17" rx="1.5" fill="#fb7185"/>
+      <rect x="62" y="44" width="11" height="17" rx="1.5" fill="#fb7185"/>
+      <rect x="47" y="64" width="11" height="7" rx="1.5" fill="#38bdf8"/>
+      <rect x="62" y="64" width="11" height="7" rx="1.5" fill="#f87171"/>
+      <rect x="47" y="74" width="11" height="7" rx="1.5" fill="#38bdf8"/>
+      <rect x="62" y="74" width="11" height="7" rx="1.5" fill="#f87171"/>
+      <rect x="47" y="84" width="11" height="7" rx="1.5" fill="#38bdf8"/>
+      <rect x="62" y="84" width="11" height="7" rx="1.5" fill="#f87171"/>
+    </svg>
+  </template>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;unitHeight&quot;: { &quot;editor&quot;: &quot;range&quot;, &quot;default&quot;: 26, &quot;min&quot;: 22, &quot;max&quot;: 40, &quot;step&quot;: 1, &quot;tsType&quot;: &quot;number&quot;, &quot;section&quot;: &quot;Layout&quot;, &quot;unit&quot;: &quot;px&quot; },
+  &quot;showColdHot&quot;: { &quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Layout&quot; }
+}">
+class Component extends DCLogic {
+  state = { racks: null, dragOver: null, addKey: null };
+
+  storageKey = 'cabplanner.v1.main';
+
+  componentDidMount() {
+    let loaded = null;
+    try { const raw = window.localStorage.getItem(this.storageKey); if (raw) loaded = JSON.parse(raw); } catch (_) {}
+    this.setState({ racks: (loaded && Array.isArray(loaded) && loaded.length) ? loaded : this.buildRacks() });
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    if (prevState.racks !== this.state.racks && this.state.racks) {
+      try { window.localStorage.setItem(this.storageKey, JSON.stringify(this.state.racks)); } catch (_) {}
+    }
+  }
+
+  exportJson() {
+    try {
+      const data = JSON.stringify(this.state.racks, null, 2);
+      const blob = new Blob([data], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'cabinet-layout.json';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (_) {}
+  }
+
+  importJson(e) {
+    const file = e.target && e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try { const parsed = JSON.parse(reader.result); if (Array.isArray(parsed) && parsed.length) this.setState({ racks: parsed }); }
+      catch (_) { window.alert('Could not read that file — expected a cabinet-layout.json exported from this planner.'); }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  }
+
+  resetAll() {
+    if (window.confirm('Reset to the default layout? This clears your saved changes.')) this.setState({ racks: this.buildRacks() });
+  }
+
+  UNITS = 47;
+
+  buildRacks() {
+    let id = 0;
+    const cells = [];
+    const C = (top, side, kind, name, span) => cells.push({ id: 'c' + (id++), top, side, kind, name: name || '', span: span || 1 });
+    C(47, 'full', 'patch', 'Cross Connect Fiber Patch Panel');
+    C(45, 'full', 'dist', 'EX4200 — IPMI distributor');
+    C(44, 'full', 'dist', 'EX4200 — backup distributor');
+    C(43, 'full', 'spine', 'spine10');
+    C(42, 'full', 'spine', 'spine9');
+    C(41, 'full', 'reserved', 'rail support — kept clear for spines above');
+    C(39, 'full', 'console', 'Console switch');
+    C(38, 'full', 'mgmt', 'EX4200 — IPMI switch');
+    C(37, 'full', 'network', 'QFX5100 — network switch');
+    C(36, 'cold', 'pdu', 'PDU A', 2);
+    C(36, 'hot', 'pdu', 'PDU B', 2);
+    for (let u = 34; u >= 14; u--) { C(u, 'cold', 'chassis', ''); C(u, 'hot', 'chassis', ''); }
+    return [
+      { name: 'Main Cabinet', badge: 'MAIN', badgeBg: '#dbe9ff', badgeFg: '#1d4e9e', cells: [], uLabels: {} },
+    ];
+  }
+
+  KIND = {
+    patch:      { label: 'Patch / Fiber',   accent: '#2dd4bf', def: 'Patch panel' },
+    dist:       { label: 'Distribution',    accent: '#eab308', def: 'EX4200' },
+    spine:      { label: 'Spine',           accent: '#4d9fff', def: 'spine' },
+    pdu:        { label: 'PDU / power',      accent: '#e5484d', def: 'PDU' },
+    console:    { label: 'Console',         accent: '#64748b', def: 'Console switch' },
+    mgmt:       { label: 'Mgmt switch',     accent: '#a78bfa', def: 'EX4200 — IPMI' },
+    network:    { label: 'Network switch',  accent: '#22c55e', def: 'QFX5100' },
+    private:    { label: 'Private switch',   accent: '#f97316', def: 'Private switch' },
+    chassis:    { label: 'BH chassis',       accent: '#7dd3fc', def: '', ph: 'Boot Hardware Chassis' },
+    supermicro: { label: 'Supermicro',       accent: '#f472b6', def: '', ph: 'Supermicro Chassis' },
+    reserved:   { label: 'Rail support',     accent: '#9fb0ca', def: 'rail support' },
+  };
+
+  MENU = [
+    { label: 'Patch / Fiber', kind: 'patch', full: true },
+    { label: 'Distribution', kind: 'dist', full: true },
+    { label: 'Spine', kind: 'spine', full: true },
+    { label: 'Console', kind: 'console', full: true },
+    { label: 'Mgmt switch', kind: 'mgmt', full: true },
+    { label: 'Network switch', kind: 'network', full: true },
+    { label: 'Private switch', kind: 'private', full: true },
+    { label: 'Rail support', kind: 'reserved', full: true },
+    { label: 'PDU (this side)', kind: 'pdu' },
+    { label: 'BH chassis', kind: 'chassis' },
+    { label: 'Supermicro (full, cold)', kind: 'supermicro', full: true },
+  ];
+
+  occupies(cell, u, side) {
+    const within = u <= cell.top && u > cell.top - cell.span;
+    if (!within) return false;
+    if (cell.side === 'full' || side === 'full') return true;
+    return cell.side === side;
+  }
+
+  cloneRack(s, rackIdx) {
+    return s.racks.map((r, ri) => ri === rackIdx ? { ...r, cells: r.cells.map(c => ({ ...c })), uLabels: { ...r.uLabels } } : r);
+  }
+
+  addFromMenu(rackIdx, u, clickedSide, opt) {
+    const side = opt.full ? 'full' : (opt.side || clickedSide);
+    const K = this.KIND[opt.kind];
+    let name = K.def;
+    if (opt.kind === 'pdu') name = side === 'hot' ? 'PDU B' : 'PDU A';
+    this.setState(s => {
+      const racks = this.cloneRack(s, rackIdx);
+      const rack = racks[rackIdx];
+      rack.cells = rack.cells.filter(c => !this.occupies(c, u, side));
+      rack.cells.push({ id: 'c' + Date.now() + Math.floor(Math.random() * 1000), top: u, side, kind: opt.kind, name, span: 1 });
+      return { racks, addKey: null };
+    });
+  }
+
+  rename(rackIdx, id, value) {
+    this.setState(s => {
+      const racks = this.cloneRack(s, rackIdx);
+      const cell = racks[rackIdx].cells.find(c => c.id === id);
+      if (cell) cell.name = value;
+      return { racks };
+    });
+  }
+
+  renameU(rackIdx, u, value) {
+    this.setState(s => { const racks = this.cloneRack(s, rackIdx); racks[rackIdx].uLabels[u] = value; return { racks }; });
+  }
+
+  renameRack(rackIdx, value) {
+    this.setState(s => ({ racks: s.racks.map((r, ri) => ri === rackIdx ? { ...r, name: value } : r) }));
+  }
+
+  clearCell(rackIdx, id) {
+    this.setState(s => { const racks = this.cloneRack(s, rackIdx); racks[rackIdx].cells = racks[rackIdx].cells.filter(c => c.id !== id); return { racks }; });
+  }
+
+  addCabinet() {
+    this.setState(s => {
+      const n = s.racks.length;
+      return { racks: [...s.racks, { name: 'Cabinet ' + n, badge: 'NEW', badgeBg: '#e6e9ee', badgeFg: '#64779a', cells: [], uLabels: {} }] };
+    });
+  }
+
+  removeCabinet(rackIdx) {
+    this.setState(s => s.racks.length > 1 ? { racks: s.racks.filter((_, ri) => ri !== rackIdx) } : {});
+  }
+
+  maxSpan(cells, cell) {
+    let m = 1;
+    const side = cell.side;
+    for (let s = 2; ; s++) {
+      const u = cell.top - s + 1;
+      if (u < 1) break;
+      const blocked = cells.some(c => c.id !== cell.id && this.occupies(c, u, side));
+      if (blocked) break;
+      m = s;
+    }
+    return m;
+  }
+
+  setSpan(rackIdx, id, span) {
+    this.setState(s => {
+      const racks = this.cloneRack(s, rackIdx);
+      const cell = racks[rackIdx].cells.find(c => c.id === id);
+      if (cell) cell.span = span;
+      return { racks };
+    });
+  }
+
+  moveCell(rackIdx, id, u, dropSide) {
+    this.setState(s => {
+      const racks = this.cloneRack(s, rackIdx);
+      const cells = racks[rackIdx].cells;
+      const cell = cells.find(c => c.id === id);
+      if (!cell) return {};
+      const side = cell.side === 'full' ? 'full' : dropSide;
+      let span = Math.min(cell.span, u); // can't extend past U1
+      const footprint = [];
+      for (let k = 0; k < span; k++) footprint.push(u - k);
+      racks[rackIdx].cells = cells.filter(c => c.id === id || !footprint.some(fu => this.occupies(c, fu, side)));
+      cell.top = u; cell.side = side; cell.span = span;
+      return { racks, dragOver: null };
+    });
+  }
+
+  renderVals() {
+    const UNITS = this.UNITS;
+    const rowH = this.props.unitHeight ?? 26;
+    const showColdHot = this.props.showColdHot ?? true;
+    const model = this.state.racks || this.buildRacks();
+    const dragOver = this.state.dragOver;
+    const pitch = rowH + 2;
+    const rowOf = (u) => UNITS - u + 1;
+
+    const racks = model.map((rack, rackIdx) => {
+      const cells = rack.cells;
+      const occ = {};
+      cells.forEach(c => {
+        for (let k = 0; k < c.span; k++) {
+          const u = c.top - k;
+          if (c.side === 'full') { occ[u + ':cold'] = 1; occ[u + ':hot'] = 1; }
+          else occ[u + ':' + c.side] = 1;
+        }
+      });
+
+      const items = [];
+
+      for (let u = UNITS; u >= 1; u--) {
+        items.push({ isULabel: true, gridRow: String(rowOf(u)), uLabel: rack.uLabels[u] ?? u, onRenameU: (e) => this.renameU(rackIdx, u, e.target.textContent.trim()) });
+      }
+
+      cells.forEach(cell => {
+        const K = this.KIND[cell.kind];
+        const tint = K.accent + '26';
+        const gridRow = rowOf(cell.top) + ' / span ' + cell.span;
+        const isFull = cell.side === 'full';
+        const isHot = cell.side === 'hot';
+        const editable = true;
+        const fixed = false;
+        let badge = null, badgeColor = null;
+        if ((cell.kind === 'chassis' || cell.kind === 'supermicro') && showColdHot) {
+          badge = isHot ? 'HOT' : 'COLD';
+          badgeColor = isHot ? '#f87171' : '#38bdf8';
+        } else if (cell.kind === 'pdu') {
+          badge = isHot ? '▶' : '◀';
+          badgeColor = '#fb7185';
+        }
+        const phBase = ['phwrap'];
+        if (isHot) phBase.push('phright');
+        if (K.ph && !cell.name) phBase.push('showph');
+        const common = {
+          accent: K.accent, tint,
+          gridRow,
+          gridCol: isHot ? '3' : '2',
+          name: cell.name,
+          namePh: K.ph || '',
+          phClass: phBase.join(' '),
+          editable, fixed, badge, badgeColor,
+          dropOutline: dragOver === ('drag:' + rackIdx + ':' + cell.id) ? '0 0 0 2px #f7981d' : 'none',
+          onNameChange: (e) => this.rename(rackIdx, cell.id, e.target.value),
+          onRenameName: (e) => this.rename(rackIdx, cell.id, e.target.value.trim()),
+          onNameMouseDown: (e) => e.stopPropagation(),
+          onClear: () => this.clearCell(rackIdx, cell.id),
+          onDragStart: (e) => { this.dragId = { rackIdx, id: cell.id }; if (e.dataTransfer) { e.dataTransfer.effectAllowed = 'move'; try { e.dataTransfer.setData('text/plain', cell.id); } catch (_) {} } },
+          onDragEnter: () => {}, onDragOver: (e) => e.preventDefault(),
+          onDrop: (e) => { e.preventDefault(); }, onDragEnd: () => { this.dragId = null; this.setState({ dragOver: null }); },
+          onResizeMouseDown: (e) => { e.stopPropagation(); },
+          onResizeDown: (e) => {
+            e.preventDefault(); e.stopPropagation();
+            const ms = this.maxSpan(this.state.racks[rackIdx].cells, cell);
+            this.resizing = { rackIdx, id: cell.id, startY: e.clientY, startSpan: cell.span, maxSpan: ms };
+            try { e.target.setPointerCapture(e.pointerId); } catch (_) {}
+          },
+          onResizeMove: (e) => {
+            const r = this.resizing; if (!r || r.id !== cell.id) return;
+            const dr = Math.round((e.clientY - r.startY) / pitch);
+            const span = Math.max(1, Math.min(r.maxSpan, r.startSpan + dr));
+            if (span !== cell.span) this.setSpan(r.rackIdx, r.id, span);
+          },
+          onResizeUp: (e) => { this.resizing = null; try { e.target.releasePointerCapture(e.pointerId); } catch (_) {} },
+        };
+        if (isFull) items.push(Object.assign({ isFullCell: true }, common));
+        else if (isHot) items.push(Object.assign({ isHotCell: true }, common));
+        else items.push(Object.assign({ isLeftCell: true }, common));
+      });
+
+      for (let u = UNITS; u >= 1; u--) {
+        ['cold', 'hot'].forEach(side => {
+          if (occ[u + ':' + side]) return;
+          const key = rackIdx + ':' + u + ':' + side;
+          const addOpen = this.state.addKey === key;
+          const item = {
+            isEmpty: true,
+            gridRow: String(rowOf(u)),
+            gridCol: side === 'hot' ? '3' : '2',
+            uLabel: rack.uLabels[u] ?? u,
+            sideLabel: side === 'hot' ? 'Hot side' : 'Cold side',
+            addOpen,
+            dropOutline: dragOver === key ? '0 0 0 2px #f7981d' : 'none',
+            onOpenAdd: (e) => { if (e) e.stopPropagation(); this.setState(s => ({ addKey: s.addKey === key ? null : key })); },
+            onDragEnter: () => this.setState({ dragOver: key }),
+            onDragOver: (e) => e.preventDefault(),
+            onDrop: (e) => { e.preventDefault(); const d = this.dragId; if (d && d.rackIdx === rackIdx) this.moveCell(rackIdx, d.id, u, side); this.dragId = null; },
+          };
+          item.addItems = this.MENU.map(m => ({ label: m.label, onClick: (e) => { if (e) e.stopPropagation(); this.addFromMenu(rackIdx, u, side, m); } }));
+          items.push(item);
+        });
+      }
+
+      let occU = 0;
+      for (let u = 1; u <= UNITS; u++) { if (occ[u + ':cold'] || occ[u + ':hot']) occU++; }
+      return {
+        name: rack.name, badge: rack.badge, badgeBg: rack.badgeBg, badgeFg: rack.badgeFg,
+        cap: occU + '/' + UNITS + 'U · ' + (UNITS - occU) + ' free',
+        items,
+        canRemove: model.length > 1,
+        onRenameName: (e) => this.renameRack(rackIdx, e.target.textContent.trim()),
+        onRemove: () => this.removeCabinet(rackIdx),
+      };
+    });
+
+    const legend = ['patch', 'dist', 'spine', 'pdu', 'console', 'mgmt', 'network', 'private', 'chassis', 'supermicro', 'reserved']
+      .map(k => ({ label: this.KIND[k].label, accent: this.KIND[k].accent }));
+
+    return { racks, legend, rowH, rev: 'C', onAddCabinet: () => this.addCabinet(), onExport: () => this.exportJson(), onImport: (e) => this.importJson(e), onReset: () => this.resetAll() };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>3D Rack Environment</title>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.184.0/build/three.module.js",
+    "three/addons/controls/OrbitControls.js": "https://unpkg.com/three@0.184.0/examples/jsm/controls/OrbitControls.js",
+    "three/addons/environments/RoomEnvironment.js": "https://unpkg.com/three@0.184.0/examples/jsm/environments/RoomEnvironment.js"
+  },
+  "integrity": {
+    "https://unpkg.com/three@0.184.0/build/three.module.js": "sha384-8FCZ1eVO6it4+pbec2aDtnTrwjWXZLJRC+MAGCIPDgsYnUrl/E0A2YlF8ioMKI/J",
+    "https://unpkg.com/three@0.184.0/build/three.core.js": "sha384-dw2ooPewaEIrAgl6oFDBmmBWCE9oW9LxRGcfwZ0hLvEprzo202wXl7vCYHRlSnOT",
+    "https://unpkg.com/three@0.184.0/examples/jsm/controls/OrbitControls.js": "sha384-4rziNxOBZKQ69i+w+f89KJ55TCYquwchVbByQwmaOeIOXdOU2PLDn3kOfXHwIJC9"
+  }
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #0a0d14; font-family: 'Space Grotesk', sans-serif; color: #e6e9ee; }
+  #app { position: fixed; inset: 0; }
+  canvas { display: block; }
+  .panel { position: fixed; background: rgba(13,18,28,0.86); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+  #title { top: 20px; left: 20px; padding: 16px 20px; max-width: 340px; }
+  #title .kick { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase; color: #9fb0ca; margin-bottom: 7px; }
+  #title h1 { margin: 0; font-size: 21px; font-weight: 700; letter-spacing: -0.3px; }
+  #title p { margin: 8px 0 0; font-size: 12.5px; line-height: 1.5; color: #9fb0ca; }
+  #controls { top: 20px; right: 20px; padding: 12px; display: flex; flex-direction: column; gap: 8px; width: 190px; }
+  #controls .row { display: flex; gap: 8px; }
+  button.ctl { flex: 1; font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: #e6e9ee; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; padding: 9px 10px; cursor: pointer; text-align: center; user-select: none; transition: background .15s, border-color .15s; }
+  button.ctl:hover { background: rgba(255,255,255,0.11); border-color: rgba(255,255,255,0.25); }
+  button.ctl.on { background: #f7981d; border-color: #ffb54d; color: #fff; }
+  #legend { bottom: 20px; left: 20px; padding: 13px 16px; display: flex; flex-direction: column; gap: 8px; max-width: 400px; }
+  #legend .lk { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: #9fb0ca; }
+  #legend .items { display: grid; grid-template-columns: 1fr 1fr; gap: 5px 18px; }
+  #legend .it { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #d5d9e0; }
+  #legend .sw { width: 12px; height: 12px; border-radius: 3px; flex: 0 0 12px; }
+  #legend .cw { width: 18px; height: 4px; border-radius: 2px; flex: 0 0 18px; }
+  #hint { bottom: 20px; right: 20px; padding: 9px 14px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #9fb0ca; }
+  #tip { position: fixed; pointer-events: none; display: none; padding: 9px 12px; font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: #eceff4; background: rgba(13,18,28,0.94); border: 1px solid rgba(247,152,29,0.55); border-radius: 8px; z-index: 40; max-width: 320px; line-height: 1.55; }
+  #tip .pa { font-size: 13px; font-weight: 600; color: #fff; }
+  #tip .pt { color: #9fb0ca; }
+  #tip .pw { color: #f7981d; }
+  #tip .warn { color: #eab308; }
+  #wire { top: 210px; right: 20px; width: 250px; padding: 14px; display: none; }
+  #wire .wk { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: #9fb0ca; margin-bottom: 8px; }
+  #wire .src { font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: #fff; line-height: 1.5; margin-bottom: 4px; }
+  #wire .sub { font-size: 11.5px; color: #9fb0ca; line-height: 1.45; margin-bottom: 10px; }
+  #wire .types { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 10px; }
+  #wire .tbtn { font-family: 'IBM Plex Mono', monospace; font-size: 11px; padding: 8px 6px; border-radius: 7px; border: 1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.04); color: #d5d9e0; cursor: pointer; display: flex; align-items: center; gap: 6px; justify-content: center; }
+  #wire .tbtn .d { width: 9px; height: 9px; border-radius: 50%; }
+  #wire .tbtn.sel { border-width: 2px; color: #fff; background: rgba(255,255,255,0.08); }
+  #wire .act { display: flex; gap: 6px; }
+  #wire .abtn { flex: 1; font-family: 'IBM Plex Mono', monospace; font-size: 11px; padding: 8px 6px; border-radius: 7px; border: 1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.04); color: #d5d9e0; cursor: pointer; }
+  #wire .abtn:hover { background: rgba(255,255,255,0.1); }
+  #wire .abtn.danger { color: #ff8589; border-color: rgba(229,72,77,0.5); }
+  #loading { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #8296b3; background: #0a0d14; z-index: 50; }
+  #loading.hide { opacity: 0; pointer-events: none; transition: opacity .6s; }
+</style>
+</head>
+<body>
+<template id="__bundler_thumbnail" data-bg-color="#0a0d14">
+  <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+    <rect width="1200" height="800" fill="#0a0d14"/>
+    <rect x="500" y="120" width="200" height="560" rx="10" fill="none" stroke="#33405a" stroke-width="6"/>
+    <rect x="522" y="150" width="156" height="34" rx="4" fill="#2dd4bf"/>
+    <rect x="522" y="196" width="156" height="34" rx="4" fill="#4d9fff"/>
+    <rect x="522" y="242" width="156" height="34" rx="4" fill="#e5484d"/>
+    <rect x="522" y="300" width="74" height="26" rx="4" fill="#38bdf8"/>
+    <rect x="604" y="300" width="74" height="26" rx="4" fill="#f87171"/>
+    <rect x="522" y="334" width="74" height="26" rx="4" fill="#38bdf8"/>
+    <rect x="604" y="334" width="74" height="26" rx="4" fill="#f87171"/>
+    <rect x="522" y="368" width="74" height="26" rx="4" fill="#22c55e"/>
+    <rect x="604" y="368" width="74" height="26" rx="4" fill="#eab308"/>
+  </svg>
+</template>
+
+<div id="app"></div>
+<div id="loading">building data-center scene…</div>
+
+<div id="title" class="panel">
+  <a href="Hub.dc.html" style="display:inline-block; font-family:'IBM Plex Mono',monospace; font-size:11px; color:#f7981d; text-decoration:none; margin-bottom:8px;">← Hub</a>
+  <div class="kick">3D Rack Environment</div>
+  <h1>Interactive Cabinet Planner</h1>
+  <p>Faceplates render from the hardware catalog. Hover any port to identify it · click a port to start a cable · double-click a device to inspect.</p>
+</div>
+
+<div id="controls" class="panel">
+  <div class="row">
+    <button class="ctl" id="btnReset">Reset view</button>
+    <button class="ctl" id="btnRotate">Auto-spin</button>
+  </div>
+  <div class="row">
+    <button class="ctl on" id="btnLabels">Labels</button>
+    <button class="ctl" id="btnFront">Front</button>
+  </div>
+  <div class="row">
+    <button class="ctl" id="btnRear">Rear (hot)</button>
+    <button class="ctl on" id="btnCables">Cables</button>
+  </div>
+</div>
+
+<div id="wire" class="panel">
+  <div class="wk" id="wireKick">New cable</div>
+  <div class="src" id="wireSrc"></div>
+  <div class="sub" id="wireSub"></div>
+  <div class="types" id="wireTypes"></div>
+  <div class="act" id="wireAct"></div>
+</div>
+
+<div id="legend" class="panel">
+  <div class="lk">Key</div>
+  <div class="items">
+    <div class="it"><span class="sw" style="background:#4d9fff"></span>Spine</div>
+    <div class="it"><span class="sw" style="background:#22c55e"></span>Network switch</div>
+    <div class="it"><span class="sw" style="background:#eab308"></span>IPMI distributor</div>
+    <div class="it"><span class="sw" style="background:#a78bfa"></span>Mgmt switch</div>
+    <div class="it"><span class="sw" style="background:#2dd4bf"></span>Patch / fiber</div>
+    <div class="it"><span class="sw" style="background:#e5484d"></span>APC 2U PDU</div>
+    <div class="it"><span class="sw" style="background:#38bdf8"></span>BH chassis · cold</div>
+    <div class="it"><span class="sw" style="background:#f87171"></span>BH chassis · hot</div>
+    <div class="it"><span class="sw" style="background:#f472b6"></span>Supermicro</div>
+    <div class="it"><span class="sw" style="background:#6b7280"></span>Rail / open</div>
+  </div>
+  <div class="lk" style="margin-top:4px;">Cables</div>
+  <div class="items">
+    <div class="it"><span class="cw" style="background:#eab308"></span>IPMI</div>
+    <div class="it"><span class="cw" style="background:#22c55e"></span>Network (public)</div>
+    <div class="it"><span class="cw" style="background:#f97316"></span>Private network</div>
+    <div class="it"><span class="cw" style="background:#e5484d"></span>Power</div>
+  </div>
+</div>
+
+<div id="hint" class="panel">47U · hover a port · click to wire</div>
+<div id="tip"></div>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { CATALOG, KIND_TO_MODEL, PORT_TYPES } from './catalog.js';
+
+const U = 0.04445, EQ_W = 0.448, FRONT_Z = 0.47, BACK_Z = -0.47;
+const RACK_W = 0.6, RACK_D = 1.07, POST = 0.028, BASE_Y = 0.06, N_U = 47;
+const NET_COLOR = { ipmi: 0xeab308, public: 0x22c55e, private: 0xf97316, power: 0xe5484d };
+const NET_LABEL = { ipmi: 'IPMI', public: 'Network (public)', private: 'Private network', power: 'Power' };
+const POWER_TYPES = ['C13','C19','C14','POWER'];
+
+// ---------- texture helpers ----------
+function tex(w, h, draw){
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  draw(c.getContext('2d'), w, h);
+  const t = new THREE.CanvasTexture(c); t.anisotropy = 16; t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+const faceTexCache = {};
+function faceTex(label, accent, sub){
+  const key = label + accent + sub;
+  if(faceTexCache[key]) return faceTexCache[key];
+  const t = tex(1024, 128, (x)=>{
+    x.fillStyle = '#141519'; x.fillRect(0,0,1024,128);
+    for(let i=0;i<340;i++){ x.fillStyle = 'rgba(255,255,255,' + (Math.random()*0.022) + ')'; x.fillRect(Math.random()*1024, Math.random()*128, 60+Math.random()*160, 1); }
+    x.fillStyle = accent; x.fillRect(14, 18, 7, 92);
+    x.fillStyle = '#dfe3e9'; x.font = '600 27px "IBM Plex Mono", monospace'; x.textBaseline = 'middle';
+    x.fillText(label, 38, 44);
+    x.fillStyle = 'rgba(255,255,255,0.34)'; x.font = '500 19px "IBM Plex Mono", monospace';
+    x.fillText(sub || '', 38, 84);
+    x.fillStyle = '#0c0d10';
+    for(const [px,py] of [[988,26],[988,102]]){ x.beginPath(); x.arc(px,py,9,0,7); x.fill(); x.strokeStyle='rgba(255,255,255,0.25)'; x.lineWidth=2; x.beginPath(); x.moveTo(px-6,py); x.lineTo(px+6,py); x.stroke(); }
+  });
+  faceTexCache[key] = t; return t;
+}
+const fanTex = tex(512, 256, (x)=>{
+  x.fillStyle = '#101216'; x.fillRect(0,0,512,256);
+  for(let i=0;i<2;i++){
+    const cx = 128 + i*256, cy = 128;
+    x.strokeStyle = '#2a2e36'; x.lineWidth = 8; x.beginPath(); x.arc(cx,cy,96,0,7); x.stroke();
+    x.fillStyle = '#07080a'; x.beginPath(); x.arc(cx,cy,88,0,7); x.fill();
+    x.strokeStyle = '#1c1f26'; x.lineWidth = 10;
+    for(let b=0;b<7;b++){ const a = b/7*Math.PI*2; x.beginPath(); x.moveTo(cx,cy); x.quadraticCurveTo(cx+Math.cos(a+0.5)*60, cy+Math.sin(a+0.5)*60, cx+Math.cos(a)*86, cy+Math.sin(a)*86); x.stroke(); }
+    x.fillStyle = '#2a2e36'; x.beginPath(); x.arc(cx,cy,18,0,7); x.fill();
+  }
+});
+const grilleTex = tex(512, 128, (x)=>{
+  x.fillStyle = '#131418'; x.fillRect(0,0,512,128);
+  x.fillStyle = '#07080a';
+  for(let i=0;i<32;i++) for(let j=0;j<8;j++){ x.beginPath(); x.arc(10+i*16, 10+j*15, 4.6, 0, 7); x.fill(); }
+});
+function floorTile(perforated){
+  return tex(256, 256, (x)=>{
+    x.fillStyle = '#181a1f'; x.fillRect(0,0,256,256);
+    for(let i=0;i<200;i++){ x.fillStyle='rgba(255,255,255,'+(Math.random()*0.02)+')'; x.fillRect(Math.random()*256,Math.random()*256,2,2); }
+    x.strokeStyle = '#26282e'; x.lineWidth = 6; x.strokeRect(0,0,256,256);
+    x.fillStyle = '#0e1014';
+    if(perforated){ for(let i=0;i<12;i++) for(let j=0;j<12;j++){ x.beginPath(); x.arc(14+i*20.5, 14+j*20.5, 5, 0, 7); x.fill(); } }
+    else { for(let i=0;i<8;i++) for(let j=0;j<8;j++){ x.beginPath(); x.arc(24+i*30, 24+j*30, 3, 0, 7); x.fill(); } }
+  });
+}
+
+// ---------- materials ----------
+const M = {
+  chassis: new THREE.MeshStandardMaterial({ color:0x2a2d33, roughness:0.6, metalness:0.4 }),
+  rail:    new THREE.MeshStandardMaterial({ color:0x3a3d42, roughness:0.4, metalness:0.75 }),
+  frame:   new THREE.MeshStandardMaterial({ color:0x1c1d21, roughness:0.5, metalness:0.6 }),
+  port:    new THREE.MeshStandardMaterial({ color:0x0a0b0d, roughness:0.7, metalness:0.2 }),
+  steel:   new THREE.MeshStandardMaterial({ color:0x8a8f98, roughness:0.35, metalness:0.85 }),
+  teal:    new THREE.MeshStandardMaterial({ color:0x2dd4bf, roughness:0.5, metalness:0.2 }),
+  apcred:  new THREE.MeshStandardMaterial({ color:0xe5484d, roughness:0.5, metalness:0.25 }),
+  cold:    new THREE.MeshStandardMaterial({ color:0x38bdf8, roughness:0.5, metalness:0.2 }),
+  hot:     new THREE.MeshStandardMaterial({ color:0xf87171, roughness:0.5, metalness:0.2 }),
+  vent:    new THREE.MeshStandardMaterial({ map:grilleTex, roughness:0.8, metalness:0.15 }),
+  fan:     new THREE.MeshStandardMaterial({ map:fanTex, roughness:0.7, metalness:0.2 }),
+  lcd:     new THREE.MeshStandardMaterial({ color:0x0a1a12, emissive:0x2bd07a, emissiveIntensity:1.1, roughness:0.3 }),
+  ledG:    new THREE.MeshStandardMaterial({ color:0x1a1a1a, emissive:0x39d353, emissiveIntensity:2.0, roughness:0.4 }),
+  ledA:    new THREE.MeshStandardMaterial({ color:0x1a1a1a, emissive:0xf5a623, emissiveIntensity:2.0, roughness:0.4 }),
+};
+const portMatCache = {};
+function portMat(hex){
+  if(!portMatCache[hex]) portMatCache[hex] = new THREE.MeshStandardMaterial({ color:new THREE.Color(hex).multiplyScalar(0.55), roughness:0.55, metalness:0.3, emissive:new THREE.Color(hex), emissiveIntensity:0.10 });
+  return portMatCache[hex];
+}
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0d1420);
+scene.fog = new THREE.Fog(0x0d1420, 9, 26);
+function box(w,h,d,mat){ return new THREE.Mesh(new THREE.BoxGeometry(w,h,d), mat); }
+function yOfU(uBottom, span){ return BASE_Y + (uBottom-1)*U + span*U/2; }
+
+// ---------- activity LEDs ----------
+const ACT = [];
+const LED_COLS = [new THREE.Color(0x39d353), new THREE.Color(0x39d353), new THREE.Color(0x0d1f12), new THREE.Color(0xf5a623)];
+function activityLeds(group, { count, cols, x0, x1, y, z }){
+  const geo = new THREE.BoxGeometry(0.0045, 0.003, 0.004);
+  const mat = new THREE.MeshBasicMaterial({ color:0xffffff, toneMapped:false });
+  const inst = new THREE.InstancedMesh(geo, mat, count);
+  const dummy = new THREE.Object3D();
+  for(let i=0;i<count;i++){
+    const c = i % cols, r = Math.floor(i/cols);
+    const fx = cols>1 ? c/(cols-1) : 0.5;
+    dummy.position.set(THREE.MathUtils.lerp(x0,x1,fx), y + r*0.0055, z);
+    dummy.updateMatrix(); inst.setMatrixAt(i, dummy.matrix);
+    inst.setColorAt(i, LED_COLS[(Math.random()*4)|0]);
+  }
+  inst.instanceColor.needsUpdate = true;
+  group.add(inst); ACT.push({ inst, n: count });
+}
+
+function ears(g, w, h, fz){
+  for(const sx of [-1,1]){
+    const ear = box(0.016, Math.min(h, U-0.006), 0.004, M.chassis);
+    ear.position.set(sx*(w/2+0.008), 0, fz-0.002); g.add(ear);
+    const screwGeo = new THREE.CylinderGeometry(0.0045,0.0045,0.004,12);
+    for(const oy of [-0.012, 0.012]){
+      const s = new THREE.Mesh(screwGeo, M.steel);
+      s.rotation.x = Math.PI/2; s.position.set(sx*(w/2+0.008), oy, fz); g.add(s);
+    }
+  }
+}
+function skin(g, w, h, fz, label, accentHex, sub){
+  const plate = new THREE.Mesh(new THREE.PlaneGeometry(w*0.995, h*0.96),
+    new THREE.MeshStandardMaterial({ map: faceTex(label, accentHex, sub), roughness:0.55, metalness:0.35 }));
+  plate.position.set(0, 0, fz - 0.0005); g.add(plate);
+}
+const FANS = [];
+const fanBladeTex = tex(256,256,(x)=>{
+  const cx=128, cy=128;
+  x.fillStyle='#14161a'; x.beginPath(); x.arc(cx,cy,120,0,7); x.fill();
+  x.fillStyle='#242833';
+  for(let b=0;b<7;b++){ const a=b/7*Math.PI*2;
+    x.beginPath(); x.moveTo(cx,cy);
+    x.quadraticCurveTo(cx+Math.cos(a+0.6)*95, cy+Math.sin(a+0.6)*95, cx+Math.cos(a)*115, cy+Math.sin(a)*115);
+    x.quadraticCurveTo(cx+Math.cos(a-0.25)*70, cy+Math.sin(a-0.25)*70, cx, cy);
+    x.fill(); }
+  x.fillStyle='#31353f'; x.beginPath(); x.arc(cx,cy,26,0,7); x.fill();
+});
+function rearDetail(g, w, h, d, fanCount){
+  const bz = -d/2 - 0.002;
+  for(const i of [0,1]){ // dual PSU modules, left of the fan bank (rear view)
+    const psu = box(w*0.115, h*0.82, 0.014, M.chassis);
+    psu.position.set(-(w*0.40 - i*w*0.125), 0, bz-0.004); g.add(psu);
+    const grill = new THREE.Mesh(new THREE.PlaneGeometry(w*0.10, h*0.5), M.vent);
+    grill.rotation.y = Math.PI; grill.position.set(-(w*0.40 - i*w*0.125), h*0.05, bz-0.011); g.add(grill);
+    const led = box(0.004,0.004,0.003, M.ledG); led.rotation.y=Math.PI; led.position.set(-(w*0.435 - i*w*0.125), h*0.30, bz-0.0115); g.add(led);
+    const sock = box(0.015, 0.011, 0.004, M.port); sock.rotation.y=Math.PI; sock.position.set(-(w*0.37 - i*w*0.125), -h*0.28, bz-0.0115); g.add(sock);
+  }
+  const x0 = -w*0.26, x1 = w*0.14, fw = (x1-x0)/fanCount; // fan-tray bank
+  for(let i=0;i<fanCount;i++){
+    const cx2 = x0 + fw*(i+0.5);
+    const tray = box(fw*0.92, h*0.82, 0.012, M.frame);
+    tray.position.set(cx2, 0, bz-0.003); g.add(tray);
+    const r = Math.min(fw*0.40, h*0.36);
+    const blade = new THREE.Mesh(new THREE.CircleGeometry(r, 24),
+      new THREE.MeshStandardMaterial({ map: fanBladeTex, transparent:true, roughness:0.8, metalness:0.1 }));
+    blade.rotation.y = Math.PI; blade.position.set(cx2, 0, bz-0.0095); g.add(blade);
+    FANS.push(blade);
+    const ring = new THREE.Mesh(new THREE.RingGeometry(r*0.98, r*1.12, 24), M.steel);
+    ring.rotation.y = Math.PI; ring.position.set(cx2, 0, bz-0.0094); g.add(ring);
+    const led = box(0.0035,0.0035,0.003, M.ledG); led.rotation.y=Math.PI; led.position.set(cx2 + fw*0.32, h*0.34, bz-0.0095); g.add(led);
+  }
+}
+
+// ---------- catalog-driven device builder ----------
+const ACCENT_BY_KIND = { spine:'#4d9fff', network:'#22c55e', dist:'#eab308', mgmt:'#a78bfa', console:'#64748b', private:'#f97316', pdu:'#e5484d', chassis:'#7dd3fc', supermicro:'#f472b6' };
+const SUB_BY_KIND = { spine:'SPINE', network:'NETWORK', dist:'IPMI DISTRIBUTOR', mgmt:'MGMT', console:'CONSOLE', private:'PRIVATE', pdu:'RACK PDU · 30A 208V', chassis:'BOOT HW', supermicro:'X11 · 8 BAY' };
+
+function addPortGroup(g, gr, w, h, fz, deviceRef){
+  const t = PORT_TYPES[gr.type] || { label: gr.type, color: '#94a3b8', w: 1, h: 1 };
+  const [rx, ry, rw, rh] = gr.region;
+  const pw = Math.min(0.0115*t.w, (rw*w/gr.cols)*0.82);
+  const ph = Math.min(0.0115*t.h, (rh*h/gr.rows)*0.78);
+  const inst = new THREE.InstancedMesh(new THREE.BoxGeometry(pw, ph, 0.007), portMat(t.color), gr.count);
+  const dummy = new THREE.Object3D(); const recs = [];
+  for(let i=0;i<gr.count;i++){
+    const r = Math.floor(i/gr.cols), c = i % gr.cols;
+    const fx = (c+0.5)/gr.cols, fy = (r+0.5)/gr.rows;
+    const x = (rx + fx*rw - 0.5)*w;
+    const y = (0.5 - (ry + fy*rh))*h;
+    const px = gr.rear ? -x : x, pz = gr.rear ? -fz : fz;
+    dummy.position.set(px, y, pz); dummy.updateMatrix(); inst.setMatrixAt(i, dummy.matrix);
+    const addr = gr.naming.prefix + ((gr.naming.start ?? 0) + i);
+    recs.push({ addr, type: gr.type, typeLabel: t.label, group: gr.label + (gr.rear ? ' \u00b7 rear panel' : ''), assumed: !!gr.assumed });
+    deviceRef.userData.portPos[addr] = new THREE.Vector3(px, y, pz);
+    deviceRef.userData.portType[addr] = gr.type;
+  }
+  inst.userData.ports = recs; inst.userData.isPorts = true;
+  g.add(inst);
+  if(gr.count >= 6 && !gr.rear){
+    activityLeds(g, { count: gr.count, cols: gr.cols,
+      x0: (rx + (0.5/gr.cols)*rw - 0.5)*w, x1: (rx + ((gr.cols-0.5)/gr.cols)*rw - 0.5)*w,
+      y: (0.5 - ry)*h + 0.0035, z: fz + 0.001 });
+  }
+}
+
+function buildFromCatalog(modelId, cell){
+  const m = CATALOG[modelId];
+  const span = cell.span || 1, h = span*U - 0.004;
+  const w = EQ_W * Math.min(1, (m.widthIn || 19)/19);
+  const d = Math.max(0.09, (m.depthMm || 500)/1000);
+  const g = new THREE.Group();
+  g.userData.portPos = {}; g.userData.portType = {};
+  g.add(box(w, h, d, M.chassis)); g.userData.depth = d;
+  const fz = d/2 + 0.002;
+  const accent = ACCENT_BY_KIND[cell.kind] || m.accent;
+  const nm = (cell.name || '').trim();
+  skin(g, w, h, fz, (nm || m.short || modelId).toUpperCase(), accent, nm ? (m.short || '').toUpperCase() : (SUB_BY_KIND[cell.kind] || ''));
+  ears(g, w, h, fz);
+  if(m.groups && m.groups.length){
+    m.groups.forEach(gr => addPortGroup(g, gr, w, h, fz, g));
+  } else {
+    // no front ports (Supermicro): drive bays
+    const bays = 8;
+    const inst = new THREE.InstancedMesh(new THREE.BoxGeometry(0.032, h*0.52, 0.006), M.vent, bays);
+    const dummy = new THREE.Object3D();
+    for(let i=0;i<bays;i++){ dummy.position.set(-w*0.30 + i*(w*0.64/(bays-1)), 0, fz); dummy.updateMatrix(); inst.setMatrixAt(i, dummy.matrix); }
+    g.add(inst);
+    activityLeds(g, { count: bays, cols: bays, x0: -w*0.30, x1: w*0.34, y: h*0.33, z: fz+0.001 });
+  }
+  if(m.meter){
+    const lcd = box(0.034, 0.022, 0.004, M.lcd); lcd.position.set(-w/2+0.045, h*0.30, fz); g.add(lcd);
+    const band = box(w*0.9, 0.01, 0.003, M.apcred); band.position.set(0, h*0.44, fz); g.add(band);
+  }
+  if(cell.kind === 'chassis'){
+    const stripe = box(0.008, h*0.7, 0.0035, cell.side==='hot' ? M.hot : M.cold);
+    stripe.position.set(-w/2+0.010, 0, fz); g.add(stripe);
+  }
+  if(['spine','network','dist','mgmt','console','private'].includes(cell.kind)) rearDetail(g, w, h, d, modelId === 'qfx5200-32c' ? 5 : 3);
+  return g;
+}
+
+function buildPatch(cell){
+  const span = cell.span || 1, h = span*U - 0.004;
+  const g = new THREE.Group();
+  g.userData.portPos = {}; g.userData.portType = {};
+  g.add(box(EQ_W, h, 0.10, M.chassis)); g.userData.depth = 0.10;
+  const fz = 0.05 + 0.002;
+  skin(g, EQ_W, h, fz, 'FIBER PATCH 48F', '#2dd4bf', 'LC-LC · OM4');
+  ears(g, EQ_W, h, fz);
+  const usable = EQ_W*0.82;
+  const inst = new THREE.InstancedMesh(new THREE.BoxGeometry(0.011, 0.013, 0.007), portMat('#2dd4bf'), 48);
+  const dummy = new THREE.Object3D(); const recs = [];
+  for(let i=0;i<48;i++){
+    const r = Math.floor(i/24), c = i%24;
+    const x = -usable/2 + c*(usable/23), y = (r===0? h*0.2 : -h*0.2);
+    dummy.position.set(x, y, fz); dummy.updateMatrix(); inst.setMatrixAt(i, dummy.matrix);
+    const addr = 'LC-' + (i+1);
+    recs.push({ addr, type:'LC', typeLabel:'LC fiber', group:'Fiber patch 48F', assumed:false });
+    g.userData.portPos[addr] = new THREE.Vector3(x, y, fz);
+    g.userData.portType[addr] = 'LC';
+  }
+  inst.userData.ports = recs; inst.userData.isPorts = true;
+  g.add(inst);
+  return g;
+}
+
+// ---------- rack frame ----------
+const rackH = BASE_Y*2 + N_U*U + 0.02;
+const uStripTex = tex(64, 2048, (x)=>{
+  x.fillStyle = '#1c1d21'; x.fillRect(0,0,64,2048);
+  x.textAlign = 'center'; x.textBaseline = 'middle';
+  for(let u=1;u<=N_U;u++){
+    const y = 2048 - (u-0.5)/N_U*2048;
+    x.fillStyle = u%5===0 ? '#8ea6cc' : '#4a5568';
+    x.font = (u%5===0 ? '600 26px' : '500 20px') + ' "IBM Plex Mono", monospace';
+    x.fillText(String(u), 32, y);
+    x.fillStyle = '#2a3140'; x.fillRect(6, y+22, 52, 2);
+  }
+});
+function buildFrame(){
+  const rack = new THREE.Group();
+  for(const sx of [-1,1]) for(const sz of [-1,1]){
+    const p = box(POST, rackH, POST, M.frame);
+    p.position.set(sx*(RACK_W/2-POST/2), rackH/2, sz*(RACK_D/2-POST/2)); rack.add(p);
+  }
+  for(const sy of [0,1]){
+    const cap = box(RACK_W, POST, RACK_D, M.frame);
+    cap.position.set(0, sy? rackH-POST/2 : POST/2, 0); rack.add(cap);
+  }
+  const panelMat = new THREE.MeshStandardMaterial({ color:0x141519, roughness:0.5, metalness:0.5, transparent:true, opacity:0.14, side:THREE.DoubleSide });
+  const back = box(RACK_W-POST, rackH-POST*2, 0.006, panelMat); back.position.set(0, rackH/2, -RACK_D/2+POST/2); rack.add(back);
+  for(const sx of [-1,1]){ const sp = box(0.006, rackH-POST*2, RACK_D-POST, panelMat); sp.position.set(sx*(RACK_W/2-POST/2), rackH/2, 0); rack.add(sp); }
+  for(const sx of [-1,1]){
+    const railX = sx*(EQ_W/2+0.012);
+    for(const rz of [FRONT_Z-0.01, BACK_Z+0.01]){
+      const rmesh = box(0.012, N_U*U, 0.02, M.rail);
+      rmesh.position.set(railX, BASE_Y + N_U*U/2, rz); rack.add(rmesh);
+    }
+    const cageGeo = new THREE.BoxGeometry(0.0075, 0.0075, 0.004);
+    const cages = new THREE.InstancedMesh(cageGeo, M.steel, N_U*2);
+    const dummy = new THREE.Object3D(); let ci=0;
+    for(let u=0;u<N_U;u++) for(const oy of [-0.013, 0.013]){
+      dummy.position.set(railX, BASE_Y + u*U + U/2 + oy, FRONT_Z+0.0005);
+      dummy.updateMatrix(); cages.setMatrixAt(ci++, dummy.matrix);
+    }
+    rack.add(cages);
+  }
+  const strip = new THREE.Mesh(new THREE.PlaneGeometry(0.022, N_U*U),
+    new THREE.MeshBasicMaterial({ map:uStripTex, toneMapped:false }));
+  strip.position.set(-(EQ_W/2+0.032), BASE_Y + N_U*U/2, FRONT_Z+0.001);
+  rack.add(strip);
+  return rack;
+}
+function mountFront(dev, uBottom, span, target){
+  const d = dev.userData.depth || 0.5;
+  dev.position.set(0, yOfU(uBottom, span), FRONT_Z - d/2 - 0.003); target.add(dev);
+}
+function mountRear(dev, uBottom, span, target){
+  const d = dev.userData.depth || 0.5;
+  dev.rotation.y = Math.PI;
+  dev.position.set(0, yOfU(uBottom, span), BACK_Z + d/2 + 0.003); target.add(dev);
+}
+
+// ---------- layout data ----------
+const DEFAULT_CELLS = (()=>{
+  const c=[]; let id=0; const C=(top,side,kind,span)=>c.push({id:'d'+(id++),top,side,kind,span:span||1});
+  C(47,'full','patch'); C(45,'full','dist'); C(44,'full','dist');
+  C(43,'full','spine'); C(42,'full','spine'); C(41,'full','reserved');
+  C(39,'full','console'); C(38,'full','mgmt'); C(37,'full','network');
+  C(36,'cold','pdu',2); C(36,'hot','pdu',2);
+  for(let u=34;u>=14;u--){ C(u,'cold','chassis'); C(u,'hot','chassis'); }
+  C(13,'full','supermicro'); C(12,'full','supermicro');
+  return c;
+})();
+let LOADED_KEY = null;
+function loadRacks(){
+  try{
+    for(const key of ['cabplanner.v1.main','cabplanner.v1.blank']){
+      const raw = localStorage.getItem(key);
+      if(raw){ const rk = JSON.parse(raw); if(Array.isArray(rk) && rk.length){ LOADED_KEY = key; return rk.map(r=>({ name:r.name||'', cells:Array.isArray(r.cells)?r.cells:[] })); } }
+    }
+  }catch(e){}
+  return [{ name:'Main Cabinet', cells:DEFAULT_CELLS }];
+}
+
+const KIND_LABEL = { patch:'Fiber patch', dist:'IPMI distributor', mgmt:'Mgmt switch', console:'Console switch', network:'Network switch', private:'Private switch', spine:'Spine', pdu:'APC 2U PDU', chassis:'BH chassis', supermicro:'Supermicro' };
+function buildFromCell(cell){
+  if(cell.kind === 'reserved') return null;
+  if(cell.kind === 'patch') return buildPatch(cell);
+  const model = KIND_TO_MODEL[cell.kind];
+  if(model && CATALOG[model]) return buildFromCatalog(model, cell);
+  return null;
+}
+
+const DEVREG = {}, CELLMETA = {};
+function populateInto(cells, contents, rackName, rackIdx){
+  cells.forEach(cell=>{
+    const dev = buildFromCell(cell);
+    if(!dev) return;
+    const span = cell.span || 1, bottom = cell.top - span + 1;
+    dev.userData.cellId = cell.id; dev.userData.side = cell.side || 'full';
+    dev.userData.model = KIND_TO_MODEL[cell.kind] || null;
+    dev.userData.label = (cell.name && cell.name.trim() ? cell.name.trim() + ' · ' : '') +
+      (KIND_LABEL[cell.kind] || cell.kind) + ' · U' + (span>1 ? bottom + '–' + cell.top : cell.top) +
+      (cell.side && cell.side!=='full' ? ' · ' + (cell.side==='hot'?'hot':'cold') : '');
+    dev.userData.name = (cell.name && cell.name.trim()) ? cell.name.trim() : ((rackName ? rackName.split(' ')[0] : 'CAB') + '-U' + cell.top + (cell.side && cell.side!=='full' ? '-'+cell.side : ''));
+    DEVREG[cell.id] = dev; CELLMETA[cell.id] = { cell, rackIdx, rackName };
+    if(cell.side==='hot') mountRear(dev, bottom, span, contents);
+    else mountFront(dev, bottom, span, contents);
+  });
+}
+
+const allRacks = new THREE.Group(); scene.add(allRacks);
+const RACK_PITCH = RACK_W + 0.08;
+loadRacks().forEach((r, i)=>{
+  const frame = buildFrame();
+  const contents = new THREE.Group();
+  populateInto(r.cells, contents, r.name, i);
+  frame.add(contents);
+  frame.position.set(i*RACK_PITCH, 0, 0);
+  allRacks.add(frame);
+});
+
+// ---------- section labels ----------
+const labelGroup = new THREE.Group();
+function roundRect(ctx,x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+function makeLabel(text, uCenter){
+  const t = tex(512, 96, (ctx)=>{
+    ctx.fillStyle='rgba(13,18,28,0.92)'; roundRect(ctx,2,2,508,92,16); ctx.fill();
+    ctx.strokeStyle='rgba(247,152,29,0.4)'; ctx.lineWidth=2; roundRect(ctx,2,2,508,92,16); ctx.stroke();
+    ctx.fillStyle='#eceff4'; ctx.font='600 46px "IBM Plex Mono", monospace'; ctx.textBaseline='middle';
+    ctx.fillText(text, 26, 52);
+  });
+  const w=0.34, h=w*96/512;
+  const mat = new THREE.MeshBasicMaterial({ map:t, transparent:true, toneMapped:false, depthTest:false, depthWrite:false });
+  const plate = new THREE.Mesh(new THREE.PlaneGeometry(w,h), mat);
+  plate.renderOrder = 20;
+  plate.position.set(RACK_W/2 + 0.035 + w/2, BASE_Y + (uCenter-1)*U + U/2, FRONT_Z + 0.06);
+  labelGroup.add(plate);
+}
+makeLabel('Patch', 47); makeLabel('Distribution', 44.5); makeLabel('Spines', 42.5);
+makeLabel('Rail support', 41); makeLabel('Switches', 38); makeLabel('2U PDUs', 35.5);
+makeLabel('BH chassis', 24); makeLabel('Supermicro', 12.5);
+scene.add(labelGroup);
+
+// ---------- room ----------
+const solidT = floorTile(false), perfT = floorTile(true);
+solidT.wrapS = solidT.wrapT = THREE.RepeatWrapping; solidT.repeat.set(24,24);
+perfT.wrapS = perfT.wrapT = THREE.RepeatWrapping; perfT.repeat.set(24,2);
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(40,40), new THREE.MeshStandardMaterial({ map:solidT, roughness:0.8, metalness:0.15, color:0x9aa0a6 }));
+floor.rotation.x=-Math.PI/2; scene.add(floor);
+const coldStrip = new THREE.Mesh(new THREE.PlaneGeometry(40, 40/12), new THREE.MeshStandardMaterial({ map:perfT, roughness:0.8, metalness:0.15, color:0xa8b6c4 }));
+coldStrip.rotation.x=-Math.PI/2; coldStrip.position.set(0, 0.002, FRONT_Z + 0.95); scene.add(coldStrip);
+const ceil = new THREE.Mesh(new THREE.PlaneGeometry(40,40), new THREE.MeshStandardMaterial({ color:0x10141c, roughness:0.9 }));
+ceil.rotation.x=Math.PI/2; ceil.position.y=3.2; scene.add(ceil);
+const backWall = new THREE.Mesh(new THREE.PlaneGeometry(40,6), new THREE.MeshStandardMaterial({ color:0x0c1017, roughness:0.95 }));
+backWall.position.set(0,3,-6); scene.add(backWall);
+const stripMat = new THREE.MeshStandardMaterial({ color:0xffffff, emissive:0xcfe3ff, emissiveIntensity:1.4 });
+for(let i=-2;i<=2;i++){ const s=box(0.5,0.04,4.5,stripMat); s.position.set(i*2.2,3.16,0); scene.add(s); }
+const tray = new THREE.Group();
+const trayY = 2.55, trayW = 0.42;
+for(const oz of [-trayW/2, trayW/2]){ const rail = box(14, 0.03, 0.03, M.frame); rail.position.set(0, trayY, oz); tray.add(rail); }
+{
+  const rungGeo = new THREE.BoxGeometry(0.025, 0.02, trayW);
+  const rungs = new THREE.InstancedMesh(rungGeo, M.rail, 46);
+  const dummy = new THREE.Object3D();
+  for(let i=0;i<46;i++){ dummy.position.set(-6.9 + i*0.3, trayY, 0); dummy.updateMatrix(); rungs.setMatrixAt(i, dummy.matrix); }
+  tray.add(rungs);
+}
+[[0xeab308,-0.12,0.014],[0x22c55e,-0.04,0.016],[0xf97316,0.05,0.013],[0x24262b,0.13,0.02]].forEach(([col,oz,r])=>{
+  const pts=[]; for(let i=0;i<=20;i++){ const x=-7+i*0.7; pts.push(new THREE.Vector3(x, trayY+0.045+Math.sin(i*1.7)*0.004, oz)); }
+  const tube = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 40, r, 8, false),
+    new THREE.MeshStandardMaterial({ color:col, roughness:0.65, metalness:0.1 }));
+  tray.add(tube);
+});
+scene.add(tray);
+{
+  const drop = new THREE.Group();
+  [[0xeab308,0.02],[0x22c55e,-0.02],[0xf97316,0.06]].forEach(([col,ox],i)=>{
+    const curve = new THREE.QuadraticBezierCurve3(
+      new THREE.Vector3(ox, trayY+0.02, 0), new THREE.Vector3(ox*3, trayY-0.5, 0.05), new THREE.Vector3(ox*2, rackH+0.02, 0));
+    drop.add(new THREE.Mesh(new THREE.TubeGeometry(curve, 24, 0.011-i*0.002, 8, false),
+      new THREE.MeshStandardMaterial({ color:col, roughness:0.65, metalness:0.1 })));
+  });
+  scene.add(drop);
+}
+const neighborMat = new THREE.MeshStandardMaterial({ color:0x171b23, roughness:0.7, metalness:0.4 });
+const rimMat = new THREE.MeshStandardMaterial({ color:0x0a0d14, emissive:0x1e3a5f, emissiveIntensity:0.6, roughness:0.6 });
+function neighbor(x,z){
+  const g=new THREE.Group();
+  const b=box(RACK_W,rackH,RACK_D,neighborMat); b.position.y=rackH/2; g.add(b);
+  const rim=box(EQ_W,rackH*0.9,0.01,rimMat); rim.position.set(0,rackH/2,RACK_D/2+0.006); g.add(rim);
+  const spGeo = new THREE.BoxGeometry(0.006,0.003,0.004);
+  const sp = new THREE.InstancedMesh(spGeo, new THREE.MeshBasicMaterial({ color:0x39d353, toneMapped:false }), 26);
+  const dummy = new THREE.Object3D();
+  for(let i=0;i<26;i++){ dummy.position.set((Math.random()-0.5)*EQ_W*0.8, 0.15+Math.random()*(rackH-0.4), RACK_D/2+0.012); dummy.updateMatrix(); sp.setMatrixAt(i,dummy.matrix); }
+  g.add(sp);
+  g.position.set(x,0,z); return g;
+}
+for(let i=1;i<=4;i++) scene.add(neighbor(-(RACK_PITCH)*i, 0));
+for(let i=-1;i<=4;i++){ if(i===0) continue; scene.add(neighbor(RACK_PITCH*i, -RACK_D-2.4)); }
+
+// ---------- lighting ----------
+scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+scene.add(new THREE.HemisphereLight(0xdce8ff, 0x2a2d33, 1.2));
+const key = new THREE.DirectionalLight(0xffffff, 1.6); key.position.set(3.5,5,4.5); key.castShadow=true;
+key.shadow.mapSize.set(1024,1024); key.shadow.camera.near=0.5; key.shadow.camera.far=25;
+key.shadow.camera.left=-4; key.shadow.camera.right=4; key.shadow.camera.top=4; key.shadow.camera.bottom=-4; key.shadow.bias=-0.0004;
+scene.add(key);
+const fill = new THREE.DirectionalLight(0xbcd2ff, 0.7); fill.position.set(-4,3,2); scene.add(fill);
+const rim = new THREE.DirectionalLight(0xffffff, 0.65); rim.position.set(0,4,-5); scene.add(rim);
+const front = new THREE.DirectionalLight(0xffffff, 0.55); front.position.set(0,2,6); scene.add(front);
+
+// ---------- renderer / camera ----------
+const renderer = new THREE.WebGLRenderer({ antialias:true, logarithmicDepthBuffer:true });
+renderer.setSize(innerWidth, innerHeight); renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));
+renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.5;
+document.getElementById('app').appendChild(renderer.domElement);
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+scene.environmentIntensity = 0.35;
+floor.receiveShadow=true; allRacks.traverse(o=>{ if(o.isMesh||o.isInstancedMesh){ o.castShadow=true; o.receiveShadow=true; } });
+renderer.shadowMap.autoUpdate = false; renderer.shadowMap.needsUpdate = true;
+
+const camera = new THREE.PerspectiveCamera(46, innerWidth/innerHeight, 0.02, 100);
+const START_POS = new THREE.Vector3(1.35, 1.45, 3.15);
+const TARGET = new THREE.Vector3(0, 1.05, 0.1);
+camera.position.copy(START_POS);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.copy(TARGET); controls.enableDamping=true; controls.dampingFactor=0.08;
+controls.minDistance=0.07; controls.maxDistance=9; controls.maxPolarAngle=Math.PI*0.54;
+controls.zoomSpeed = 1.15;
+controls.update();
+
+// ---------- connections store ----------
+const CONN_KEY = 'cabplanner.v1.connections';
+let conn = { devices: [], links: [] };
+try{ const raw = localStorage.getItem(CONN_KEY); if(raw){ const d = JSON.parse(raw); conn.devices = d.devices||[]; conn.links = d.links||[]; } }catch(e){}
+function saveConn(){ try{ localStorage.setItem(CONN_KEY, JSON.stringify(conn)); }catch(e){} }
+function uid(){ return 'x' + Date.now().toString(36) + Math.floor(Math.random()*1e6).toString(36); }
+const cellOfDev = {}; conn.devices.forEach(d=>{ if(d.src) cellOfDev[d.id] = d.src.split('#')[2]; });
+function ensureDevice(cellId){
+  for(const d of conn.devices){ if(d.src && d.src.split('#')[2] === cellId) return d; }
+  const meta = CELLMETA[cellId], dev = DEVREG[cellId];
+  const rec = { id: uid(), model: dev.userData.model || 'unknown', name: dev.userData.name,
+    src: (LOADED_KEY || 'cabplanner.v1.main') + '#' + (meta ? meta.rackIdx : 0) + '#' + cellId };
+  conn.devices.push(rec); cellOfDev[rec.id] = cellId;
+  return rec;
+}
+function devName(devId){ const d = conn.devices.find(d=>d.id===devId); return d ? d.name : '?'; }
+
+// classify a link -> net key
+function netOf(l){
+  if(l.net) return l.net;
+  if(l.kind === 'power') return 'power';
+  const parts = [l.a, l.b].map(e => (e.port||'') + ' ' + devName(e.devId));
+  const s = parts.join(' ').toLowerCase();
+  const models = [l.a, l.b].map(e => { const d = conn.devices.find(d=>d.id===e.devId); return d ? d.model : ''; }).join(' ');
+  if(/ipmi|mgmt|con-/.test(s) || /ex4200/.test(models)) return 'ipmi';
+  if(/priv/.test(s)) return 'private';
+  return 'public';
+}
+
+// wired lookup for tooltips: cellId|addr -> text
+const WIRED = {};
+function rebuildWired(){
+  for(const k in WIRED) delete WIRED[k];
+  conn.links.forEach(l=>{
+    const ca = cellOfDev[l.a.devId], cb = cellOfDev[l.b.devId];
+    const net = NET_LABEL[netOf(l)];
+    if(ca) WIRED[ca+'|'+(l.a.port||'')] = net + ' → ' + devName(l.b.devId) + ' ' + (l.b.port||'');
+    if(cb) WIRED[cb+'|'+(l.b.port||'')] = net + ' → ' + devName(l.a.devId) + ' ' + (l.a.port||'');
+  });
+}
+rebuildWired();
+
+// ---------- cables ----------
+const cablesGroup = new THREE.Group(); scene.add(cablesGroup);
+function facing(dev){ return dev.userData.side==='hot' ? -1 : 1; }
+function portWorld(cellId, addr){
+  const dev = DEVREG[cellId]; if(!dev) return null;
+  const local = dev.userData.portPos && dev.userData.portPos[addr];
+  if(local){ return dev.localToWorld(local.clone()); }
+  const v = new THREE.Vector3(); dev.getWorldPosition(v);
+  v.z = facing(dev) > 0 ? FRONT_Z : BACK_Z; return v;
+}
+function routeCurve(pa, fa, pb, fb, net){
+  // exit each face, run the vertical cable channel when same-facing, else arc across
+  const ea = pa.clone(); ea.z += fa*0.06;
+  const eb = pb.clone(); eb.z += fb*0.06;
+  if(fa === fb){
+    const chX = (net==='power' ? -1 : 1) * (EQ_W/2 + 0.055);
+    const rackX = (pa.x + pb.x)/2;
+    const c1 = new THREE.Vector3(rackX + chX, ea.y, ea.z);
+    const c2 = new THREE.Vector3(rackX + chX, eb.y, eb.z);
+    return new THREE.CatmullRomCurve3([pa, ea, c1, c2, eb, pb], false, 'catmullrom', 0.08);
+  }
+  const mid = ea.clone().add(eb).multiplyScalar(0.5);
+  mid.y = Math.max(ea.y, eb.y) + 0.10;
+  mid.x += 0.05;
+  return new THREE.CatmullRomCurve3([pa, ea, mid, eb, pb], false, 'catmullrom', 0.5);
+}
+function cableMesh(l){
+  const ca = cellOfDev[l.a.devId], cb = cellOfDev[l.b.devId];
+  const da = DEVREG[ca], db = DEVREG[cb];
+  if(!da || !db) return null;
+  const pa = portWorld(ca, l.a.port), pb = portWorld(cb, l.b.port);
+  if(!pa || !pb) return null;
+  const net = netOf(l);
+  const curve = routeCurve(pa, facing(da), pb, facing(db), net);
+  const col = NET_COLOR[net];
+  const tube = new THREE.Mesh(new THREE.TubeGeometry(curve, 48, 0.0042, 8, false),
+    new THREE.MeshStandardMaterial({ color:col, emissive:col, emissiveIntensity:0.22, roughness:0.55, metalness:0.1 }));
+  tube.userData.link = l;
+  return tube;
+}
+function rebuildCables(){
+  while(cablesGroup.children.length){ const c = cablesGroup.children.pop(); c.geometry.dispose(); c.material.dispose(); }
+  scene.updateMatrixWorld(true);
+  conn.links.forEach(l=>{ const m = cableMesh(l); if(m) cablesGroup.add(m); });
+  rebuildWired();
+}
+rebuildCables();
+
+// ---------- wiring interaction ----------
+const tip = document.getElementById('tip');
+const wirePanel = document.getElementById('wire');
+const wireKick = document.getElementById('wireKick');
+const wireSrc = document.getElementById('wireSrc');
+const wireSub = document.getElementById('wireSub');
+const wireTypes = document.getElementById('wireTypes');
+const wireAct = document.getElementById('wireAct');
+let armed = null;       // { cellId, port, net }
+let selectedCable = null;
+const marker = new THREE.Mesh(new THREE.RingGeometry(0.008, 0.011, 24),
+  new THREE.MeshBasicMaterial({ color:0xf7981d, toneMapped:false, side:THREE.DoubleSide }));
+marker.visible = false; scene.add(marker);
+let ghost = null;
+function clearGhost(){ if(ghost){ scene.remove(ghost); ghost.geometry.dispose(); ghost.material.dispose(); ghost = null; } }
+function suggestNet(cellId, port){
+  const dev = DEVREG[cellId];
+  const t = dev.userData.portType[port] || '';
+  if(POWER_TYPES.includes(t)) return 'power';
+  const s = (port + ' ' + dev.userData.label).toLowerCase();
+  if(/ipmi|mgmt|con-|distributor/.test(s)) return 'ipmi';
+  if(/priv/.test(s)) return 'private';
+  return 'public';
+}
+function compatible(aCell, aPort, bCell, bPort){
+  const ta = DEVREG[aCell].userData.portType[aPort], tb = DEVREG[bCell].userData.portType[bPort];
+  const pa = POWER_TYPES.includes(ta), pb = POWER_TYPES.includes(tb);
+  return pa === pb;
+}
+function hexCss(n){ return '#' + n.toString(16).padStart(6,'0'); }
+function renderWirePanel(){
+  if(selectedCable){
+    const l = selectedCable.userData.link, net = netOf(l);
+    wireKick.textContent = 'Cable · ' + NET_LABEL[net];
+    wireSrc.textContent = devName(l.a.devId) + ' ' + (l.a.port||'');
+    wireSub.textContent = '→ ' + devName(l.b.devId) + ' ' + (l.b.port||'');
+    wireTypes.innerHTML = '';
+    wireAct.innerHTML = '';
+    const del = document.createElement('button'); del.className = 'abtn danger'; del.textContent = 'Delete cable';
+    del.onclick = ()=>{ conn.links = conn.links.filter(x=>x!==l); saveConn(); rebuildCables(); closePanel(); };
+    const zoom = document.createElement('button'); zoom.className = 'abtn'; zoom.textContent = 'Zoom to';
+    zoom.onclick = ()=>{ const p = selectedCable.geometry.boundingSphere.center.clone().applyMatrix4(selectedCable.matrixWorld);
+      flyTgt = p.clone(); const dir = camera.position.clone().sub(controls.target).normalize(); flyPos = p.clone().add(dir.multiplyScalar(0.5)); };
+    const cls = document.createElement('button'); cls.className = 'abtn'; cls.textContent = 'Close';
+    cls.onclick = closePanel;
+    wireAct.append(del, zoom, cls);
+    wirePanel.style.display = 'block';
+    return;
+  }
+  if(!armed){ wirePanel.style.display = 'none'; return; }
+  const dev = DEVREG[armed.cellId];
+  wireKick.textContent = 'New cable';
+  wireSrc.textContent = armed.port;
+  wireSub.textContent = dev.userData.label + ' — now click the destination port. Esc cancels.';
+  wireTypes.innerHTML = '';
+  ['ipmi','public','private','power'].forEach(net=>{
+    const b = document.createElement('button');
+    b.className = 'tbtn' + (armed.net===net ? ' sel' : '');
+    if(armed.net===net) b.style.borderColor = hexCss(NET_COLOR[net]);
+    b.innerHTML = '<span class="d" style="background:' + hexCss(NET_COLOR[net]) + '"></span>' + (net==='public'?'Public':net==='ipmi'?'IPMI':net==='private'?'Private':'Power');
+    b.onclick = ()=>{ armed.net = net; renderWirePanel(); };
+    wireTypes.appendChild(b);
+  });
+  wireAct.innerHTML = '';
+  const cancel = document.createElement('button'); cancel.className = 'abtn'; cancel.textContent = 'Cancel';
+  cancel.onclick = closePanel;
+  wireAct.appendChild(cancel);
+  wirePanel.style.display = 'block';
+}
+function closePanel(){ armed = null; selectedCable = null; marker.visible = false; clearGhost(); renderWirePanel(); }
+addEventListener('keydown', e=>{ if(e.key==='Escape') closePanel(); });
+
+// ---------- picking ----------
+const ray = new THREE.Raycaster(); const mouse = new THREE.Vector2();
+let flyPos = null, flyTgt = null;
+function deviceOf(obj){ let o = obj; while(o){ if(o.userData && o.userData.cellId) return o; o = o.parent; } return null; }
+function pickPort(e){
+  mouse.x = (e.clientX/innerWidth)*2-1; mouse.y = -(e.clientY/innerHeight)*2+1;
+  ray.setFromCamera(mouse, camera);
+  const hits = ray.intersectObjects(allRacks.children, true);
+  for(const h of hits){
+    if(h.object.userData && h.object.userData.isPorts && h.instanceId != null){
+      return { port: h.object.userData.ports[h.instanceId], dev: deviceOf(h.object), point: h.point };
+    }
+    if(h.object.visible === false) continue;
+    // first opaque hit that's not ports stops the search (don't pick through gear)
+    if(!h.object.userData.isPorts) { return { dev: deviceOf(h.object) ? deviceOf(h.object) : null, port: null, point: h.point }; }
+  }
+  return null;
+}
+let lastRay = 0, lastInteract = performance.now();
+renderer.domElement.addEventListener('pointermove', e=>{
+  lastInteract = performance.now();
+  if(lastInteract - lastRay < 45) return;
+  lastRay = lastInteract;
+  const hit = pickPort(e);
+  if(hit && hit.port && hit.dev){
+    const cellId = hit.dev.userData.cellId;
+    const wired = WIRED[cellId + '|' + hit.port.addr];
+    tip.innerHTML = '<div class="pa">' + hit.port.addr + ' <span class="pt">· ' + hit.port.typeLabel + '</span></div>' +
+      '<div class="pt">' + hit.port.group + '</div>' +
+      '<div>' + hit.dev.userData.label + '</div>' +
+      (wired ? '<div class="pw">' + wired + '</div>' : '<div class="pt">unwired</div>') +
+      (hit.port.assumed ? '<div class="warn">assumed — confirm on hardware</div>' : '');
+    tip.style.display = 'block';
+    const tw = 330; const px = Math.min(e.clientX + 14, innerWidth - tw), py = Math.min(e.clientY + 10, innerHeight - 130);
+    tip.style.left = px + 'px'; tip.style.top = py + 'px';
+    if(armed && hit.dev.userData.cellId && (hit.dev.userData.cellId !== armed.cellId || hit.port.addr !== armed.port)){
+      clearGhost();
+      if(compatible(armed.cellId, armed.port, cellId, hit.port.addr)){
+        const pa = portWorld(armed.cellId, armed.port), pb = portWorld(cellId, hit.port.addr);
+        const curve = routeCurve(pa, facing(DEVREG[armed.cellId]), pb, facing(DEVREG[cellId]), armed.net);
+        ghost = new THREE.Mesh(new THREE.TubeGeometry(curve, 40, 0.0042, 8, false),
+          new THREE.MeshBasicMaterial({ color: NET_COLOR[armed.net], transparent:true, opacity:0.45, toneMapped:false }));
+        scene.add(ghost);
+      }
+    }
+  } else if(hit && hit.dev){
+    tip.innerHTML = '<div>' + hit.dev.userData.label + '</div>';
+    tip.style.display = 'block';
+    tip.style.left = (e.clientX+14) + 'px'; tip.style.top = (e.clientY+10) + 'px';
+    clearGhost();
+  } else { tip.style.display = 'none'; clearGhost(); }
+});
+renderer.domElement.addEventListener('pointerdown', e=>{
+  lastInteract = performance.now();
+  if(e.button !== 0) return;
+  mouse.x = (e.clientX/innerWidth)*2-1; mouse.y = -(e.clientY/innerHeight)*2+1;
+  ray.setFromCamera(mouse, camera);
+  const cableHits = ray.intersectObjects(cablesGroup.children, false);
+  const hit = pickPort(e);
+  if(hit && hit.port && hit.dev){
+    const cellId = hit.dev.userData.cellId;
+    if(!armed){
+      armed = { cellId, port: hit.port.addr, net: suggestNet(cellId, hit.port.addr) };
+      selectedCable = null;
+      marker.visible = true;
+      const p = portWorld(cellId, hit.port.addr); marker.position.copy(p); marker.position.z += facing(hit.dev)*0.004;
+      marker.rotation.set(0, facing(hit.dev)>0 ? 0 : Math.PI, 0);
+      renderWirePanel();
+    } else if(cellId !== armed.cellId || hit.port.addr !== armed.port){
+      if(!compatible(armed.cellId, armed.port, cellId, hit.port.addr)){
+        wireSub.textContent = 'Incompatible port types (data ↔ power). Pick another port.';
+        return;
+      }
+      const dA = ensureDevice(armed.cellId), dB = ensureDevice(cellId);
+      const link = { id: uid(), kind: armed.net==='power' ? 'power' : 'data', net: armed.net,
+        a: { devId: dA.id, port: armed.port }, b: { devId: dB.id, port: hit.port.addr }, label: '' };
+      conn.links.push(link); saveConn(); rebuildCables();
+      closePanel();
+    }
+    return;
+  }
+  if(cableHits.length){
+    selectedCable = cableHits[0].object; armed = null; marker.visible = false; clearGhost();
+    renderWirePanel();
+    return;
+  }
+});
+renderer.domElement.addEventListener('dblclick', e=>{
+  const hit = pickPort(e);
+  if(!hit || !hit.dev) return;
+  const dev = hit.dev;
+  const p = new THREE.Vector3(); dev.getWorldPosition(p);
+  const f = facing(dev);
+  flyTgt = new THREE.Vector3(p.x, p.y, f>0 ? FRONT_Z : BACK_Z);
+  flyPos = new THREE.Vector3(p.x, p.y, (f>0 ? FRONT_Z : BACK_Z) + f*0.42);
+});
+
+// ---------- UI ----------
+const btnRotate = document.getElementById('btnRotate');
+const btnLabels = document.getElementById('btnLabels');
+btnRotate.onclick = ()=>{ controls.autoRotate = !controls.autoRotate; controls.autoRotateSpeed = 0.9; btnRotate.classList.toggle('on', controls.autoRotate); };
+btnLabels.onclick = ()=>{ labelGroup.visible = !labelGroup.visible; btnLabels.classList.toggle('on', labelGroup.visible); };
+document.getElementById('btnReset').onclick = ()=>{ camera.position.copy(START_POS); controls.target.copy(TARGET); controls.update(); };
+document.getElementById('btnFront').onclick = ()=>{ camera.position.set(0,1.05,3.0); controls.target.copy(TARGET); controls.update(); };
+document.getElementById('btnRear').onclick = ()=>{ camera.position.set(0,1.1,-2.2); controls.target.copy(TARGET); controls.update(); };
+const btnCables = document.getElementById('btnCables');
+btnCables.onclick = ()=>{ cablesGroup.visible = !cablesGroup.visible; btnCables.classList.toggle('on', cablesGroup.visible); };
+addEventListener('resize', ()=>{ camera.aspect = innerWidth/innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
+
+function updateLabels(){ labelGroup.children.forEach(p=>{ p.quaternion.copy(camera.quaternion); }); }
+let frame = 0;
+function blink(){
+  frame++;
+  if(frame % 16 !== 0) return;
+  for(const {inst, n} of ACT){
+    const flips = Math.max(1, n>>4);
+    for(let k=0;k<flips;k++) inst.setColorAt((Math.random()*n)|0, LED_COLS[(Math.random()*4)|0]);
+    inst.instanceColor.needsUpdate = true;
+  }
+}
+let started = false;
+function animate(){
+  requestAnimationFrame(animate);
+  if(flyPos){ camera.position.lerp(flyPos, 0.12); controls.target.lerp(flyTgt, 0.12); if(camera.position.distanceTo(flyPos) < 0.02){ flyPos = null; flyTgt = null; } }
+  for(const f of FANS) f.rotation.z += 0.3;
+  controls.update(); updateLabels(); blink();
+  renderer.render(scene, camera);
+  if(!started){ started = true; document.getElementById('loading').classList.add('hide'); }
+}
+animate();
+</script>
+</body>
+</html>

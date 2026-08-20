@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { background: #1a2130; -webkit-font-smoothing: antialiased; }
+  a { color: #f7981d; text-decoration: none; }
+  a:hover { color: #ffa940; }
+</style>
+</helmet>
+<div style="min-height:100vh; background:#1a2130; font-family:'Poppins',sans-serif; color:#e8ecf2;">
+
+  <div style="height:56px; background:#0f141d; border-bottom:1px solid rgba(255,255,255,0.06); display:flex; align-items:center; justify-content:space-between; padding:0 22px; position:sticky; top:0; z-index:10;">
+    <div style="font-size:22px; font-weight:700; letter-spacing:-0.3px;"><span style="color:#f7981d;">cabinet</span><span style="color:#c4ccd8;">minister</span></div>
+    <div style="display:flex; align-items:center; gap:14px;">
+      <span style="font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:#8b95a7;">v0.6.4</span>
+      <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; padding:5px 11px; border-radius:6px; background:rgba(247,152,29,0.14); color:#f7981d;">DC toolkit</span>
+    </div>
+  </div>
+
+  <div style="display:flex; align-items:stretch; min-height:calc(100vh - 56px);">
+
+    <aside style="flex:0 0 236px; background:#10161f; border-right:1px solid rgba(255,255,255,0.05); padding:18px 12px;">
+      <div style="display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:8px; background:rgba(247,152,29,0.12); color:#fff; font-size:13.5px; font-weight:600; margin-bottom:14px;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f7981d" stroke-width="2.2"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect></svg>
+        Hub Overview
+      </div>
+      <div style="font-size:10.5px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:#5f6a7d; padding:4px 12px 8px;">Tools</div>
+      <a href="Cabinet%20Layout.dc.html" style="display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:8px; color:#c8d0dc; font-size:13.5px; font-weight:500;" style-hover="background:rgba(255,255,255,0.05); color:#ffffff;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9aa5b6" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"></rect><line x1="4" y1="7" x2="20" y2="7"></line><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="17" x2="20" y2="17"></line></svg>
+        2D Cabinet Planner
+      </a>
+      <a href="Hardware%20Catalog.dc.html" style="display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:8px; color:#c8d0dc; font-size:13.5px; font-weight:500;" style-hover="background:rgba(255,255,255,0.05); color:#ffffff;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9aa5b6" stroke-width="2"><rect x="2" y="8" width="20" height="8" rx="1"></rect><circle cx="6.5" cy="12" r="1"></circle><circle cx="10.5" cy="12" r="1"></circle><circle cx="14.5" cy="12" r="1"></circle></svg>
+        Port Catalog
+      </a>
+      <a href="Connections.dc.html" style="display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:8px; color:#c8d0dc; font-size:13.5px; font-weight:500;" style-hover="background:rgba(255,255,255,0.05); color:#ffffff;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9aa5b6" stroke-width="2"><path d="M8 12h8"></path><circle cx="5" cy="12" r="3"></circle><circle cx="19" cy="12" r="3"></circle></svg>
+        Port &amp; Power Mapping
+      </a>
+      <a href="Cabinet%203D.html" style="display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:8px; color:#c8d0dc; font-size:13.5px; font-weight:500;" style-hover="background:rgba(255,255,255,0.05); color:#ffffff;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9aa5b6" stroke-width="2"><path d="M12 2l9 5v10l-9 5-9-5V7z"></path><path d="M12 12l9-5M12 12L3 7M12 12v10"></path></svg>
+        3D Rack Environment
+      </a>
+      <div style="font-size:10.5px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:#5f6a7d; padding:14px 12px 8px;">Info</div>
+      <a href="#relnotes" style="display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:8px; color:#c8d0dc; font-size:13.5px; font-weight:500;" style-hover="background:rgba(255,255,255,0.05); color:#ffffff;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9aa5b6" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path></svg>
+        Release Notes
+      </a>
+      <a href="#dataflow" style="display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:8px; color:#c8d0dc; font-size:13.5px; font-weight:500;" style-hover="background:rgba(255,255,255,0.05); color:#ffffff;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9aa5b6" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"></path></svg>
+        Data Flow
+      </a>
+    </aside>
+
+    <main style="flex:1; padding:30px 38px 60px; max-width:1060px;">
+      <h1 style="margin:0; font-size:27px; font-weight:600; color:#ffffff;">Cabinet Minister</h1>
+      <p style="margin:6px 0 24px; font-size:14px; color:#97a1b3;">The ministry of racking. Four linked tools sharing one hardware catalog — plan a cabinet, inspect its ports, wire the connections, view it in 3D.</p>
+
+      <div style="background:#1e2735; border:1px solid rgba(255,255,255,0.06); border-radius:9px; overflow:hidden; margin-bottom:18px;">
+        <div style="display:flex; align-items:center; gap:9px; padding:13px 18px; background:#232d3d; border-bottom:1px solid rgba(255,255,255,0.05); font-size:14.5px; font-weight:600; color:#fff;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f7981d" stroke-width="2.2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+          Live Status
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(4,1fr);">
+          <div style="padding:18px 20px; border-right:1px solid rgba(255,255,255,0.05);">
+            <div style="font-family:'IBM Plex Mono',monospace; font-size:28px; font-weight:600; color:#f7981d;">{{ stats.cabinets }}</div>
+            <div style="font-size:11.5px; color:#8b95a7; margin-top:3px;">Cabinets</div>
+          </div>
+          <div style="padding:18px 20px; border-right:1px solid rgba(255,255,255,0.05);">
+            <div style="font-family:'IBM Plex Mono',monospace; font-size:28px; font-weight:600; color:#ffffff;">{{ stats.usedU }}</div>
+            <div style="font-size:11.5px; color:#8b95a7; margin-top:3px;">U occupied</div>
+          </div>
+          <div style="padding:18px 20px; border-right:1px solid rgba(255,255,255,0.05);">
+            <div style="font-family:'IBM Plex Mono',monospace; font-size:28px; font-weight:600; color:#ffffff;">{{ stats.devices }}</div>
+            <div style="font-size:11.5px; color:#8b95a7; margin-top:3px;">Devices wired</div>
+          </div>
+          <div style="padding:18px 20px;">
+            <div style="font-family:'IBM Plex Mono',monospace; font-size:28px; font-weight:600; color:#ffffff;">{{ stats.links }}</div>
+            <div style="font-size:11.5px; color:#8b95a7; margin-top:3px;">Connections</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="background:#1e2735; border:1px solid rgba(255,255,255,0.06); border-radius:9px; overflow:hidden; margin-bottom:18px;">
+        <div style="display:flex; align-items:center; gap:9px; padding:13px 18px; background:#232d3d; border-bottom:1px solid rgba(255,255,255,0.05); font-size:14.5px; font-weight:600; color:#fff;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f7981d" stroke-width="2.2"><rect x="2" y="4" width="20" height="6" rx="1"></rect><rect x="2" y="14" width="20" height="6" rx="1"></rect></svg>
+          My Tools
+        </div>
+        <a href="Cabinet%20Layout.dc.html" style="display:flex; align-items:center; gap:14px; padding:15px 18px; border-bottom:1px solid rgba(255,255,255,0.05); color:#e8ecf2;" style-hover="background:rgba(255,255,255,0.03);">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f7981d" stroke-width="2" style="flex:0 0 auto;"><rect x="4" y="2" width="16" height="20" rx="2"></rect><line x1="4" y1="7" x2="20" y2="7"></line><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="17" x2="20" y2="17"></line></svg>
+          <span style="flex:0 0 190px; font-size:14px; font-weight:600; color:#fff;">2D Cabinet Planner</span>
+          <span style="flex:1; font-size:12.5px; color:#97a1b3;">Dual-sided rack elevation — add, drag, span, rename gear. Feeds the 3D view and connections.</span>
+          <span style="color:#f7981d; font-size:16px;">›</span>
+        </a>
+        <a href="Hardware%20Catalog.dc.html" style="display:flex; align-items:center; gap:14px; padding:15px 18px; border-bottom:1px solid rgba(255,255,255,0.05); color:#e8ecf2;" style-hover="background:rgba(255,255,255,0.03);">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f7981d" stroke-width="2" style="flex:0 0 auto;"><rect x="2" y="8" width="20" height="8" rx="1"></rect><circle cx="6.5" cy="12" r="1"></circle><circle cx="10.5" cy="12" r="1"></circle><circle cx="14.5" cy="12" r="1"></circle></svg>
+          <span style="flex:0 0 190px; font-size:14px; font-weight:600; color:#fff;">Port Catalog</span>
+          <span style="flex:1; font-size:12.5px; color:#97a1b3;">Every model's faceplate to scale — click any port for its address.</span>
+          <span style="color:#f7981d; font-size:16px;">›</span>
+        </a>
+        <a href="Connections.dc.html" style="display:flex; align-items:center; gap:14px; padding:15px 18px; border-bottom:1px solid rgba(255,255,255,0.05); color:#e8ecf2;" style-hover="background:rgba(255,255,255,0.03);">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f7981d" stroke-width="2" style="flex:0 0 auto;"><path d="M8 12h8"></path><circle cx="5" cy="12" r="3"></circle><circle cx="19" cy="12" r="3"></circle></svg>
+          <span style="flex:0 0 190px; font-size:14px; font-weight:600; color:#fff;">Port &amp; Power Mapping</span>
+          <span style="flex:1; font-size:12.5px; color:#97a1b3;">Wire port→port and PDU outlet→PSU; tracks used/free ports and per-PDU load.</span>
+          <span style="color:#f7981d; font-size:16px;">›</span>
+        </a>
+        <a href="Cabinet%203D.html" style="display:flex; align-items:center; gap:14px; padding:15px 18px; color:#e8ecf2;" style-hover="background:rgba(255,255,255,0.03);">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f7981d" stroke-width="2" style="flex:0 0 auto;"><path d="M12 2l9 5v10l-9 5-9-5V7z"></path><path d="M12 12l9-5M12 12L3 7M12 12v10"></path></svg>
+          <span style="flex:0 0 190px; font-size:14px; font-weight:600; color:#fff;">3D Rack Environment</span>
+          <span style="flex:1; font-size:12.5px; color:#97a1b3;">Walk the racks — hover ports to identify, click to run cables (IPMI / public / private / power).</span>
+          <span style="color:#f7981d; font-size:16px;">›</span>
+        </a>
+      </div>
+
+      <div id="relnotes" style="background:#1e2735; border:1px solid rgba(255,255,255,0.06); border-radius:9px; overflow:hidden; margin-bottom:18px;">
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:13px 18px; background:#232d3d; border-bottom:1px solid rgba(255,255,255,0.05);">
+          <div style="display:flex; align-items:center; gap:9px; font-size:14.5px; font-weight:600; color:#fff;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f7981d" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path></svg>
+            Release Notes
+          </div>
+          <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#f7981d;">current: v0.6.4</span>
+        </div>
+        <div style="padding:16px 18px; display:flex; flex-direction:column; gap:10px; font-size:13px; line-height:1.55; color:#97a1b3;">
+          <div style="display:flex; gap:14px;"><span style="font-family:'IBM Plex Mono',monospace; flex:0 0 44px; color:#f7981d;">v0.6.4</span><span><strong style="color:#e8ecf2;">Performance (patch).</strong> 3D CPU use cut sharply: shadow map renders once instead of every frame, ~30fps idle governor (full 60fps while interacting), hover raycasts throttled, pixel ratio capped at 1.5×, LED churn reduced. Section labels draw on top of the rack — no more clipping — and named servers lead with their hostname on the faceplate, model as the sub-line.</span></div>
+          <div style="display:flex; gap:14px;"><span style="font-family:'IBM Plex Mono',monospace; flex:0 0 44px; color:#5f6a7d;">v0.6.3</span><span><strong style="color:#e8ecf2;">Rear fans &amp; PSUs (patch).</strong> Switch rear panels now render their FRU modules: dual PSUs with inlet, grille and status LED, plus a spinning fan-tray bank — QFX5200 shows its documented five fan trays and two power supplies; other models show a generic redundant bank until doc-level counts are confirmed. Toolkit re-packaged as standalone files.</span></div>
+          <div style="display:flex; gap:14px;"><span style="font-family:'IBM Plex Mono',monospace; flex:0 0 44px; color:#5f6a7d;">v0.6.2</span><span><strong style="color:#e8ecf2;">Verified hardware (patch).</strong> Every catalog.js spec re-checked against official docs — Juniper QFX5200/EX4200 hardware guides, the QFX5100 datasheet, APC's AP7911B specs. Mgmt, console and USB moved to the rear FRU panels on all three Juniper models; the EX4200 gains its dual Virtual Chassis ports, the PDU its L6-30P input cord. Port Catalog now draws front and rear panels, the 3D places rear ports on the hot-aisle face, and unsourced depths read "TBC" instead of a guess.</span></div>
+          <div style="display:flex; gap:14px;"><span style="font-family:'IBM Plex Mono',monospace; flex:0 0 44px; color:#5f6a7d;">v0.6.1</span><span><strong style="color:#e8ecf2;">Panel look (patch).</strong> Hub rebuilt in the ReliableSite dedicated-panel style — dark top bar with two-tone wordmark, icon sidebar with section labels, header-strip cards, Poppins type. Orange brand accent applied across all four tools, icons added to My Tools, toolkit renamed cabinetminister.</span></div>
+          <div style="display:flex; gap:14px;"><span style="font-family:'IBM Plex Mono',monospace; flex:0 0 44px; color:#5f6a7d;">v0.6</span><span><strong style="color:#e8ecf2;">3D wiring.</strong> 3D faceplates are generated from catalog.js, so every addressable port exists at its real position. Hover a port for address, type, group and wired status; click to arm it (cable class auto-suggested), click a compatible destination to run the cable — data↔power mismatches rejected. Cables follow the site color code (yellow IPMI, green public, orange private, red power), route power down the left channel and data down the right, and save to the same wiring store Connections reads. Click a cable to zoom or delete.</span></div>
+          <div style="display:flex; gap:14px;"><span style="font-family:'IBM Plex Mono',monospace; flex:0 0 44px; color:#5f6a7d;">v0.5</span><span><strong style="color:#e8ecf2;">General planner.</strong> CR8-specific naming stripped so the toolkit serves any cabinet build-out; the planner starts from a single empty 47U cabinet plus the reusable template; ReliableSite color profile introduced across the tools.</span></div>
+          <div style="display:flex; gap:14px;"><span style="font-family:'IBM Plex Mono',monospace; flex:0 0 44px; color:#5f6a7d;">v0.4</span><span><strong style="color:#e8ecf2;">3D environment + hub.</strong> three.js data-center hall — 47U rack row, hot/cold aisles, perforated tiles, overhead cable tray, orbit with deep zoom, section labels — plus this hub with live stats from saved layouts.</span></div>
+          <div style="display:flex; gap:14px;"><span style="font-family:'IBM Plex Mono',monospace; flex:0 0 44px; color:#5f6a7d;">v0.3</span><span><strong style="color:#e8ecf2;">Connections.</strong> Port→port and PDU-outlet→PSU mapping on real catalog addresses; per-device port usage, per-PDU load, cable labels, CSV patch-schedule export, JSON save/open.</span></div>
+          <div style="display:flex; gap:14px;"><span style="font-family:'IBM Plex Mono',monospace; flex:0 0 44px; color:#5f6a7d;">v0.2</span><span><strong style="color:#e8ecf2;">Hardware catalog.</strong> catalog.js becomes the single source of truth — each model declares its size and port groups, generating addressable ports (et-0/0/12, C13-7, …) rendered as clickable faceplates.</span></div>
+          <div style="display:flex; gap:14px;"><span style="font-family:'IBM Plex Mono',monospace; flex:0 0 44px; color:#5f6a7d;">v0.1</span><span><strong style="color:#e8ecf2;">2D planner.</strong> Dual-sided 47U rack elevation — cold and hot slots fill independently — with click-to-add, drag, span, rename, auto-save and JSON save/open.</span></div>
+          <p style="margin:14px 0 0; padding-top:12px; border-top:1px solid rgba(255,255,255,0.06); font-size:12px; color:#8b95a7; line-height:1.6;">Versioning: new features bump the minor (0.x); fixes, reskins and data corrections bump the patch (0.x.y). v1.0 is reserved for a release the team signs off on — confirmed BH chassis I/O plate, the real Supermicro model in the catalog, and photo-textured 3D skins.</p>
+        </div>
+      </div>
+
+      <div id="dataflow" style="background:#1e2735; border:1px solid rgba(255,255,255,0.06); border-radius:9px; overflow:hidden;">
+        <div style="display:flex; align-items:center; gap:9px; padding:13px 18px; background:#232d3d; border-bottom:1px solid rgba(255,255,255,0.05); font-size:14.5px; font-weight:600; color:#fff;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f7981d" stroke-width="2.2"><path d="M4 6h16M4 12h16M4 18h10"></path></svg>
+          Data Flow
+        </div>
+        <div style="padding:16px 18px;">
+          <div style="display:flex; flex-wrap:wrap; align-items:center; gap:9px; font-family:'IBM Plex Mono',monospace; font-size:12.5px; color:#c8d0dc;">
+            <span style="padding:6px 12px; background:#141b28; border:1px solid rgba(255,255,255,0.08); border-radius:7px; color:#f7981d;">catalog.js</span>
+            <span style="color:#5f6a7d;">feeds →</span>
+            <span style="padding:6px 12px; background:#141b28; border:1px solid rgba(255,255,255,0.08); border-radius:7px;">Planner</span>
+            <span style="color:#5f6a7d;">→</span>
+            <span style="padding:6px 12px; background:#141b28; border:1px solid rgba(255,255,255,0.08); border-radius:7px;">3D view</span>
+            <span style="color:#5f6a7d;">+</span>
+            <span style="padding:6px 12px; background:#141b28; border:1px solid rgba(255,255,255,0.08); border-radius:7px;">Connections</span>
+          </div>
+          <p style="margin:13px 0 0; font-size:12.5px; color:#8b95a7; line-height:1.6;">Edits save in your browser automatically. Use each tool's <strong style="color:#c8d0dc;">Save file / Open file</strong> to move a layout or wiring set between machines or share with the team.</p>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{}">
+class Component extends DCLogic {
+  state = { stats: { cabinets: '—', usedU: '—', devices: '—', links: '—' } };
+  componentDidMount() {
+    let cabinets = 0, usedU = 0, devices = 0, links = 0;
+    try {
+      const raw = localStorage.getItem('cabplanner.v1.main') || localStorage.getItem('cabplanner.v1.blank');
+      if (raw) {
+        const racks = JSON.parse(raw);
+        if (Array.isArray(racks)) {
+          cabinets = racks.length;
+          racks.forEach(r => {
+            const occ = {};
+            (r.cells || []).forEach(c => { for (let k = 0; k < (c.span || 1); k++) { occ[c.top - k] = 1; } });
+            usedU += Object.keys(occ).length;
+          });
+        }
+      }
+      const cr = localStorage.getItem('cabplanner.v1.connections');
+      if (cr) { const d = JSON.parse(cr); devices = (d.devices || []).length; links = (d.links || []).length; }
+    } catch (_) {}
+    this.setState({ stats: { cabinets: cabinets || 0, usedU: usedU || 0, devices: devices || 0, links: links || 0 } });
+  }
+  renderVals() { return { stats: this.state.stats }; }
+}
+</script>
+</body>
+</html>

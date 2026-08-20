@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { background: #121924; -webkit-font-smoothing: antialiased; }
+  a { color: #f7981d; text-decoration: none; }
+  a:hover { color: #ffa940; }
+</style>
+</helmet>
+<div style="min-height:100vh; background:#121924; background-image:linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px); background-size:44px 44px; font-family:'Space Grotesk',sans-serif; color:#e6e9ee; display:flex;">
+
+  <aside style="flex:0 0 264px; background:#1b2432; border-right:1px solid rgba(255,255,255,0.13); min-height:100vh; padding:24px 18px;">
+    <a href="Hub.dc.html" style="display:inline-block; font-family:'IBM Plex Mono',monospace; font-size:11px; color:#f7981d; text-decoration:none; margin-bottom:10px;">← Hub</a>
+    <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:2.5px; text-transform:uppercase; color:#9fb0ca; margin-bottom:6px;">Hardware</div>
+    <h1 style="margin:0 0 4px; font-size:21px; font-weight:700; letter-spacing:-0.3px;">Port Catalog</h1>
+    <p style="margin:0 0 20px; font-size:12.5px; color:#8296b3; line-height:1.5;">Faceplates from official hardware guides. Click a port to select its address.</p>
+    <div style="display:flex; flex-direction:column; gap:7px;">
+      <sc-for list="{{ models }}" as="m" hint-placeholder-count="6">
+        <button onClick="{{ m.onSelect }}" style="text-align:left; display:flex; align-items:center; gap:10px; padding:11px 12px; border-radius:9px; border:1px solid {{ m.borderColor }}; background: {{ m.bg }}; cursor:pointer;">
+          <span style="flex:0 0 auto; width:11px; height:11px; border-radius:3px; background: {{ m.accent }};"></span>
+          <span style="display:flex; flex-direction:column; gap:1px; min-width:0;">
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:12.5px; font-weight:600; color:#e6e9ee; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ m.short }}</span>
+            <span style="font-size:11px; color:#9fb0ca;">{{ m.meta }}</span>
+          </span>
+        </button>
+      </sc-for>
+    </div>
+  </aside>
+
+  <main style="flex:1; min-width:0; padding:34px 40px 60px;">
+    <div style="max-width:1080px; margin:0 auto;">
+      <div style="display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; margin-bottom:4px;">
+        <h2 style="margin:0; font-size:26px; font-weight:700; letter-spacing:-0.4px;">{{ sel.name }}</h2>
+        <sc-if value="{{ sel.custom }}" hint-placeholder-val="{{ true }}">
+          <span style="font-family:'IBM Plex Mono',monospace; font-size:10.5px; padding:3px 9px; border-radius:999px; background:#fef3c7; color:#92400e; font-weight:600; letter-spacing:0.5px;">ASSUMED · CONFIRM</span>
+        </sc-if>
+      </div>
+      <p style="margin:0 0 6px; font-size:14px; color:#9fb0ca; max-width:720px; line-height:1.5;">{{ sel.note }}</p>
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#9fb0ca; margin-bottom:22px;">{{ sel.dims }} &nbsp;·&nbsp; {{ sel.portCount }} ports</div>
+
+      <div style="background:#0d1219; border:1px solid #161d2b; border-radius:12px; padding:22px; box-shadow:0 20px 44px -26px rgba(0,0,0,0.55);">
+        <div style="display:flex; justify-content:space-between; font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:1.5px; color:#8296b3; text-transform:uppercase; margin-bottom:12px;">
+          <span>Front faceplate · to scale</span><span>{{ sel.short }}</span>
+        </div>
+        <div style="position:relative; width:100%; aspect-ratio: {{ sel.aspect }}; background:linear-gradient(180deg,#33405a,#17181c); border-radius:7px; border:1px solid #161d2b; overflow:hidden;">
+          <sc-for list="{{ sel.ports }}" as="p" hint-placeholder-count="32">
+            <button onClick="{{ p.onSelect }}" title="{{ p.title }}" style="position:absolute; left: {{ p.left }}; top: {{ p.top }}; width: {{ p.w }}; height: {{ p.h }}; transform:translate(-50%,-50%); padding:0; border-radius:2px; border:1px solid {{ p.border }}; background: {{ p.fill }}; cursor:pointer; box-shadow: {{ p.glow }};"></button>
+          </sc-for>
+          <sc-if value="{{ sel.noPorts }}" hint-placeholder-val="{{ true }}">
+            <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:12px; color:#9fb0ca;">No front-panel ports — rear I/O only</div>
+          </sc-if>
+        </div>
+        <sc-if value="{{ sel.hasRear }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex; justify-content:space-between; font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:1.5px; color:#8296b3; text-transform:uppercase; margin:18px 0 12px;">
+            <span>Rear panel · FRU end</span><span>{{ sel.short }}</span>
+          </div>
+          <div style="position:relative; width:100%; aspect-ratio: {{ sel.aspect }}; background:linear-gradient(180deg,#232a38,#141519); border-radius:7px; border:1px solid #161d2b; overflow:hidden;">
+            <span style="position:absolute; right:10px; bottom:8px; font-family:'IBM Plex Mono',monospace; font-size:10px; color:#5f6a7d;">fans / PSUs occupy remaining width</span>
+            <sc-for list="{{ sel.rearPorts }}" as="p" hint-placeholder-count="4">
+              <button onClick="{{ p.onSelect }}" title="{{ p.title }}" style="position:absolute; left: {{ p.left }}; top: {{ p.top }}; width: {{ p.w }}; height: {{ p.h }}; transform:translate(-50%,-50%); padding:0; border-radius:2px; border:1px solid {{ p.border }}; background: {{ p.fill }}; cursor:pointer; box-shadow: {{ p.glow }};"></button>
+            </sc-for>
+          </div>
+        </sc-if>
+        <div style="display:flex; flex-wrap:wrap; gap:8px 18px; margin-top:16px;">
+          <sc-for list="{{ sel.groupKey }}" as="g" hint-placeholder-count="4">
+            <span style="display:inline-flex; align-items:center; gap:7px; font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:#d5d9e0;">
+              <span style="width:11px; height:11px; border-radius:2px; background: {{ g.color }};"></span>{{ g.label }} · {{ g.type }}
+            </span>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:24px; flex-wrap:wrap; margin-top:26px; align-items:flex-start;">
+        <div style="flex:1 1 320px; min-width:280px;">
+          <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:2px; text-transform:uppercase; color:#9fb0ca; margin-bottom:10px;">Port inventory</div>
+          <div style="border:1px solid rgba(255,255,255,0.14); border-radius:10px; overflow:hidden;">
+            <sc-for list="{{ sel.groups }}" as="g" hint-placeholder-count="3">
+              <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; padding:11px 14px; background:#212c3e; border-bottom:1px solid rgba(255,255,255,0.08);">
+                <span style="display:flex; align-items:center; gap:9px;">
+                  <span style="width:11px; height:11px; border-radius:3px; background: {{ g.color }};"></span>
+                  <span style="font-size:13.5px; font-weight:500; color:#e6e9ee;">{{ g.label }}</span>
+                </span>
+                <span style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#8296b3;">{{ g.count }}× {{ g.type }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="flex:1 1 300px; min-width:260px;">
+          <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:2px; text-transform:uppercase; color:#9fb0ca; margin-bottom:10px;">Selected port</div>
+          <div style="border:1px solid rgba(255,255,255,0.14); border-radius:10px; padding:18px; background:#212c3e; min-height:120px;">
+            <sc-if value="{{ hasSelection }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+                <span style="font-family:'IBM Plex Mono',monospace; font-size:22px; font-weight:600; color:#e6e9ee;">{{ picked.addr }}</span>
+                <button onClick="{{ onCopy }}" title="Copy address" style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#9fb0ca; background:#33405a; border:1px solid rgba(255,255,255,0.14); border-radius:6px; padding:4px 9px; cursor:pointer;" style-hover="border-color:#f7981d; color:#f7981d;">{{ copyLabel }}</button>
+              </div>
+              <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                <span style="font-family:'IBM Plex Mono',monospace; font-size:12px; padding:4px 10px; border-radius:999px; background:#33405a; color:#9fb0ca;">{{ picked.type }}</span>
+                <span style="font-family:'IBM Plex Mono',monospace; font-size:12px; padding:4px 10px; border-radius:999px; background:#33405a; color:#9fb0ca;">{{ picked.groupLabel }}</span>
+                <sc-if value="{{ pickedRear }}" hint-placeholder-val="{{ false }}">
+                  <span style="font-family:'IBM Plex Mono',monospace; font-size:12px; padding:4px 10px; border-radius:999px; background:#33405a; color:#e6e9ee;">rear panel</span>
+                </sc-if>
+                <sc-if value="{{ picked.assumed }}" hint-placeholder-val="{{ true }}">
+                  <span style="font-family:'IBM Plex Mono',monospace; font-size:12px; padding:4px 10px; border-radius:999px; background:#fef3c7; color:#92400e;">assumed</span>
+                </sc-if>
+              </div>
+              <p style="margin:14px 0 0; font-size:12.5px; color:#9fb0ca; line-height:1.5;">Use this address when wiring in Connections or the 3D view.</p>
+            </sc-if>
+            <sc-if value="{{ noSelection }}" hint-placeholder-val="{{ true }}">
+              <p style="margin:0; font-size:13px; color:#9fb0ca; line-height:1.5;">Click any port on a faceplate to see its address and type.</p>
+            </sc-if>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{}">
+class Component extends DCLogic {
+  state = { sel: 'qfx5200-32c', picked: null, catalog: null, order: [] };
+
+  componentDidMount() {
+    import('./catalog.js').then(mod => {
+      this.CAT = mod.CATALOG; this.portsOf = mod.portsOf; this.TYPES = mod.PORT_TYPES;
+      this.setState({ catalog: mod.CATALOG, order: Object.keys(mod.CATALOG) });
+    });
+  }
+
+  pick(port) { this.setState({ picked: port, copied: false }); }
+  copyAddr() {
+    const a = this.state.picked && this.state.picked.addr; if (!a) return;
+    try { navigator.clipboard.writeText(a); } catch (_) {}
+    this.setState({ copied: true });
+    clearTimeout(this._ct); this._ct = setTimeout(() => this.setState({ copied: false }), 1200);
+  }
+  select(id) { this.setState({ sel: id, picked: null }); }
+
+  buildPorts(garr) {
+    const TYPES = this.TYPES, out = [];
+    for (const g of garr) {
+      const [rx, ry, rw, rh] = g.region;
+      const tdef = TYPES[g.type] || { color: '#94a3b8' };
+      for (let i = 0; i < g.count; i++) {
+        const r = Math.floor(i / g.cols), c = i % g.cols;
+        const fx = g.cols > 1 ? c / (g.cols - 1) : 0.5;
+        const fy = g.rows > 1 ? r / (g.rows - 1) : 0.5;
+        const cw = rw / g.cols, ch = rh / g.rows;
+        const cx = rx + (g.cols > 1 ? fx * (rw - cw) + cw / 2 : rw / 2);
+        const cy = ry + (g.rows > 1 ? fy * (rh - ch) + ch / 2 : rh / 2);
+        const addr = g.naming.prefix + ((g.naming.start ?? 0) + i);
+        const port = { addr, type: g.type, groupLabel: g.label, assumed: !!g.assumed, rear: !!g.rear };
+        const isPicked = this.state.picked && this.state.picked.addr === addr;
+        const pw = Math.min(cw * 0.82, 0.05) * 100;
+        const ph = Math.min(ch * 0.72, 0.55) * 100;
+        out.push({
+          left: (cx * 100).toFixed(2) + '%', top: (cy * 100).toFixed(2) + '%',
+          w: 'clamp(6px, ' + pw.toFixed(2) + '%, 26px)',
+          h: 'clamp(7px, ' + ph.toFixed(2) + '%, 30px)',
+          fill: isPicked ? tdef.color : tdef.color + 'cc',
+          border: isPicked ? '#fff' : '#161d2b',
+          glow: isPicked ? '0 0 0 2px #f7981d, 0 0 10px ' + tdef.color : 'none',
+          title: addr + '  ·  ' + g.type + (g.rear ? '  ·  rear' : ''),
+          onSelect: () => this.pick(port),
+        });
+      }
+    }
+    return out;
+  }
+
+  renderVals() {
+    if (!this.state.catalog) {
+      return { models: [], sel: { name: 'Loading…', note: '', dims: '', short: '', portCount: 0, aspect: '19 / 1.75', ports: [], rearPorts: [], hasRear: false, groups: [], groupKey: [], custom: false, noPorts: false }, hasSelection: false, noSelection: true, picked: {}, pickedRear: false, onCopy: () => {}, copyLabel: 'copy' };
+    }
+    const CAT = this.state.catalog, TYPES = this.TYPES;
+    const selId = this.state.sel;
+    const m = CAT[selId];
+
+    const models = this.state.order.map(id => {
+      const c = CAT[id];
+      const n = this.portsOf(id).length;
+      const active = id === selId;
+      return {
+        short: c.short, accent: c.accent,
+        meta: c.u + 'U · ' + n + ' ports',
+        onSelect: () => this.select(id),
+        bg: active ? '#2b3648' : 'transparent',
+        borderColor: active ? c.accent : 'rgba(255,255,255,0.12)',
+      };
+    });
+
+    const front = m.groups.filter(g => !g.rear);
+    const rear = m.groups.filter(g => g.rear);
+    const ports = this.buildPorts(front);
+    const rearPorts = this.buildPorts(rear);
+
+    const groups = m.groups.map(g => ({
+      label: g.label + (g.rear ? ' (rear)' : ''), count: g.count, type: g.type,
+      color: (TYPES[g.type] || {}).color || '#94a3b8',
+    }));
+    const seen = {};
+    const groupKey = [];
+    m.groups.forEach(g => { if (!seen[g.type]) { seen[g.type] = 1; groupKey.push({ type: g.type, label: (TYPES[g.type] || {}).label || g.type, color: (TYPES[g.type] || {}).color || '#94a3b8' }); } });
+
+    const sel = {
+      name: m.name, short: m.short, note: m.note, custom: !!m.custom,
+      dims: m.u + 'U · ' + m.widthIn + '" wide · ' + (m.depthMm ? m.depthMm + ' mm deep' : 'depth TBC'),
+      portCount: this.portsOf(selId).length,
+      aspect: m.widthIn + ' / ' + (m.u * 1.75),
+      ports, rearPorts, hasRear: rearPorts.length > 0,
+      groups, groupKey, noPorts: ports.length === 0,
+    };
+
+    return {
+      models, sel,
+      picked: this.state.picked || {},
+      pickedRear: !!(this.state.picked && this.state.picked.rear),
+      hasSelection: !!this.state.picked,
+      noSelection: !this.state.picked,
+      onCopy: () => this.copyAddr(),
+      copyLabel: this.state.copied ? 'copied ✓' : 'copy',
+    };
+  }
+}
+</script>
+</body>
+</html>
