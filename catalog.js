@@ -17,7 +17,7 @@
 // their assumed:true groups need confirmation on real hardware.
 // ============================================================================
 
-export const PORT_TYPES = {
+const PORT_TYPES = {
   RJ45:   { label: "RJ45",   color: "#0ea5e9", w: 0.75, h: 1.0 },
   SFP:    { label: "SFP",    color: "#a78bfa", w: 1.1,  h: 0.7 },
   "SFP+": { label: "SFP+",   color: "#a78bfa", w: 1.1,  h: 0.7 },
@@ -34,7 +34,7 @@ export const PORT_TYPES = {
   POWER:  { label: "PSU",    color: "#eab308", w: 1.4, h: 1.3 },
 };
 
-export const CATALOG = {
+const CATALOG = {
   "qfx5200-32c": {
     name: "Juniper QFX5200-32C",
     short: "QFX5200-32C",
@@ -158,7 +158,7 @@ export const CATALOG = {
 };
 
 // Expand a model's groups into a flat, ordered list of addressable ports.
-export function portsOf(modelId) {
+function portsOf(modelId) {
   const m = CATALOG[modelId];
   if (!m) return [];
   const out = [];
@@ -176,7 +176,7 @@ export function portsOf(modelId) {
 }
 
 // Kind used by the planner layout -> catalog model id (default suggestions).
-export const KIND_TO_MODEL = {
+const KIND_TO_MODEL = {
   spine: "qfx5200-32c",
   network: "qfx5100-48t",
   dist: "ex4200-48t",
@@ -186,3 +186,6 @@ export const KIND_TO_MODEL = {
   chassis: "cha-1u-b2b-r1",
   supermicro: "supermicro-1u",
 };
+
+// Plain-script global so every page works from file:// (no module CORS)
+window.CabCatalog = { PORT_TYPES, CATALOG, portsOf, KIND_TO_MODEL };

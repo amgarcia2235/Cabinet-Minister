@@ -140,11 +140,12 @@
 <div id="hint" class="panel">47U · hover a port · click to wire</div>
 <div id="tip"></div>
 
+<script src="./catalog.js"></script>
 <script type="module">
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-import { CATALOG, KIND_TO_MODEL, PORT_TYPES } from './catalog.js';
+const { CATALOG, KIND_TO_MODEL, PORT_TYPES } = window.CabCatalog;
 
 const U = 0.04445, EQ_W = 0.448, FRONT_Z = 0.47, BACK_Z = -0.47;
 const RACK_W = 0.6, RACK_D = 1.07, POST = 0.028, BASE_Y = 0.06, N_U = 47;

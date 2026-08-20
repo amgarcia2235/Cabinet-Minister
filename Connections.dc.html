@@ -18,6 +18,7 @@
   a { color: #f7981d; text-decoration: none; }
   a:hover { color: #ffa940; }
 </style>
+<script src="./catalog.js"></script>
 </helmet>
 <div style="min-height:100vh; background:#121924; background-image:linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px); background-size:44px 44px; font-family:'Space Grotesk',sans-serif; color:#e6e9ee; padding:34px 40px 64px;">
 
@@ -162,7 +163,9 @@ class Component extends DCLogic {
   storageKey = 'cabplanner.v1.connections';
 
   componentDidMount() {
-    import('./catalog.js').then(mod => {
+    const grab = () => {
+      const mod = window.CabCatalog;
+      if (!mod) { setTimeout(grab, 60); return; }
       this.CAT = mod.CATALOG; this.portsOf = mod.portsOf; this.TYPES = mod.PORT_TYPES; this.K2M = mod.KIND_TO_MODEL;
       let saved = null;
       try { const raw = window.localStorage.getItem(this.storageKey); if (raw) saved = JSON.parse(raw); } catch (_) {}
@@ -171,7 +174,8 @@ class Component extends DCLogic {
         links: (saved && saved.links) || [],
         ready: true,
       });
-    });
+    };
+    grab();
   }
   componentDidUpdate(pp, ps) {
     if (this.state.ready && (ps.devices !== this.state.devices || ps.links !== this.state.links)) {

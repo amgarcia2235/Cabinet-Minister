@@ -2,6 +2,9 @@
 
 All notable changes to cabinetminister. Features bump the minor (0.x); fixes, reskins and data corrections bump the patch (0.x.y). v1.0 is reserved for a team-signed-off release: confirmed BH chassis I/O plate, real Supermicro model in the catalog, photo-textured 3D skins.
 
+## v0.6.5 — Local-file fix (patch)
+- Toolkit now runs straight from disk (double-click, no server): catalog.js converted from an ES module to a plain script, so the Port Catalog, Connections and 3D scene load outside a web host — GitHub downloads included.
+
 ## v0.6.4 — Performance (patch)
 - 3D CPU use cut sharply: shadow map renders once instead of every frame, ~30fps idle governor (full 60fps while interacting), hover raycasts throttled, pixel ratio capped at 1.5x, LED churn reduced.
 - Section labels draw on top of the rack — no more clipping.
