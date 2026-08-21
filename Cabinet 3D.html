@@ -263,10 +263,52 @@ function ears(g, w, h, fz){
     }
   }
 }
-function skin(g, w, h, fz, label, accentHex, sub){
+// Real product-photo skins, composited with a name chip so racked gear stays
+// identifiable. Texture is a canvas so the chip can be drawn over the photo.
+const PHOTO_CACHE = new Map();
+function photoFaceTex(url, label, accentHex, aspect){
+  const key = url + '|' + label + '|' + accentHex;
+  if(PHOTO_CACHE.has(key)) return PHOTO_CACHE.get(key);
+  const W = 2048, H = Math.max(64, Math.round(W / (aspect || 10)));
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const x = c.getContext('2d');
+  x.fillStyle = '#3a4048'; x.fillRect(0,0,W,H);
+  const t = new THREE.CanvasTexture(c); t.anisotropy = 16; t.colorSpace = THREE.SRGBColorSpace;
+  const img = new Image();
+  img.onload = () => {
+    x.drawImage(img, 0, 0, W, H);
+    if(label){
+      x.font = '600 ' + Math.round(H*0.15) + 'px "IBM Plex Mono", monospace';
+      const tw = x.measureText(label).width, pad = H*0.05;
+      const bx = W*0.155, by = H*0.035, bw = tw + pad*2, bh = H*0.20;
+      x.fillStyle = 'rgba(8,11,16,0.82)'; x.fillRect(bx, by, bw, bh);
+      x.fillStyle = accentHex || '#f7981d'; x.fillRect(bx, by, H*0.022, bh);
+      x.fillStyle = '#e6e9ee'; x.textBaseline = 'middle';
+      x.fillText(label, bx + pad, by + bh/2 + H*0.008);
+    }
+    t.needsUpdate = true;
+    if(typeof requestRender === 'function') requestRender();
+  };
+  img.src = url;
+  PHOTO_CACHE.set(key, t);
+  return t;
+}
+function skin(g, w, h, fz, label, accentHex, sub, photo){
+  const map = photo && photo.front
+    ? photoFaceTex(photo.front, label, accentHex, photo.aspect)
+    : faceTex(label, accentHex, sub);
   const plate = new THREE.Mesh(new THREE.PlaneGeometry(w*0.995, h*0.96),
-    new THREE.MeshStandardMaterial({ map: faceTex(label, accentHex, sub), roughness:0.55, metalness:0.35 }));
+    new THREE.MeshStandardMaterial({ map, roughness: photo ? 0.62 : 0.55, metalness: photo ? 0.18 : 0.35 }));
   plate.position.set(0, 0, fz - 0.0005); g.add(plate);
+}
+function rearSkin(g, w, h, d, photo){
+  if(!(photo && photo.rear)) return false;
+  const map = photoFaceTex(photo.rear, '', '', photo.rearAspect);
+  const plate = new THREE.Mesh(new THREE.PlaneGeometry(w*0.995, h*0.96),
+    new THREE.MeshStandardMaterial({ map, roughness:0.62, metalness:0.18 }));
+  plate.rotation.y = Math.PI;
+  plate.position.set(0, 0, -d/2 - 0.0025); g.add(plate);
+  return true;
 }
 const FANS = [];
 const fanBladeTex = tex(256,256,(x)=>{
@@ -310,28 +352,43 @@ function rearDetail(g, w, h, d, fanCount){
 const ACCENT_BY_KIND = { spine:'#4d9fff', network:'#22c55e', dist:'#eab308', mgmt:'#a78bfa', console:'#64748b', private:'#f97316', pdu:'#e5484d', chassis:'#7dd3fc', supermicro:'#f472b6' };
 const SUB_BY_KIND = { spine:'SPINE', network:'NETWORK', dist:'IPMI DISTRIBUTOR', mgmt:'MGMT', console:'CONSOLE', private:'PRIVATE', pdu:'RACK PDU · 30A 208V', chassis:'BOOT HW', supermicro:'X11 · 8 BAY' };
 
-function addPortGroup(g, gr, w, h, fz, deviceRef){
+function addPortGroup(g, gr, w, h, fz, deviceRef, photoMode){
   const t = PORT_TYPES[gr.type] || { label: gr.type, color: '#94a3b8', w: 1, h: 1 };
   const [rx, ry, rw, rh] = gr.region;
-  const pw = Math.min(0.0115*t.w, (rw*w/gr.cols)*0.82);
-  const ph = Math.min(0.0115*t.h, (rh*h/gr.rows)*0.78);
-  const inst = new THREE.InstancedMesh(new THREE.BoxGeometry(pw, ph, 0.007), portMat(t.color), gr.count);
+  const anchors = photoMode && gr.anchors ? gr.anchors : null;
+  // On a photo skin the cages are already in the image — keep invisible hit
+  // boxes on the measured anchors so hover and cable ends stay accurate.
+  const a0 = anchors ? anchors[0] : null;
+  const pw = anchors ? a0[2]*w : Math.min(0.0115*t.w, (rw*w/gr.cols)*0.82);
+  const ph = anchors ? a0[3]*h : Math.min(0.0115*t.h, (rh*h/gr.rows)*0.78);
+  const mat = anchors
+    ? new THREE.MeshBasicMaterial({ transparent:true, opacity:0, depthWrite:false })
+    : portMat(t.color);
+  const inst = new THREE.InstancedMesh(new THREE.BoxGeometry(pw, ph, anchors ? 0.002 : 0.007), mat, gr.count);
   const dummy = new THREE.Object3D(); const recs = [];
   for(let i=0;i<gr.count;i++){
-    const r = Math.floor(i/gr.cols), c = i % gr.cols;
-    const fx = (c+0.5)/gr.cols, fy = (r+0.5)/gr.rows;
-    const x = (rx + fx*rw - 0.5)*w;
-    const y = (0.5 - (ry + fy*rh))*h;
+    let x, y;
+    if(anchors && anchors[i]){
+      const [ax, ay, aw, ah] = anchors[i];
+      x = (ax + aw/2 - 0.5)*w;
+      y = (0.5 - (ay + ah/2))*h;
+    } else {
+      const r = Math.floor(i/gr.cols), c = i % gr.cols;
+      const fx = (c+0.5)/gr.cols, fy = (r+0.5)/gr.rows;
+      x = (rx + fx*rw - 0.5)*w;
+      y = (0.5 - (ry + fy*rh))*h;
+    }
     const px = gr.rear ? -x : x, pz = gr.rear ? -fz : fz;
     dummy.position.set(px, y, pz); dummy.updateMatrix(); inst.setMatrixAt(i, dummy.matrix);
-    const addr = gr.naming.prefix + ((gr.naming.start ?? 0) + i);
+    const addr = gr.naming.names ? gr.naming.names[i]
+                                 : gr.naming.prefix + ((gr.naming.start ?? 0) + i);
     recs.push({ addr, type: gr.type, typeLabel: t.label, group: gr.label + (gr.rear ? ' \u00b7 rear panel' : ''), assumed: !!gr.assumed });
     deviceRef.userData.portPos[addr] = new THREE.Vector3(px, y, pz);
     deviceRef.userData.portType[addr] = gr.type;
   }
   inst.userData.ports = recs; inst.userData.isPorts = true;
   g.add(inst);
-  if(gr.count >= 6 && !gr.rear){
+  if(gr.count >= 6 && !gr.rear && !anchors){
     activityLeds(g, { count: gr.count, cols: gr.cols,
       x0: (rx + (0.5/gr.cols)*rw - 0.5)*w, x1: (rx + ((gr.cols-0.5)/gr.cols)*rw - 0.5)*w,
       y: (0.5 - ry)*h + 0.0035, z: fz + 0.001 });
@@ -349,10 +406,12 @@ function buildFromCatalog(modelId, cell){
   const fz = d/2 + 0.002;
   const accent = ACCENT_BY_KIND[cell.kind] || m.accent;
   const nm = (cell.name || '').trim();
-  skin(g, w, h, fz, (nm || m.short || modelId).toUpperCase(), accent, nm ? (m.short || '').toUpperCase() : (SUB_BY_KIND[cell.kind] || ''));
+  const photo = m.photo || null;
+  skin(g, w, h, fz, (nm || m.short || modelId).toUpperCase(), accent, nm ? (m.short || '').toUpperCase() : (SUB_BY_KIND[cell.kind] || ''), photo);
   ears(g, w, h, fz);
+  const rearPhoto = rearSkin(g, w, h, d, photo);
   if(m.groups && m.groups.length){
-    m.groups.forEach(gr => addPortGroup(g, gr, w, h, fz, g));
+    m.groups.forEach(gr => addPortGroup(g, gr, w, h, fz, g, gr.rear ? rearPhoto : !!(photo && photo.front)));
   } else {
     // no front ports (Supermicro): drive bays
     const bays = 8;
@@ -370,7 +429,7 @@ function buildFromCatalog(modelId, cell){
     const stripe = box(0.008, h*0.7, 0.0035, cell.side==='hot' ? M.hot : M.cold);
     stripe.position.set(-w/2+0.010, 0, fz); g.add(stripe);
   }
-  if(['spine','network','dist','mgmt','console','private'].includes(cell.kind)) rearDetail(g, w, h, d, modelId === 'qfx5200-32c' ? 5 : 3);
+  if(['spine','network','dist','mgmt','console','private'].includes(cell.kind) && !rearPhoto) rearDetail(g, w, h, d, modelId === 'qfx5200-32c' ? 5 : 3);
   return g;
 }
 

@@ -2,7 +2,7 @@
 
 Data-center cabinet planning toolkit — plan a rack, inspect ports, wire connections, walk it in 3D. Plain HTML/JS, no build step, no server.
 
-**Current version: v0.6.4** (release notes live on the Hub page)
+**Current version: v0.6.7** (release notes live on the Hub page)
 
 ## The tools
 

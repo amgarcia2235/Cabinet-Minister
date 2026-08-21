@@ -53,11 +53,14 @@
 
       <div style="background:#0d1219; border:1px solid #161d2b; border-radius:12px; padding:22px; box-shadow:0 20px 44px -26px rgba(0,0,0,0.55);">
         <div style="display:flex; justify-content:space-between; font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:1.5px; color:#8296b3; text-transform:uppercase; margin-bottom:12px;">
-          <span>Front faceplate · to scale</span><span>{{ sel.short }}</span>
+          <span>{{ sel.frontLabel }}</span><span>{{ sel.short }}</span>
         </div>
         <div style="position:relative; width:100%; aspect-ratio: {{ sel.aspect }}; background:linear-gradient(180deg,#33405a,#17181c); border-radius:7px; border:1px solid #161d2b; overflow:hidden;">
+          <sc-if value="{{ sel.hasPhoto }}" hint-placeholder-val="{{ false }}">
+            {{ sel.frontImg }}
+          </sc-if>
           <sc-for list="{{ sel.ports }}" as="p" hint-placeholder-count="32">
-            <button onClick="{{ p.onSelect }}" title="{{ p.title }}" style="position:absolute; left: {{ p.left }}; top: {{ p.top }}; width: {{ p.w }}; height: {{ p.h }}; transform:translate(-50%,-50%); padding:0; border-radius:2px; border:1px solid {{ p.border }}; background: {{ p.fill }}; cursor:pointer; box-shadow: {{ p.glow }};"></button>
+            <button onClick="{{ p.onSelect }}" title="{{ p.title }}" style="position:absolute; left: {{ p.left }}; top: {{ p.top }}; width: {{ p.w }}; height: {{ p.h }}; transform:translate(-50%,-50%); padding:0; border-radius:2px; border:1px solid {{ p.border }}; background: {{ p.fill }}; cursor:pointer; box-shadow: {{ p.glow }};" style-hover="box-shadow:0 0 0 2px #f7981d; background:rgba(247,152,29,0.32);"></button>
           </sc-for>
           <sc-if value="{{ sel.noPorts }}" hint-placeholder-val="{{ true }}">
             <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:12px; color:#9fb0ca;">No front-panel ports — rear I/O only</div>
@@ -65,12 +68,17 @@
         </div>
         <sc-if value="{{ sel.hasRear }}" hint-placeholder-val="{{ false }}">
           <div style="display:flex; justify-content:space-between; font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:1.5px; color:#8296b3; text-transform:uppercase; margin:18px 0 12px;">
-            <span>Rear panel · FRU end</span><span>{{ sel.short }}</span>
+            <span>{{ sel.rearLabel }}</span><span>{{ sel.short }}</span>
           </div>
-          <div style="position:relative; width:100%; aspect-ratio: {{ sel.aspect }}; background:linear-gradient(180deg,#232a38,#141519); border-radius:7px; border:1px solid #161d2b; overflow:hidden;">
-            <span style="position:absolute; right:10px; bottom:8px; font-family:'IBM Plex Mono',monospace; font-size:10px; color:#5f6a7d;">fans / PSUs occupy remaining width</span>
+          <div style="position:relative; width:100%; aspect-ratio: {{ sel.rearAspect }}; background:linear-gradient(180deg,#232a38,#141519); border-radius:7px; border:1px solid #161d2b; overflow:hidden;">
+            <sc-if value="{{ sel.hasRearPhoto }}" hint-placeholder-val="{{ false }}">
+              {{ sel.rearImg }}
+            </sc-if>
+            <sc-if value="{{ sel.noRearPhoto }}" hint-placeholder-val="{{ true }}">
+              <span style="position:absolute; right:10px; bottom:8px; font-family:'IBM Plex Mono',monospace; font-size:10px; color:#5f6a7d;">fans / PSUs occupy remaining width</span>
+            </sc-if>
             <sc-for list="{{ sel.rearPorts }}" as="p" hint-placeholder-count="4">
-              <button onClick="{{ p.onSelect }}" title="{{ p.title }}" style="position:absolute; left: {{ p.left }}; top: {{ p.top }}; width: {{ p.w }}; height: {{ p.h }}; transform:translate(-50%,-50%); padding:0; border-radius:2px; border:1px solid {{ p.border }}; background: {{ p.fill }}; cursor:pointer; box-shadow: {{ p.glow }};"></button>
+              <button onClick="{{ p.onSelect }}" title="{{ p.title }}" style="position:absolute; left: {{ p.left }}; top: {{ p.top }}; width: {{ p.w }}; height: {{ p.h }}; transform:translate(-50%,-50%); padding:0; border-radius:2px; border:1px solid {{ p.border }}; background: {{ p.fill }}; cursor:pointer; box-shadow: {{ p.glow }};" style-hover="box-shadow:0 0 0 2px #f7981d; background:rgba(247,152,29,0.32);"></button>
             </sc-for>
           </div>
         </sc-if>
@@ -153,33 +161,58 @@ class Component extends DCLogic {
   }
   select(id) { this.setState({ sel: id, picked: null }); }
 
-  buildPorts(garr) {
+  panelImg(src, alt) {
+    return React.createElement('img', { src, alt, style: {
+      position: 'absolute', inset: 0, width: '100%', height: '100%',
+      objectFit: 'fill', display: 'block' } });
+  }
+
+  // photoMode: anchors were measured off the real panel photo, so ports sit on
+  // the actual cages and the overlay stays transparent until picked/hovered.
+  buildPorts(garr, photoMode) {
     const TYPES = this.TYPES, out = [];
     for (const g of garr) {
       const [rx, ry, rw, rh] = g.region;
       const tdef = TYPES[g.type] || { color: '#94a3b8' };
+      const anchors = photoMode && g.anchors ? g.anchors : null;
       for (let i = 0; i < g.count; i++) {
+        const addr = g.naming.names ? g.naming.names[i]
+                                    : g.naming.prefix + ((g.naming.start ?? 0) + i);
+        const port = { addr, type: g.type, groupLabel: g.label, assumed: !!g.assumed, rear: !!g.rear };
+        const isPicked = this.state.picked && this.state.picked.addr === addr;
+        const base = {
+          title: addr + '  ·  ' + g.type + (g.rear ? '  ·  rear' : ''),
+          onSelect: () => this.pick(port),
+        };
+        if (anchors && anchors[i]) {
+          const [ax, ay, aw, ah] = anchors[i];
+          out.push(Object.assign(base, {
+            left: ((ax + aw / 2) * 100).toFixed(3) + '%',
+            top: ((ay + ah / 2) * 100).toFixed(3) + '%',
+            w: (aw * 100).toFixed(3) + '%',
+            h: (ah * 100).toFixed(3) + '%',
+            fill: isPicked ? tdef.color + '80' : 'transparent',
+            border: isPicked ? '#fff' : 'transparent',
+            glow: isPicked ? '0 0 0 2px #f7981d, 0 0 12px ' + tdef.color : 'none',
+          }));
+          continue;
+        }
         const r = Math.floor(i / g.cols), c = i % g.cols;
         const fx = g.cols > 1 ? c / (g.cols - 1) : 0.5;
         const fy = g.rows > 1 ? r / (g.rows - 1) : 0.5;
         const cw = rw / g.cols, ch = rh / g.rows;
         const cx = rx + (g.cols > 1 ? fx * (rw - cw) + cw / 2 : rw / 2);
         const cy = ry + (g.rows > 1 ? fy * (rh - ch) + ch / 2 : rh / 2);
-        const addr = g.naming.prefix + ((g.naming.start ?? 0) + i);
-        const port = { addr, type: g.type, groupLabel: g.label, assumed: !!g.assumed, rear: !!g.rear };
-        const isPicked = this.state.picked && this.state.picked.addr === addr;
         const pw = Math.min(cw * 0.82, 0.05) * 100;
         const ph = Math.min(ch * 0.72, 0.55) * 100;
-        out.push({
+        out.push(Object.assign(base, {
           left: (cx * 100).toFixed(2) + '%', top: (cy * 100).toFixed(2) + '%',
           w: 'clamp(6px, ' + pw.toFixed(2) + '%, 26px)',
           h: 'clamp(7px, ' + ph.toFixed(2) + '%, 30px)',
           fill: isPicked ? tdef.color : tdef.color + 'cc',
           border: isPicked ? '#fff' : '#161d2b',
           glow: isPicked ? '0 0 0 2px #f7981d, 0 0 10px ' + tdef.color : 'none',
-          title: addr + '  ·  ' + g.type + (g.rear ? '  ·  rear' : ''),
-          onSelect: () => this.pick(port),
-        });
+        }));
       }
     }
     return out;
@@ -187,7 +220,7 @@ class Component extends DCLogic {
 
   renderVals() {
     if (!this.state.catalog) {
-      return { models: [], sel: { name: 'Loading…', note: '', dims: '', short: '', portCount: 0, aspect: '19 / 1.75', ports: [], rearPorts: [], hasRear: false, groups: [], groupKey: [], custom: false, noPorts: false }, hasSelection: false, noSelection: true, picked: {}, pickedRear: false, onCopy: () => {}, copyLabel: 'copy' };
+      return { models: [], sel: { name: 'Loading…', note: '', dims: '', short: '', portCount: 0, aspect: '19 / 1.75', rearAspect: '19 / 1.75', hasPhoto: false, photoSrc: '', frontImg: null, rearImg: null, hasRearPhoto: false, noRearPhoto: true, rearPhotoSrc: '', frontLabel: 'Front faceplate', rearLabel: 'Rear panel', ports: [], rearPorts: [], hasRear: false, groups: [], groupKey: [], custom: false, noPorts: false }, hasSelection: false, noSelection: true, picked: {}, pickedRear: false, onCopy: () => {}, copyLabel: 'copy' };
     }
     const CAT = this.state.catalog, TYPES = this.TYPES;
     const selId = this.state.sel;
@@ -206,10 +239,13 @@ class Component extends DCLogic {
       };
     });
 
+    const photo = m.photo || null;
+    const hasPhoto = !!(photo && photo.front);
+    const hasRearPhoto = !!(photo && photo.rear);
     const front = m.groups.filter(g => !g.rear);
     const rear = m.groups.filter(g => g.rear);
-    const ports = this.buildPorts(front);
-    const rearPorts = this.buildPorts(rear);
+    const ports = this.buildPorts(front, hasPhoto);
+    const rearPorts = this.buildPorts(rear, hasRearPhoto);
 
     const groups = m.groups.map(g => ({
       label: g.label + (g.rear ? ' (rear)' : ''), count: g.count, type: g.type,
@@ -221,9 +257,19 @@ class Component extends DCLogic {
 
     const sel = {
       name: m.name, short: m.short, note: m.note, custom: !!m.custom,
-      dims: m.u + 'U · ' + m.widthIn + '" wide · ' + (m.depthMm ? m.depthMm + ' mm deep' : 'depth TBC'),
+      dims: m.u + 'U · ' + m.widthIn + '" wide · ' + (m.depthMm ? m.depthMm + ' mm deep' : 'depth TBC')
+            + (m.airflow === 'AFO' ? ' · AFO front-to-back' : m.airflow === 'AFI' ? ' · AFI back-to-front' : ''),
       portCount: this.portsOf(selId).length,
-      aspect: m.widthIn + ' / ' + (m.u * 1.75),
+      aspect: hasPhoto ? String(photo.aspect) : m.widthIn + ' / ' + (m.u * 1.75),
+      rearAspect: hasRearPhoto ? String(photo.rearAspect) : m.widthIn + ' / ' + (m.u * 1.75),
+      hasPhoto, photoSrc: hasPhoto ? photo.front : '',
+      hasRearPhoto, noRearPhoto: !hasRearPhoto, rearPhotoSrc: hasRearPhoto ? photo.rear : '',
+      // src carries a real URL only once the model is resolved — a {{ }} hole in
+      // src would be fetched verbatim while the template is still streaming.
+      frontImg: hasPhoto ? this.panelImg(photo.front, m.short + ' front panel') : null,
+      rearImg: hasRearPhoto ? this.panelImg(photo.rear, m.short + ' rear panel') : null,
+      frontLabel: hasPhoto ? 'Front panel · photo · click a cage' : 'Front faceplate · to scale',
+      rearLabel: hasRearPhoto ? 'Rear FRU panel · photo · click a port' : 'Rear panel · FRU end',
       ports, rearPorts, hasRear: rearPorts.length > 0,
       groups, groupKey, noPorts: ports.length === 0,
     };

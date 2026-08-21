@@ -3,10 +3,14 @@
 // ----------------------------------------------------------------------------
 // VERIFIED 2026-08-20 against official documentation:
 //   - Juniper QFX5200 Hardware Guide (juniper.net): 32x QSFP28 front (ports
-//     0-31, any uplink/access, 100G default -> 50/40/25/10G); mgmt panel
-//     (C0/C1), console + USB on the REAR FRU end next to the fans.
+//     0-31, any uplink/access, 100G default -> 50/40/25/10G); GM timing jack
+//     + PPS/10M coax on the front; rear FRU management panel carries status
+//     LEDs, C0 (em0, RJ-45 1000BASE-T *or* fiber SFP - copper has priority),
+//     C1 (em1, SFP 1000BASE-X, -32C only), RJ-45 console (CON) and USB.
+//     Front/rear photo skins + port anchors measured off real AFO photos.
 //   - Juniper QFX5100 datasheet: 48x tri-speed 10GBASE-T RJ45 + 6x QSFP+;
-//     console, USB, 2 mgmt ports (1 RJ45 + 1 SFP) on rear FRU end.
+//     console, USB, 2 mgmt ports (1 RJ45 + 1 SFP) on rear FRU end. Front/rear
+//     photo skins + port anchors measured off the real front/rear panel shot.
 //   - Juniper EX4200 Hardware Guide: 48x 10/100/1000 RJ45 front + LCD;
 //     optional uplink module (2x XFP, 4x SFP, or 2x SFP+); console, mgmt,
 //     USB and dual Virtual Chassis ports on REAR panel.
@@ -16,6 +20,11 @@
 // BH chassis (CHA-1U-B2B-R1) is custom; Supermicro model unconfirmed —
 // their assumed:true groups need confirmation on real hardware.
 // ============================================================================
+
+// __CABCATALOG_GUARD__ — this file is pulled in by four tools; a second
+// evaluation must be a no-op instead of redeclaring the top-level consts.
+(function () {
+if (window.CabCatalog) return;
 
 const PORT_TYPES = {
   RJ45:   { label: "RJ45",   color: "#0ea5e9", w: 0.75, h: 1.0 },
@@ -41,16 +50,35 @@ const CATALOG = {
     category: "spine",
     accent: "#4d9fff",
     u: 1, widthIn: 19, depthMm: null,
-    note: "Spine \u00b7 32\u00d7 QSFP28 (et-0/0/0\u201331) \u2014 any port uplink or access, 100G default, configurable 50/40/25/10G. Redundant PSUs + fans. Mgmt (C0/C1), console and USB sit on the rear FRU panel.",
+    // Real front-panel photo, cropped to the faceplate face. Anchors below are
+    // measured off this image, so faceplate aspect must follow the photo.
+    photo: { front: "assets/qfx5200-32c-front.jpg", aspect: 2019 / 202,
+             rear: "assets/qfx5200-32c-rear.jpg", rearAspect: 787 / 92 },
+    airflow: "AFO",
+    note: "Spine \u00b7 32\u00d7 QSFP28 (et-0/0/0\u201331) \u2014 any port uplink or access, 100G default, configurable 50/40/25/10G. Redundant PSUs + fans. Front panel also carries the GM timing jack with PPS OUT / 10M OUT coax; mgmt (C0/C1), console and USB sit on the rear FRU panel.",
     groups: [
       { id: "qsfp", label: "QSFP28 100G (0\u201331)", type: "QSFP28", count: 32, rows: 2, cols: 16,
-        naming: { prefix: "et-0/0/", start: 0 }, region: [0.05, 0.10, 0.90, 0.80] },
-      { id: "mgmt", label: "Mgmt C0\u2013C1", type: "RJ45", count: 2, rows: 1, cols: 2, rear: true,
-        naming: { prefix: "C", start: 0 }, region: [0.06, 0.28, 0.10, 0.44] },
-      { id: "con", label: "Console (RS-232)", type: "RS232", count: 1, rows: 1, cols: 1, rear: true,
-        naming: { prefix: "con-", start: 0 }, region: [0.19, 0.30, 0.05, 0.40] },
-      { id: "usb", label: "USB", type: "USB", count: 1, rows: 1, cols: 1, rear: true,
-        naming: { prefix: "usb", start: 0 }, region: [0.27, 0.32, 0.04, 0.36] },
+        naming: { prefix: "et-0/0/", start: 0 }, region: [0.05, 0.10, 0.90, 0.80],
+        // [x, y, w, h] normalised to photo.front, port order 0..31 (even = top row)
+        anchors: [[0.1575,0.3168,0.0426,0.1832],[0.1575,0.5792,0.0426,0.2228],[0.2036,0.3168,0.0396,0.1832],[0.2036,0.5792,0.0396,0.2228],[0.2462,0.3168,0.0401,0.1832],[0.2462,0.5792,0.0401,0.2228],[0.2873,0.3168,0.0426,0.1832],[0.2873,0.5792,0.0426,0.2228],[0.3427,0.3168,0.0426,0.1832],[0.3427,0.5792,0.0426,0.2228],[0.3863,0.3168,0.0416,0.1832],[0.3863,0.5792,0.0416,0.2228],[0.4289,0.3168,0.0421,0.1832],[0.4289,0.5792,0.0421,0.2228],[0.4720,0.3168,0.0421,0.1832],[0.4720,0.5792,0.0421,0.2228],[0.5275,0.3168,0.0421,0.1832],[0.5275,0.5792,0.0421,0.2228],[0.5711,0.3168,0.0416,0.1832],[0.5711,0.5792,0.0416,0.2228],[0.6137,0.3168,0.0421,0.1832],[0.6137,0.5792,0.0421,0.2228],[0.6568,0.3168,0.0421,0.1832],[0.6568,0.5792,0.0421,0.2228],[0.7122,0.3168,0.0421,0.1832],[0.7122,0.5792,0.0421,0.2228],[0.7553,0.3168,0.0421,0.1832],[0.7553,0.5792,0.0421,0.2228],[0.7984,0.3168,0.0421,0.1832],[0.7984,0.5792,0.0421,0.2228],[0.8415,0.3168,0.0431,0.1832],[0.8415,0.5792,0.0431,0.2228]] },
+      { id: "gm", label: "GM timing (RJ45)", type: "RJ45", count: 1, rows: 1, cols: 1,
+        naming: { prefix: "gm-", start: 0 }, region: [0.05, 0.30, 0.03, 0.40],
+        anchors: [[0.0456,0.2277,0.0357,0.2970]] },
+      { id: "mgmt-c0", label: "C0 \u00b7 em0 mgmt (RJ45)", type: "RJ45", count: 1, rows: 1, cols: 1, rear: true,
+        naming: { names: ["C0"] }, region: [0.06, 0.50, 0.04, 0.22],
+        anchors: [[0.0839,0.5000,0.0330,0.2174]] },
+      { id: "mgmt-c0-sfp", label: "C0 \u00b7 em0 mgmt (SFP fiber \u2014 copper C0 has priority)", type: "SFP", count: 1, rows: 1, cols: 1, rear: true,
+        naming: { names: ["C0-fiber"] }, region: [0.04, 0.22, 0.03, 0.22],
+        anchors: [[0.0419,0.2174,0.0305,0.2174]] },
+      { id: "mgmt-c1-sfp", label: "C1 \u00b7 em1 mgmt (SFP, \u201132C only)", type: "SFP", count: 1, rows: 1, cols: 1, rear: true,
+        naming: { names: ["C1"] }, region: [0.04, 0.48, 0.03, 0.24],
+        anchors: [[0.0419,0.4783,0.0305,0.2391]] },
+      { id: "con", label: "Console CON (RJ45 RS-232)", type: "RS232", count: 1, rows: 1, cols: 1, rear: true,
+        naming: { names: ["CON"] }, region: [0.08, 0.24, 0.04, 0.20],
+        anchors: [[0.0839,0.2391,0.0330,0.1957]] },
+      { id: "usb", label: "USB (image updates)", type: "USB", count: 1, rows: 1, cols: 1, rear: true,
+        naming: { names: ["USB"] }, region: [0.13, 0.46, 0.015, 0.24],
+        anchors: [[0.1296,0.4565,0.0102,0.2391]] },
     ],
   },
 
@@ -60,20 +88,35 @@ const CATALOG = {
     category: "network",
     accent: "#22c55e",
     u: 1, widthIn: 19, depthMm: null,
-    note: "48\u00d7 tri-speed 10GBASE-T RJ45 (xe-0/0/0\u201347) + 6\u00d7 QSFP+ 40G uplinks (4\u00d710G breakout capable). Console, USB and 2 mgmt ports (1\u00d7 RJ45 em0, 1\u00d7 SFP em1) on the rear FRU panel.",
+    // Front + rear photo skins cropped to the faceplate face; every anchor below
+    // is measured off these two images, so the aspects must follow the photos.
+    photo: { front: "assets/qfx5100-48t-front.jpg", aspect: 763 / 82,
+             rear: "assets/qfx5100-48t-rear.jpg", rearAspect: 769 / 83 },
+    airflow: "AFO",
+    note: "48\u00d7 tri-speed 10GBASE-T RJ45 (xe-0/0/0\u201347) in three blocks of 16 + 6\u00d7 QSFP+ 40G uplinks (4\u00d710G breakout capable). Rear FRU panel carries the C0/C1 mgmt pair (RJ-45 or SFP \u2014 copper has priority), console and USB, five fan modules and two AC PSUs. Airflow is AFO \u2014 front-to-back, intake at the port face, exhaust out the FRU end \u2014 so the FRUs carry the orange AIR OUT marking.",
     groups: [
       { id: "access", label: "10GBASE-T access (0\u201347)", type: "RJ45", count: 48, rows: 2, cols: 24,
-        naming: { prefix: "xe-0/0/", start: 0 }, region: [0.06, 0.14, 0.60, 0.72] },
-      { id: "uplink", label: "QSFP+ uplinks (48\u201353)", type: "QSFP+", count: 6, rows: 2, cols: 3,
-        naming: { prefix: "et-0/0/", start: 48 }, region: [0.70, 0.14, 0.20, 0.72] },
-      { id: "mgmt0", label: "Mgmt em0 (RJ45)", type: "RJ45", count: 1, rows: 1, cols: 1, rear: true,
-        naming: { prefix: "em", start: 0 }, region: [0.06, 0.28, 0.05, 0.44] },
-      { id: "mgmt1", label: "Mgmt em1 (SFP)", type: "SFP", count: 1, rows: 1, cols: 1, rear: true,
-        naming: { prefix: "em", start: 1 }, region: [0.14, 0.30, 0.05, 0.40] },
-      { id: "con", label: "Console", type: "RS232", count: 1, rows: 1, cols: 1, rear: true,
-        naming: { prefix: "con-", start: 0 }, region: [0.22, 0.30, 0.05, 0.40] },
-      { id: "usb", label: "USB", type: "USB", count: 1, rows: 1, cols: 1, rear: true,
-        naming: { prefix: "usb", start: 0 }, region: [0.30, 0.32, 0.04, 0.36] },
+        naming: { prefix: "xe-0/0/", start: 0 }, region: [0.06, 0.14, 0.60, 0.72],
+        // [x, y, w, h] normalised to photo.front; port order 0..47, even = top row
+        anchors: [[0.0288,0.2195,0.0315,0.2561],[0.0288,0.5000,0.0315,0.2683],[0.0603,0.2195,0.0315,0.2561],[0.0603,0.5000,0.0315,0.2683],[0.0931,0.2195,0.0301,0.2561],[0.0931,0.5000,0.0301,0.2683],[0.1245,0.2195,0.0301,0.2561],[0.1245,0.5000,0.0301,0.2683],[0.1560,0.2195,0.0315,0.2561],[0.1560,0.5000,0.0315,0.2683],[0.1874,0.2195,0.0315,0.2561],[0.1874,0.5000,0.0315,0.2683],[0.2189,0.2195,0.0315,0.2561],[0.2189,0.5000,0.0315,0.2683],[0.2503,0.2195,0.0315,0.2561],[0.2503,0.5000,0.0315,0.2683],[0.3014,0.2195,0.0315,0.2561],[0.3014,0.5000,0.0315,0.2683],[0.3342,0.2195,0.0315,0.2561],[0.3342,0.5000,0.0315,0.2683],[0.3657,0.2195,0.0315,0.2561],[0.3657,0.5000,0.0315,0.2683],[0.3971,0.2195,0.0315,0.2561],[0.3971,0.5000,0.0315,0.2683],[0.4286,0.2195,0.0315,0.2561],[0.4286,0.5000,0.0315,0.2683],[0.4613,0.2195,0.0315,0.2561],[0.4613,0.5000,0.0315,0.2683],[0.4928,0.2195,0.0315,0.2561],[0.4928,0.5000,0.0315,0.2683],[0.5242,0.2195,0.0315,0.2561],[0.5242,0.5000,0.0315,0.2683],[0.5754,0.2195,0.0315,0.2561],[0.5754,0.5000,0.0315,0.2683],[0.6068,0.2195,0.0315,0.2561],[0.6068,0.5000,0.0315,0.2683],[0.6396,0.2195,0.0315,0.2561],[0.6396,0.5000,0.0315,0.2683],[0.6710,0.2195,0.0315,0.2561],[0.6710,0.5000,0.0315,0.2683],[0.7025,0.2195,0.0315,0.2561],[0.7025,0.5000,0.0315,0.2683],[0.7339,0.2195,0.0315,0.2561],[0.7339,0.5000,0.0315,0.2683],[0.7667,0.2195,0.0315,0.2561],[0.7667,0.5000,0.0315,0.2683],[0.7982,0.2195,0.0315,0.2561],[0.7982,0.5000,0.0315,0.2683]] },
+      { id: "uplink", label: "QSFP+ 40G uplinks (48\u201353)", type: "QSFP+", count: 6, rows: 2, cols: 3,
+        naming: { prefix: "et-0/0/", start: 48 }, region: [0.70, 0.14, 0.20, 0.72],
+        anchors: [[0.8493,0.1829,0.0419,0.2683],[0.8493,0.5244,0.0419,0.2683],[0.8925,0.1829,0.0419,0.2683],[0.8925,0.5244,0.0419,0.2683],[0.9371,0.1829,0.0419,0.2683],[0.9371,0.5244,0.0419,0.2683]] },
+      { id: "mgmt0", label: "C0 \u00b7 em0 mgmt (RJ45)", type: "RJ45", count: 1, rows: 1, cols: 1, rear: true,
+        naming: { prefix: "em", start: 0 }, region: [0.06, 0.28, 0.05, 0.44],
+        anchors: [[0.0780,0.4940,0.0390,0.2410]] },
+      { id: "mgmt0-sfp", label: "C0 \u00b7 em0 mgmt (SFP fiber \u2014 copper C0 has priority)", type: "SFP", count: 1, rows: 1, cols: 1, rear: true,
+        naming: { names: ["C0-fiber"] }, region: [0.04, 0.22, 0.03, 0.22],
+        anchors: [[0.0351,0.1928,0.0390,0.2410]] },
+      { id: "mgmt1", label: "C1 \u00b7 em1 mgmt (SFP)", type: "SFP", count: 1, rows: 1, cols: 1, rear: true,
+        naming: { prefix: "em", start: 1 }, region: [0.14, 0.30, 0.05, 0.40],
+        anchors: [[0.0351,0.5422,0.0390,0.2410]] },
+      { id: "con", label: "Console CON (RJ45 RS-232)", type: "RS232", count: 1, rows: 1, cols: 1, rear: true,
+        naming: { prefix: "con-", start: 0 }, region: [0.22, 0.30, 0.05, 0.40],
+        anchors: [[0.0780,0.2410,0.0390,0.2410]] },
+      { id: "usb", label: "USB (image updates)", type: "USB", count: 1, rows: 1, cols: 1, rear: true,
+        naming: { prefix: "usb", start: 0 }, region: [0.30, 0.32, 0.04, 0.36],
+        anchors: [[0.1222,0.4337,0.0182,0.3373]] },
     ],
   },
 
@@ -164,10 +207,11 @@ function portsOf(modelId) {
   const out = [];
   for (const g of m.groups) {
     for (let i = 0; i < g.count; i++) {
-      const num = (g.naming.start ?? 0) + i;
+      const addr = g.naming.names ? g.naming.names[i]
+                                  : g.naming.prefix + ((g.naming.start ?? 0) + i);
       out.push({
         groupId: g.id, groupLabel: g.label, type: g.type,
-        index: i, addr: g.naming.prefix + num,
+        index: i, addr,
         assumed: !!g.assumed, rear: !!g.rear,
       });
     }
@@ -187,5 +231,12 @@ const KIND_TO_MODEL = {
   supermicro: "supermicro-1u",
 };
 
+// Front-panel photo skin for a model, or null if it is still drawn procedurally.
+function skinOf(modelId) {
+  const m = CATALOG[modelId];
+  return (m && m.photo && m.photo.front) ? m.photo : null;
+}
+
 // Plain-script global so every page works from file:// (no module CORS)
-window.CabCatalog = { PORT_TYPES, CATALOG, portsOf, KIND_TO_MODEL };
+window.CabCatalog = { PORT_TYPES, CATALOG, portsOf, skinOf, KIND_TO_MODEL };
+})();
