@@ -41,12 +41,17 @@ const PORT_TYPES = {
   C14:    { label: "C14 inlet", color: "#eab308", w: 1.1, h: 1.2 },
   VGA:    { label: "VGA",    color: "#64748b", w: 1.2, h: 0.9 },
   POWER:  { label: "PSU",    color: "#eab308", w: 1.4, h: 1.3 },
+  LC:     { label: "LC fiber", color: "#2dd4bf", w: 0.8, h: 1.0 },
+  BUTTON: { label: "Button", color: "#64748b", w: 0.6, h: 0.6 },
 };
 
 const CATALOG = {
   "qfx5200-32c": {
     name: "Juniper QFX5200-32C",
     short: "QFX5200-32C",
+    psuCount: 2,
+    // est = engineering estimate, NOT from a verified source. Validation says so.
+    est: { depthMm: 520, weightKg: 11, watts: 320 },
     category: "spine",
     accent: "#4d9fff",
     u: 1, widthIn: 19, depthMm: null,
@@ -85,6 +90,8 @@ const CATALOG = {
   "qfx5100-48t": {
     name: "Juniper QFX5100-48T",
     short: "QFX5100-48T",
+    psuCount: 2,
+    est: { depthMm: 520, weightKg: 11, watts: 300 },
     category: "network",
     accent: "#22c55e",
     u: 1, widthIn: 19, depthMm: null,
@@ -123,40 +130,67 @@ const CATALOG = {
   "ex4200-48t": {
     name: "Juniper EX4200-48T",
     short: "EX4200-48T",
+    psuCount: 2, airflow: "AFO",
+    est: { depthMm: 445, weightKg: 9, watts: 220 },
     category: "dist",
     accent: "#eab308",
     u: 1, widthIn: 19, depthMm: null,
-    note: "IPMI distributor \u00b7 48\u00d7 10/100/1000 RJ45 (ge-0/0/0\u201347) + front LCD. Uplink module fitted here as 4\u00d7 SFP (ge-0/1/0\u20133; factory options 2\u00d7 XFP or 2\u00d7 SFP+). Console, mgmt (me0), USB and dual Virtual Chassis ports on the rear panel.",
+    // Front + rear photo skins cropped to the faceplate face. Front anchors are
+    // measured per-port off the photo (4 blocks of 12, even index = top row);
+    // rear anchors measured off the rear photo.
+    photo: { front: "assets/ex4200-48t-front.png", aspect: 788 / 78,
+             rear: "assets/ex4200-48t-rear.png", rearAspect: 786 / 76 },
+    note: "IPMI distributor \u00b7 48\u00d7 10/100/1000 RJ45 (ge-0/0/0\u201347) in four blocks of 12 + front LCD. Uplink module fitted here as 4\u00d7 SFP (ge-0/1/0\u20133; factory options 2\u00d7 XFP or 2\u00d7 SFP+). Rear panel carries dual Virtual Chassis ports, USB, console and mgmt (me0), plus the PSU with its C14 inlet and fan. Rear console/mgmt assignment follows the standard left-to-right order \u2014 confirm on hardware.",
     groups: [
       { id: "access", label: "10/100/1000 RJ45 (0\u201347)", type: "RJ45", count: 48, rows: 2, cols: 24,
-        naming: { prefix: "ge-0/0/", start: 0 }, region: [0.06, 0.14, 0.64, 0.72] },
-      { id: "uplink", label: "SFP uplink module (0\u20133)", type: "SFP", count: 4, rows: 2, cols: 2,
-        naming: { prefix: "ge-0/1/", start: 0 }, region: [0.76, 0.16, 0.12, 0.68] },
-      { id: "mgmt", label: "Mgmt me0", type: "RJ45", count: 1, rows: 1, cols: 1, rear: true,
-        naming: { prefix: "me", start: 0 }, region: [0.06, 0.28, 0.05, 0.44] },
-      { id: "con", label: "Console", type: "RS232", count: 1, rows: 1, cols: 1, rear: true,
-        naming: { prefix: "con-", start: 0 }, region: [0.14, 0.30, 0.05, 0.40] },
+        naming: { prefix: "ge-0/0/", start: 0 }, region: [0.06, 0.14, 0.64, 0.72],
+        // [x, y, w, h] normalised to photo.front; port order 0..47, even = top row
+        anchors: [[0.0203,0.3205,0.0267,0.1538],[0.0203,0.5897,0.0267,0.1538],[0.0514,0.3205,0.0267,0.1538],[0.0514,0.5897,0.0267,0.1538],[0.0838,0.3205,0.0267,0.1538],[0.0838,0.5897,0.0267,0.1538],[0.1155,0.3205,0.0267,0.1538],[0.1155,0.5897,0.0267,0.1538],[0.1472,0.3205,0.0267,0.1538],[0.1472,0.5897,0.0267,0.1538],[0.1789,0.3205,0.0267,0.1538],[0.1789,0.5897,0.0267,0.1538],[0.2221,0.3205,0.0267,0.1538],[0.2221,0.5897,0.0267,0.1538],[0.2538,0.3205,0.0267,0.1538],[0.2538,0.5897,0.0267,0.1538],[0.2855,0.3205,0.0267,0.1538],[0.2855,0.5897,0.0267,0.1538],[0.3166,0.3205,0.0267,0.1538],[0.3166,0.5897,0.0267,0.1538],[0.3484,0.3205,0.0267,0.1538],[0.3484,0.5897,0.0267,0.1538],[0.3801,0.3205,0.0267,0.1538],[0.3801,0.5897,0.0267,0.1538],[0.4232,0.3205,0.0267,0.1538],[0.4232,0.5897,0.0267,0.1538],[0.4549,0.3205,0.0267,0.1538],[0.4549,0.5897,0.0267,0.1538],[0.4860,0.3205,0.0267,0.1538],[0.4860,0.5897,0.0267,0.1538],[0.5178,0.3205,0.0267,0.1538],[0.5178,0.5897,0.0267,0.1538],[0.5489,0.3205,0.0267,0.1538],[0.5489,0.5897,0.0267,0.1538],[0.5806,0.3205,0.0267,0.1538],[0.5806,0.5897,0.0267,0.1538],[0.6244,0.3205,0.0267,0.1538],[0.6244,0.5897,0.0267,0.1538],[0.6561,0.3205,0.0267,0.1538],[0.6561,0.5897,0.0267,0.1538],[0.6878,0.3205,0.0267,0.1538],[0.6878,0.5897,0.0267,0.1538],[0.7195,0.3205,0.0267,0.1538],[0.7195,0.5897,0.0267,0.1538],[0.7513,0.3205,0.0267,0.1538],[0.7513,0.5897,0.0267,0.1538],[0.7824,0.3205,0.0267,0.1538],[0.7824,0.5897,0.0267,0.1538]] },
+      { id: "uplink", label: "SFP uplink module (0\u20133)", type: "SFP", count: 4, rows: 1, cols: 4,
+        naming: { prefix: "ge-0/1/", start: 0 }, region: [0.84, 0.56, 0.13, 0.26],
+        anchors: [[0.8471,0.5897,0.0254,0.2564],[0.8801,0.5897,0.0254,0.2564],[0.9124,0.5897,0.0254,0.2564],[0.9442,0.5897,0.0254,0.2564]] },
+      { id: "mgmt", label: "Mgmt me0 (RJ45)", type: "RJ45", count: 1, rows: 1, cols: 1, rear: true,
+        naming: { prefix: "me", start: 0 }, region: [0.06, 0.28, 0.05, 0.44],
+        anchors: [[0.4135,0.7237,0.0305,0.2237]] },
+      { id: "con", label: "Console (RJ45 RS-232)", type: "RS232", count: 1, rows: 1, cols: 1, rear: true,
+        naming: { prefix: "con-", start: 0 }, region: [0.14, 0.30, 0.05, 0.40],
+        anchors: [[0.3511,0.7237,0.0305,0.2237]] },
       { id: "usb", label: "USB", type: "USB", count: 1, rows: 1, cols: 1, rear: true,
-        naming: { prefix: "usb", start: 0 }, region: [0.22, 0.32, 0.04, 0.36] },
+        naming: { prefix: "usb", start: 0 }, region: [0.22, 0.32, 0.04, 0.36],
+        anchors: [[0.2557,0.7237,0.0191,0.2237]] },
       { id: "vcp", label: "Virtual Chassis ports", type: "VCP", count: 2, rows: 1, cols: 2, rear: true,
-        naming: { prefix: "vcp-", start: 0 }, region: [0.30, 0.26, 0.12, 0.48] },
+        naming: { prefix: "vcp-", start: 0 }, region: [0.03, 0.70, 0.20, 0.24],
+        anchors: [[0.0318,0.7237,0.0789,0.2237],[0.1463,0.7237,0.0789,0.2237]] },
     ],
   },
 
   "ap7911b": {
     name: "APC AP7911B Switched Rack PDU",
     short: "AP7911B (2U PDU)",
+    capacityA: 30, volts: 208, derate: 0.8, psuCount: 0, airflow: "none",
+    est: { weightKg: 7, watts: 10 },
     category: "pdu",
     accent: "#e5484d",
     u: 2, widthIn: 19, depthMm: 254,
+    // Front photo rectified from a 3/4 product shot to a true front elevation
+    // (homography fitted on the 16-outlet grid), so regions below map 1:1 onto
+    // the real outlet grid. No rear photo available.
+    photo: { front: "assets/ap7911b-front.png", aspect: 2955 / 590 },
     note: "NetShelter Switched 2U \u00b7 208V 30A \u00b7 16\u00d7 C13 in two banks of 8, outlet-level switching + current-metering display \u00b7 NEMA L6-30P input cord \u00b7 445\u00d7254 mm.",
     groups: [
-      { id: "bankA", label: "Bank 1 \u2014 C13 (1\u20138)", type: "C13", count: 8, rows: 2, cols: 4,
-        naming: { prefix: "C13-", start: 1 }, region: [0.06, 0.14, 0.40, 0.72] },
-      { id: "bankB", label: "Bank 2 \u2014 C13 (9\u201316)", type: "C13", count: 8, rows: 2, cols: 4,
-        naming: { prefix: "C13-", start: 9 }, region: [0.50, 0.14, 0.40, 0.72] },
+      { id: "bankA", label: "Bank 1 \u2014 C13 (1\u20138)", type: "C13", count: 8, rows: 1, cols: 8,
+        naming: { prefix: "C13-", start: 1 }, region: [0.09, 0.18, 0.62, 0.24],
+        // cage grid measured off the rectified photo: pitch 233.3px on 2955px
+        anchors: [[0.0900,0.1797,0.0711,0.2373],[0.1690,0.1797,0.0711,0.2373],[0.2479,0.1797,0.0711,0.2373],[0.3269,0.1797,0.0711,0.2373],[0.4058,0.1797,0.0711,0.2373],[0.4848,0.1797,0.0711,0.2373],[0.5637,0.1797,0.0711,0.2373],[0.6427,0.1797,0.0711,0.2373]] },
+      { id: "bankB", label: "Bank 2 \u2014 C13 (9\u201316)", type: "C13", count: 8, rows: 1, cols: 8,
+        naming: { prefix: "C13-", start: 9 }, region: [0.09, 0.52, 0.62, 0.24],
+        anchors: [[0.0900,0.5203,0.0711,0.2373],[0.1690,0.5203,0.0711,0.2373],[0.2479,0.5203,0.0711,0.2373],[0.3269,0.5203,0.0711,0.2373],[0.4058,0.5203,0.0711,0.2373],[0.4848,0.5203,0.0711,0.2373],[0.5637,0.5203,0.0711,0.2373],[0.6427,0.5203,0.0711,0.2373]] },
       { id: "mgmt", label: "Network mgmt (RJ45)", type: "RJ45", count: 1, rows: 1, cols: 1,
-        naming: { prefix: "mgmt-", start: 0 }, region: [0.92, 0.20, 0.04, 0.24] },
+        naming: { prefix: "mgmt-", start: 0 }, region: [0.7893, 0.4643, 0.0250, 0.1429],
+        anchors: [[0.7893,0.4643,0.0250,0.1429]] },
+      { id: "serial", label: "Serial port (RJ45)", type: "RS232", count: 1, rows: 1, cols: 1,
+        naming: { names: ["serial"] }, region: [0.7857, 0.6964, 0.0250, 0.1429],
+        anchors: [[0.7857,0.6964,0.0250,0.1429]] },
       { id: "inlet", label: "L6-30P input cord", type: "POWER", count: 1, rows: 1, cols: 1, rear: true,
         naming: { prefix: "inlet-", start: 0 }, region: [0.08, 0.28, 0.06, 0.44] },
     ],
@@ -166,6 +200,8 @@ const CATALOG = {
   "cha-1u-b2b-r1": {
     name: "Boot Hardware Chassis (CHA-1U-B2B-R1)",
     short: "BH chassis (B2B)",
+    psuCount: 1, airflow: "AFO",
+    est: { weightKg: 12, watts: 260 },
     category: "chassis",
     accent: "#7dd3fc",
     u: 1, widthIn: 16.9, depthMm: 375, custom: true,
@@ -192,11 +228,150 @@ const CATALOG = {
   "supermicro-1u": {
     name: "Supermicro 1U (model TBC)",
     short: "Supermicro 1U",
+    psuCount: 2, airflow: "AFO",
+    est: { depthMm: 650, weightKg: 15, watts: 350 },
     category: "supermicro",
     accent: "#f472b6",
     u: 1, widthIn: 19, depthMm: null, custom: true,
     note: "1U server \u00b7 exact model unconfirmed \u2014 front assumed drive bays / power button only, data & power on rear I/O. Send the model number and this entry gets the real port map.",
     groups: [],
+  },
+
+  // --------------------------------------------------------------------------
+  // Generic placeholders — geometry is nominal, not a specific SKU. Every
+  // number here is an estimate; swap for a real model once the SKU is known.
+  // --------------------------------------------------------------------------
+  "server-1u": {
+    name: "Generic 1U server", short: "1U server", category: "generic", accent: "#94a3b8",
+    u: 1, widthIn: 19, depthMm: null, generic: true,
+    psuCount: 2, airflow: "AFO",
+    est: { depthMm: 700, weightKg: 16, watts: 400 },
+    note: "Generic 1U rackmount \u2014 nominal geometry for space planning. Rear I/O assumed: dual PSU, 2\u00d7 NIC, 1\u00d7 IPMI, VGA, 2\u00d7 USB. Replace with the real model before trusting the port map.",
+    groups: [
+      { id: "bays", label: "Drive bays", type: "BUTTON", count: 8, rows: 1, cols: 8, assumed: true,
+        naming: { prefix: "bay", start: 0 }, region: [0.10, 0.24, 0.62, 0.52] },
+      { id: "pwr", label: "Power button", type: "BUTTON", count: 1, rows: 1, cols: 1,
+        naming: { names: ["pwr"] }, region: [0.90, 0.36, 0.04, 0.28] },
+      { id: "psu", label: "PSU inlets (C14)", type: "C14", count: 2, rows: 1, cols: 2, rear: true, assumed: true,
+        naming: { prefix: "psu", start: 1 }, region: [0.06, 0.26, 0.20, 0.48] },
+      { id: "nic", label: "NIC (RJ45)", type: "RJ45", count: 2, rows: 1, cols: 2, rear: true, assumed: true,
+        naming: { prefix: "eth", start: 0 }, region: [0.40, 0.30, 0.16, 0.40] },
+      { id: "ipmi", label: "IPMI / BMC", type: "RJ45", count: 1, rows: 1, cols: 1, rear: true, assumed: true,
+        naming: { names: ["ipmi"] }, region: [0.60, 0.30, 0.07, 0.40] },
+      { id: "vga", label: "VGA", type: "VGA", count: 1, rows: 1, cols: 1, rear: true, assumed: true,
+        naming: { names: ["vga"] }, region: [0.72, 0.32, 0.08, 0.36] },
+      { id: "usb", label: "USB", type: "USB", count: 2, rows: 1, cols: 2, rear: true, assumed: true,
+        naming: { prefix: "usb", start: 0 }, region: [0.84, 0.34, 0.09, 0.32] },
+    ],
+  },
+
+  "server-2u": {
+    name: "Generic 2U server", short: "2U server", category: "generic", accent: "#94a3b8",
+    u: 2, widthIn: 19, depthMm: null, generic: true,
+    psuCount: 2, airflow: "AFO",
+    est: { depthMm: 750, weightKg: 26, watts: 650 },
+    note: "Generic 2U rackmount \u2014 nominal geometry for space planning. 12 front bays assumed; rear I/O as 1U generic. Replace with the real model before trusting the port map.",
+    groups: [
+      { id: "bays", label: "Drive bays", type: "BUTTON", count: 12, rows: 2, cols: 6, assumed: true,
+        naming: { prefix: "bay", start: 0 }, region: [0.10, 0.16, 0.62, 0.68] },
+      { id: "pwr", label: "Power button", type: "BUTTON", count: 1, rows: 1, cols: 1,
+        naming: { names: ["pwr"] }, region: [0.90, 0.40, 0.04, 0.20] },
+      { id: "psu", label: "PSU inlets (C14)", type: "C14", count: 2, rows: 1, cols: 2, rear: true, assumed: true,
+        naming: { prefix: "psu", start: 1 }, region: [0.06, 0.30, 0.20, 0.40] },
+      { id: "nic", label: "NIC (RJ45)", type: "RJ45", count: 4, rows: 1, cols: 4, rear: true, assumed: true,
+        naming: { prefix: "eth", start: 0 }, region: [0.36, 0.36, 0.24, 0.28] },
+      { id: "ipmi", label: "IPMI / BMC", type: "RJ45", count: 1, rows: 1, cols: 1, rear: true, assumed: true,
+        naming: { names: ["ipmi"] }, region: [0.64, 0.36, 0.07, 0.28] },
+      { id: "pcie", label: "PCIe slots", type: "SFP+", count: 3, rows: 1, cols: 3, rear: true, assumed: true,
+        naming: { prefix: "pcie", start: 1 }, region: [0.76, 0.34, 0.18, 0.32] },
+    ],
+  },
+
+  "server-4u": {
+    name: "Generic 4U server", short: "4U server", category: "generic", accent: "#94a3b8",
+    u: 4, widthIn: 19, depthMm: null, generic: true,
+    psuCount: 2, airflow: "AFO",
+    est: { depthMm: 780, weightKg: 42, watts: 1200 },
+    note: "Generic 4U rackmount \u2014 nominal geometry for space planning. 24 front bays assumed. Replace with the real model before trusting the port map.",
+    groups: [
+      { id: "bays", label: "Drive bays", type: "BUTTON", count: 24, rows: 4, cols: 6, assumed: true,
+        naming: { prefix: "bay", start: 0 }, region: [0.10, 0.10, 0.62, 0.80] },
+      { id: "pwr", label: "Power button", type: "BUTTON", count: 1, rows: 1, cols: 1,
+        naming: { names: ["pwr"] }, region: [0.90, 0.44, 0.04, 0.12] },
+      { id: "psu", label: "PSU inlets (C14)", type: "C14", count: 2, rows: 2, cols: 1, rear: true, assumed: true,
+        naming: { prefix: "psu", start: 1 }, region: [0.06, 0.24, 0.10, 0.52] },
+      { id: "nic", label: "NIC (RJ45)", type: "RJ45", count: 4, rows: 1, cols: 4, rear: true, assumed: true,
+        naming: { prefix: "eth", start: 0 }, region: [0.34, 0.42, 0.24, 0.16] },
+      { id: "ipmi", label: "IPMI / BMC", type: "RJ45", count: 1, rows: 1, cols: 1, rear: true, assumed: true,
+        naming: { names: ["ipmi"] }, region: [0.62, 0.42, 0.07, 0.16] },
+      { id: "pcie", label: "PCIe slots", type: "SFP+", count: 6, rows: 2, cols: 3, rear: true, assumed: true,
+        naming: { prefix: "pcie", start: 1 }, region: [0.74, 0.28, 0.20, 0.44] },
+    ],
+  },
+
+  "pdu-0u-24": {
+    name: "Vertical 0U rack PDU (24\u00d7 C13 / 6\u00d7 C19)",
+    short: "0U vertical PDU", category: "pdu", accent: "#e5484d",
+    u: 0, mount: "zeroU", widthIn: 2.2, depthMm: 70, generic: true,
+    capacityA: 30, volts: 208, derate: 0.8, psuCount: 0, airflow: "none",
+    est: { weightKg: 9, watts: 12 },
+    note: "Generic vertical 0U PDU \u2014 mounts in the rear channel, consumes no U. 24\u00d7 C13 + 6\u00d7 C19 on a 30A 208V feed. Outlet count and capacity are nominal; confirm against the real SKU.",
+    groups: [
+      { id: "c13", label: "C13 outlets (1\u201324)", type: "C13", count: 24, rows: 24, cols: 1,
+        naming: { prefix: "C13-", start: 1 }, region: [0.18, 0.06, 0.64, 0.64] },
+      { id: "c19", label: "C19 outlets (1\u20136)", type: "C19", count: 6, rows: 6, cols: 1,
+        naming: { prefix: "C19-", start: 1 }, region: [0.14, 0.72, 0.72, 0.20] },
+      { id: "mgmt", label: "Network mgmt (RJ45)", type: "RJ45", count: 1, rows: 1, cols: 1,
+        naming: { names: ["mgmt"] }, region: [0.30, 0.94, 0.40, 0.04] },
+      { id: "inlet", label: "Input cord (L6-30P)", type: "POWER", count: 1, rows: 1, cols: 1, rear: true,
+        naming: { names: ["inlet"] }, region: [0.25, 0.01, 0.50, 0.04] },
+    ],
+  },
+
+  "blank-1u": {
+    name: "Blanking panel 1U", short: "Blank 1U", category: "blank", accent: "#6b7280",
+    u: 1, widthIn: 19, depthMm: 25, generic: true,
+    psuCount: 0, airflow: "none", est: { weightKg: 0.5, watts: 0 },
+    note: "Airflow blanking panel \u2014 no ports. Seals an empty U so cold air cannot bypass the gear.",
+    groups: [],
+  },
+
+  // --------------------------------------------------------------------------
+  // BH chassis motherboard variants.
+  // The chassis faceplate is one reusable layer (assets/bh-chassis-plate.png,
+  // drawn to the real plate's features with the I/O window punched through to
+  // transparent). Each variant composites a motherboard rear-I/O photo BEHIND
+  // that window, so the ports you see are the ports that board actually has.
+  // Adding a board = one photo + one entry here; the plate never changes.
+  // --------------------------------------------------------------------------
+  "cha-1u-b2b-mc13le3": {
+    name: "BH Chassis [MC13-LE3]",
+    short: "BH \u00b7 MC13-LE3",
+    category: "chassis", accent: "#7dd3fc",
+    u: 1, widthIn: 16.9, depthMm: 375, custom: true,
+    psuCount: 1, airflow: "AFO",
+    est: { weightKg: 12, watts: 260 },
+    chassisOf: "cha-1u-b2b-r1", motherboard: "MC13-LE3",
+    photo: { front: "assets/bh-chassis-mc13-le3-front.png", aspect: 3400 / 352,
+             plate: "assets/bh-chassis-plate.png", io: "assets/mobo-mc13-le3-io.png" },
+    note: "CHA-1U-B2B-R1 with an MC13-LE3 board. Rear I/O read off the supplied board photo: 2\u00d7 GbE LAN (stacked), 1\u00d7 dedicated MGMT/BMC LAN, 1\u00d7 COM (DB9), 1\u00d7 VGA, 2\u00d7 USB 3.2. Anchors measured on the composite. The PSU inlet and power button are not on this face \u2014 add them once a straight-on chassis photo exists.",
+    groups: [
+      { id: "lan", label: "GbE LAN (stacked pair)", type: "RJ45", count: 2, rows: 2, cols: 1,
+        naming: { prefix: "eth", start: 0 }, region: [0.23, 0.25, 0.04, 0.50],
+        anchors: [[0.2315,0.2588,0.0381,0.2316],[0.2315,0.5176,0.0381,0.2452]] },
+      { id: "mgmt", label: "MGMT / BMC LAN (RJ45)", type: "RJ45", count: 1, rows: 1, cols: 1,
+        naming: { names: ["ipmi"] }, region: [0.357, 0.20, 0.04, 0.30],
+        anchors: [[0.3570,0.2043,0.0395,0.2997]] },
+      { id: "com", label: "COM1 serial (DB9)", type: "RS232", count: 1, rows: 1, cols: 1,
+        naming: { names: ["com1"] }, region: [0.295, 0.21, 0.041, 0.29],
+        anchors: [[0.2950,0.2179,0.0409,0.2860]] },
+      { id: "vga", label: "VGA", type: "VGA", count: 1, rows: 1, cols: 1,
+        naming: { names: ["vga"] }, region: [0.295, 0.66, 0.044, 0.19],
+        anchors: [[0.2950,0.6673,0.0437,0.1906]] },
+      { id: "usb", label: "USB 3.2 Gen1", type: "USB", count: 2, rows: 2, cols: 1,
+        naming: { prefix: "usb", start: 0 }, region: [0.361, 0.54, 0.037, 0.29],
+        anchors: [[0.3613,0.5447,0.0367,0.1361],[0.3613,0.6946,0.0367,0.1361]] },
+    ],
   },
 };
 
@@ -227,7 +402,13 @@ const KIND_TO_MODEL = {
   mgmt: "ex4200-48t",
   console: "ex4200-48t",
   pdu: "ap7911b",
+  pdu0u: "pdu-0u-24",
+  server1u: "server-1u",
+  server2u: "server-2u",
+  server4u: "server-4u",
+  blank: "blank-1u",
   chassis: "cha-1u-b2b-r1",
+  chassisMc13le3: "cha-1u-b2b-mc13le3",
   supermicro: "supermicro-1u",
 };
 
@@ -237,6 +418,81 @@ function skinOf(modelId) {
   return (m && m.photo && m.photo.front) ? m.photo : null;
 }
 
+// --------------------------------------------------------------------------
+// User-defined models. The 3D editor's model builder writes these; they merge
+// into CATALOG at load so every tool (2D planner, catalog, connections, 3D)
+// sees them without a code change. Stored per-browser, exportable as JSON.
+// --------------------------------------------------------------------------
+const USER_MODELS_KEY = "cabplanner.v1.models";
+function loadUserModels() {
+  try {
+    const raw = localStorage.getItem(USER_MODELS_KEY);
+    if (!raw) return {};
+    const o = JSON.parse(raw);
+    return o && typeof o === "object" && !Array.isArray(o) ? o : {};
+  } catch (e) { return {}; }
+}
+const USER_MODELS = loadUserModels();
+for (const id in USER_MODELS) {
+  const m = USER_MODELS[id];
+  if (!m || typeof m !== "object") continue;
+  CATALOG[id] = Object.assign({ groups: [], user: true }, m, { user: true });
+}
+function saveUserModel(model) {
+  if (!model || !model.id) throw new Error("model needs an id");
+  const store = loadUserModels();
+  store[model.id] = model;
+  localStorage.setItem(USER_MODELS_KEY, JSON.stringify(store));
+  USER_MODELS[model.id] = model;
+  CATALOG[model.id] = Object.assign({ groups: [] }, model, { user: true });
+  return CATALOG[model.id];
+}
+function removeUserModel(id) {
+  const store = loadUserModels();
+  delete store[id];
+  localStorage.setItem(USER_MODELS_KEY, JSON.stringify(store));
+  delete USER_MODELS[id];
+  delete CATALOG[id];
+}
+function isUserModel(id) { return !!(CATALOG[id] && CATALOG[id].user); }
+
+// Physical facts a planner needs, with estimates flagged as estimates so the
+// UI can say "about" instead of pretending a spec sheet said it.
+function specOf(modelId) {
+  const m = CATALOG[modelId];
+  if (!m) return null;
+  const e = m.est || {};
+  const pick = (k) => (m[k] != null ? { value: m[k], est: false }
+                    : e[k] != null ? { value: e[k], est: true }
+                    : { value: null, est: false });
+  return {
+    u: m.u ?? 1,
+    mount: m.mount || "rack",
+    widthIn: m.widthIn ?? 19,
+    depth: pick("depthMm"),
+    weight: pick("weightKg"),
+    watts: pick("watts"),
+    psuCount: m.psuCount ?? 0,
+    airflow: m.airflow || null,
+    capacityA: m.capacityA ?? null,
+    volts: m.volts ?? null,
+    derate: m.derate ?? 0.8,
+  };
+}
+
+// Every model id grouped by category, for palettes and pickers.
+function modelsByCategory() {
+  const out = {};
+  for (const id in CATALOG) {
+    const cat = CATALOG[id].category || "other";
+    (out[cat] = out[cat] || []).push(id);
+  }
+  for (const k in out) out[k].sort((a, b) => (CATALOG[a].short || a).localeCompare(CATALOG[b].short || b));
+  return out;
+}
+
 // Plain-script global so every page works from file:// (no module CORS)
-window.CabCatalog = { PORT_TYPES, CATALOG, portsOf, skinOf, KIND_TO_MODEL };
+window.CabCatalog = { PORT_TYPES, CATALOG, portsOf, skinOf, KIND_TO_MODEL,
+  specOf, modelsByCategory, saveUserModel, removeUserModel, isUserModel,
+  USER_MODELS_KEY };
 })();

@@ -2,6 +2,18 @@
 
 All notable changes to cabinetminister. Features bump the minor (0.x); fixes, reskins and data corrections bump the patch (0.x.y). v1.0 is reserved for a team-signed-off release: confirmed BH chassis I/O plate, real Supermicro model in the catalog, photo-textured 3D skins.
 
+## v0.7.0-rc.1 — Catalog expansion, measured faceplates, validation data (pre-release)
+- Six new models: generic 1U/2U/4U servers, a vertical 0U PDU (24x C13 + 6x C19, 30A 208V, first `mount:"zeroU"` model), a 1U blanking panel, and BH Chassis [MC13-LE3].
+- EX4200-48T front and rear photo skins, with all 48 access ports anchored to their real cages (four blocks of 12, even index on the top row) and the uplink module corrected to 4x SFP in one row.
+- AP7911B rectified from a 3/4 product shot to a true front elevation - homography fitted on the 16-outlet grid (1.65 px max reprojection error), then stretched to the real 445 x 88.9 mm aspect so measurements off the image are meaningful. Both banks of 8 anchored to the re-measured cage grid.
+- Chassis and motherboard split into two layers: a reusable chassis plate with the I/O window punched through to transparent, and the board's own rear-I/O photo composited behind it. Adding a board is one photo plus one catalog entry.
+- Validation metadata on every model - PSU count, airflow direction, and PDU capacity/voltage/derate. Values with no datasheet source live in an `est` block and are returned flagged, so an estimate can be shown as one.
+- New helpers `specOf()` (physical facts, each paired with an est boolean) and `modelsByCategory()` (grouped ids for palettes and pickers).
+- User-defined models merged into the catalog at load from `cabplanner.v1.models`, so a model created in one tool appears in all of them; `saveUserModel` / `removeUserModel` / `isUserModel` manage them.
+- New port types LC and BUTTON. Port Catalog widened, spec line states PDU capacity and PSU count and prefixes estimated depths with `~`, sidebar flags custom and generic models.
+- Offline Hub bundle added (`cabinetminister Hub (offline).html`) - single self-contained file, fonts and runtime inlined; Hub view only, inter-tool links are inert in the single-file build.
+- Open in this pre-release: the 3D editing suite has not landed; the BH chassis plate needs a redraw (missing power button and PSU section, blocked on a straight-on photo); the Port Catalog zoom control is being removed in favour of higher-res images; Supermicro 1U is still unmapped; the standalone bundles are not regenerated.
+
 ## v0.6.7 — Airflow & image quality (patch)
 - QFX5100-48T corrected to AFO (front-to-back): rear FRUs recoloured from AFI blue to the same AIR OUT orange as the QFX5200, and the fan and PSU labels now read AIR OUT (AFO).
 - Airflow direction is a catalog field and shows on the Port Catalog spec line, so a unit's direction is stated rather than inferred from the picture.

@@ -41,9 +41,9 @@
   </aside>
 
   <main style="flex:1; min-width:0; padding:34px 40px 60px;">
-    <div style="max-width:1080px; margin:0 auto;">
-      <div style="display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; margin-bottom:4px;">
-        <h2 style="margin:0; font-size:26px; font-weight:700; letter-spacing:-0.4px;">{{ sel.name }}</h2>
+    <div style="max-width:1360px; margin:0 auto;">
+      <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; row-gap:8px; margin-bottom:10px;">
+        <h2 style="margin:0; font-size:26px; font-weight:700; letter-spacing:-0.4px; line-height:1.2;">{{ sel.name }}</h2>
         <sc-if value="{{ sel.custom }}" hint-placeholder-val="{{ true }}">
           <span style="font-family:'IBM Plex Mono',monospace; font-size:10.5px; padding:3px 9px; border-radius:999px; background:#fef3c7; color:#92400e; font-weight:600; letter-spacing:0.5px;">ASSUMED · CONFIRM</span>
         </sc-if>
@@ -52,34 +52,45 @@
       <div style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#9fb0ca; margin-bottom:22px;">{{ sel.dims }} &nbsp;·&nbsp; {{ sel.portCount }} ports</div>
 
       <div style="background:#0d1219; border:1px solid #161d2b; border-radius:12px; padding:22px; box-shadow:0 20px 44px -26px rgba(0,0,0,0.55);">
-        <div style="display:flex; justify-content:space-between; font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:1.5px; color:#8296b3; text-transform:uppercase; margin-bottom:12px;">
-          <span>{{ sel.frontLabel }}</span><span>{{ sel.short }}</span>
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:1.5px; color:#8296b3; text-transform:uppercase; margin-bottom:12px;">
+          <span>{{ sel.frontLabel }}</span>
+          <span style="display:flex; align-items:center; gap:6px; letter-spacing:0;">
+            <span style="letter-spacing:1.5px;">Zoom</span>
+            <sc-for list="{{ zoomOptions }}" as="z" hint-placeholder-count="4">
+              <button onClick="{{ z.onPick }}" title="{{ z.title }}" style="font-family:'IBM Plex Mono',monospace; font-size:11px; padding:4px 9px; border-radius:6px; cursor:pointer; border:1px solid {{ z.border }}; background: {{ z.bg }}; color: {{ z.color }};" style-hover="border-color:#f7981d;">{{ z.label }}</button>
+            </sc-for>
+            <span style="color:#5f6a7d; letter-spacing:0; text-transform:none;">{{ zoomHint }}</span>
+          </span>
         </div>
-        <div style="position:relative; width:100%; aspect-ratio: {{ sel.aspect }}; background:linear-gradient(180deg,#33405a,#17181c); border-radius:7px; border:1px solid #161d2b; overflow:hidden;">
-          <sc-if value="{{ sel.hasPhoto }}" hint-placeholder-val="{{ false }}">
-            {{ sel.frontImg }}
-          </sc-if>
-          <sc-for list="{{ sel.ports }}" as="p" hint-placeholder-count="32">
-            <button onClick="{{ p.onSelect }}" title="{{ p.title }}" style="position:absolute; left: {{ p.left }}; top: {{ p.top }}; width: {{ p.w }}; height: {{ p.h }}; transform:translate(-50%,-50%); padding:0; border-radius:2px; border:1px solid {{ p.border }}; background: {{ p.fill }}; cursor:pointer; box-shadow: {{ p.glow }};" style-hover="box-shadow:0 0 0 2px #f7981d; background:rgba(247,152,29,0.32);"></button>
-          </sc-for>
-          <sc-if value="{{ sel.noPorts }}" hint-placeholder-val="{{ true }}">
-            <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:12px; color:#9fb0ca;">No front-panel ports — rear I/O only</div>
-          </sc-if>
+        <div style="width:100%; overflow-x: {{ zoomOverflow }}; overflow-y:hidden; border-radius:7px;">
+          <div style="position:relative; width: {{ zoomWidth }}; aspect-ratio: {{ sel.aspect }}; background:linear-gradient(180deg,#33405a,#17181c); border-radius:7px; border:1px solid #161d2b; overflow:hidden;">
+            <sc-if value="{{ sel.hasPhoto }}" hint-placeholder-val="{{ false }}">
+              {{ sel.frontImg }}
+            </sc-if>
+            <sc-for list="{{ sel.ports }}" as="p" hint-placeholder-count="32">
+              <button onClick="{{ p.onSelect }}" title="{{ p.title }}" style="position:absolute; left: {{ p.left }}; top: {{ p.top }}; width: {{ p.w }}; height: {{ p.h }}; transform:translate(-50%,-50%); padding:0; border-radius:2px; border:1px solid {{ p.border }}; background: {{ p.fill }}; cursor:pointer; box-shadow: {{ p.glow }};" style-hover="box-shadow:0 0 0 2px #f7981d; background:rgba(247,152,29,0.32);"></button>
+            </sc-for>
+            <sc-if value="{{ sel.noPorts }}" hint-placeholder-val="{{ true }}">
+              <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:12px; color:#9fb0ca;">No front-panel ports — rear I/O only</div>
+            </sc-if>
+          </div>
         </div>
         <sc-if value="{{ sel.hasRear }}" hint-placeholder-val="{{ false }}">
           <div style="display:flex; justify-content:space-between; font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:1.5px; color:#8296b3; text-transform:uppercase; margin:18px 0 12px;">
             <span>{{ sel.rearLabel }}</span><span>{{ sel.short }}</span>
           </div>
-          <div style="position:relative; width:100%; aspect-ratio: {{ sel.rearAspect }}; background:linear-gradient(180deg,#232a38,#141519); border-radius:7px; border:1px solid #161d2b; overflow:hidden;">
-            <sc-if value="{{ sel.hasRearPhoto }}" hint-placeholder-val="{{ false }}">
-              {{ sel.rearImg }}
-            </sc-if>
-            <sc-if value="{{ sel.noRearPhoto }}" hint-placeholder-val="{{ true }}">
-              <span style="position:absolute; right:10px; bottom:8px; font-family:'IBM Plex Mono',monospace; font-size:10px; color:#5f6a7d;">fans / PSUs occupy remaining width</span>
-            </sc-if>
-            <sc-for list="{{ sel.rearPorts }}" as="p" hint-placeholder-count="4">
-              <button onClick="{{ p.onSelect }}" title="{{ p.title }}" style="position:absolute; left: {{ p.left }}; top: {{ p.top }}; width: {{ p.w }}; height: {{ p.h }}; transform:translate(-50%,-50%); padding:0; border-radius:2px; border:1px solid {{ p.border }}; background: {{ p.fill }}; cursor:pointer; box-shadow: {{ p.glow }};" style-hover="box-shadow:0 0 0 2px #f7981d; background:rgba(247,152,29,0.32);"></button>
-            </sc-for>
+          <div style="width:100%; overflow-x: {{ zoomOverflow }}; overflow-y:hidden; border-radius:7px;">
+            <div style="position:relative; width: {{ zoomWidth }}; aspect-ratio: {{ sel.rearAspect }}; background:linear-gradient(180deg,#232a38,#141519); border-radius:7px; border:1px solid #161d2b; overflow:hidden;">
+              <sc-if value="{{ sel.hasRearPhoto }}" hint-placeholder-val="{{ false }}">
+                {{ sel.rearImg }}
+              </sc-if>
+              <sc-if value="{{ sel.noRearPhoto }}" hint-placeholder-val="{{ true }}">
+                <span style="position:absolute; right:10px; bottom:8px; font-family:'IBM Plex Mono',monospace; font-size:10px; color:#5f6a7d;">fans / PSUs occupy remaining width</span>
+              </sc-if>
+              <sc-for list="{{ sel.rearPorts }}" as="p" hint-placeholder-count="4">
+                <button onClick="{{ p.onSelect }}" title="{{ p.title }}" style="position:absolute; left: {{ p.left }}; top: {{ p.top }}; width: {{ p.w }}; height: {{ p.h }}; transform:translate(-50%,-50%); padding:0; border-radius:2px; border:1px solid {{ p.border }}; background: {{ p.fill }}; cursor:pointer; box-shadow: {{ p.glow }};" style-hover="box-shadow:0 0 0 2px #f7981d; background:rgba(247,152,29,0.32);"></button>
+              </sc-for>
+            </div>
           </div>
         </sc-if>
         <div style="display:flex; flex-wrap:wrap; gap:8px 18px; margin-top:16px;">
@@ -140,7 +151,7 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{}">
 class Component extends DCLogic {
-  state = { sel: 'qfx5200-32c', picked: null, catalog: null, order: [] };
+  state = { sel: 'qfx5200-32c', picked: null, catalog: null, order: [], zoom: 1 };
 
   componentDidMount() {
     const grab = () => {
@@ -160,6 +171,27 @@ class Component extends DCLogic {
     clearTimeout(this._ct); this._ct = setTimeout(() => this.setState({ copied: false }), 1200);
   }
   select(id) { this.setState({ sel: id, picked: null }); }
+  setZoom(z) { this.setState({ zoom: z }); }
+
+  // Faceplates are 5:1 to 10:1 strips, so at page width the silkscreen is
+  // unreadable. Zoom widens the panel inside a scroller; ports are positioned
+  // in %, so they track the photo at every step.
+  zoomVals() {
+    const z = this.state.zoom || 1;
+    return {
+      zoomWidth: z === 1 ? '100%' : (z * 100) + '%',
+      zoomOverflow: z === 1 ? 'hidden' : 'auto',
+      zoomHint: z === 1 ? '' : 'scroll sideways',
+      zoomOptions: [1, 2, 3, 5].map(v => ({
+        label: v + '\u00d7',
+        title: v === 1 ? 'Fit to page' : v + '\u00d7 — read the silkscreen',
+        onPick: () => this.setZoom(v),
+        border: v === z ? '#f7981d' : 'rgba(255,255,255,0.16)',
+        bg: v === z ? 'rgba(247,152,29,0.18)' : 'rgba(255,255,255,0.04)',
+        color: v === z ? '#f7981d' : '#9fb0ca',
+      })),
+    };
+  }
 
   panelImg(src, alt) {
     return React.createElement('img', { src, alt, style: {
@@ -220,7 +252,7 @@ class Component extends DCLogic {
 
   renderVals() {
     if (!this.state.catalog) {
-      return { models: [], sel: { name: 'Loading…', note: '', dims: '', short: '', portCount: 0, aspect: '19 / 1.75', rearAspect: '19 / 1.75', hasPhoto: false, photoSrc: '', frontImg: null, rearImg: null, hasRearPhoto: false, noRearPhoto: true, rearPhotoSrc: '', frontLabel: 'Front faceplate', rearLabel: 'Rear panel', ports: [], rearPorts: [], hasRear: false, groups: [], groupKey: [], custom: false, noPorts: false }, hasSelection: false, noSelection: true, picked: {}, pickedRear: false, onCopy: () => {}, copyLabel: 'copy' };
+      return Object.assign({ models: [], sel: { name: 'Loading…', note: '', dims: '', short: '', portCount: 0, aspect: '19 / 1.75', rearAspect: '19 / 1.75', hasPhoto: false, photoSrc: '', frontImg: null, rearImg: null, hasRearPhoto: false, noRearPhoto: true, rearPhotoSrc: '', frontLabel: 'Front faceplate', rearLabel: 'Rear panel', ports: [], rearPorts: [], hasRear: false, groups: [], groupKey: [], custom: false, noPorts: false }, hasSelection: false, noSelection: true, picked: {}, pickedRear: false, onCopy: () => {}, copyLabel: 'copy' }, this.zoomVals());
     }
     const CAT = this.state.catalog, TYPES = this.TYPES;
     const selId = this.state.sel;
@@ -232,7 +264,8 @@ class Component extends DCLogic {
       const active = id === selId;
       return {
         short: c.short, accent: c.accent,
-        meta: c.u + 'U · ' + n + ' ports',
+        meta: (c.mount === 'zeroU' ? '0U' : c.u + 'U') + ' · ' + n + ' ports'
+              + (c.user ? ' · custom' : c.generic ? ' · generic' : ''),
         onSelect: () => this.select(id),
         bg: active ? '#2b3648' : 'transparent',
         borderColor: active ? c.accent : 'rgba(255,255,255,0.12)',
@@ -257,8 +290,12 @@ class Component extends DCLogic {
 
     const sel = {
       name: m.name, short: m.short, note: m.note, custom: !!m.custom,
-      dims: m.u + 'U · ' + m.widthIn + '" wide · ' + (m.depthMm ? m.depthMm + ' mm deep' : 'depth TBC')
-            + (m.airflow === 'AFO' ? ' · AFO front-to-back' : m.airflow === 'AFI' ? ' · AFI back-to-front' : ''),
+      dims: (m.mount === 'zeroU' ? '0U vertical' : m.u + 'U') + ' · ' + m.widthIn + '" wide · '
+            + (m.depthMm ? m.depthMm + ' mm deep'
+               : (m.est && m.est.depthMm) ? '~' + m.est.depthMm + ' mm deep (estimate)' : 'depth TBC')
+            + (m.airflow === 'AFO' ? ' · AFO front-to-back' : m.airflow === 'AFI' ? ' · AFI back-to-front' : '')
+            + (m.capacityA ? ' · ' + m.capacityA + 'A ' + (m.volts || 208) + 'V' : '')
+            + (m.psuCount ? ' · ' + m.psuCount + '× PSU' : ''),
       portCount: this.portsOf(selId).length,
       aspect: hasPhoto ? String(photo.aspect) : m.widthIn + ' / ' + (m.u * 1.75),
       rearAspect: hasRearPhoto ? String(photo.rearAspect) : m.widthIn + ' / ' + (m.u * 1.75),
@@ -274,7 +311,7 @@ class Component extends DCLogic {
       groups, groupKey, noPorts: ports.length === 0,
     };
 
-    return {
+    return Object.assign({
       models, sel,
       picked: this.state.picked || {},
       pickedRear: !!(this.state.picked && this.state.picked.rear),
@@ -282,7 +319,7 @@ class Component extends DCLogic {
       noSelection: !this.state.picked,
       onCopy: () => this.copyAddr(),
       copyLabel: this.state.copied ? 'copied ✓' : 'copy',
-    };
+    }, this.zoomVals());
   }
 }
 </script>
