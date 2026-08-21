@@ -10,55 +10,54 @@
 <helmet>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./theme.css">
+<script src="./theme.js"></script>
+<script>document.documentElement.dataset.tool = "planner";</script>
+<script src="./catalog.js"></script>
 <style>
-  * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; }
-  body { background: #121924; -webkit-font-smoothing: antialiased; }
-  a { color: #f7981d; text-decoration: none; }
-  a:hover { color: #ffa940; }
   [contenteditable]:focus { outline: none; }
   .phwrap { position: relative; }
-  .phwrap.showph::before { content: attr(data-ph); position: absolute; left: 0; top: 50%; transform: translateY(-50%); color: #7b8290; font-style: italic; pointer-events: none; white-space: nowrap; overflow: hidden; max-width: 100%; text-overflow: ellipsis; }
+  .phwrap.showph::before { content: attr(data-ph); position: absolute; left: 0; top: 50%; transform: translateY(-50%); color: var(--text-3); font-style: italic; pointer-events: none; white-space: nowrap; overflow: hidden; max-width: 100%; text-overflow: ellipsis; }
   .phwrap.phright.showph::before { left: auto; right: 0; }
   .phwrap.showph:focus-within::before { content: none; }
 </style>
 </helmet>
-<div style="min-height:100vh; background:#121924; background-image:linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px); background-size:44px 44px; font-family:'Space Grotesk',sans-serif; color:#e6e9ee; padding:40px 44px 64px;">
+<div style="min-height:100vh; background:var(--bg); background-image:linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px); background-size:44px 44px; font-family:var(--sans); color:var(--text); padding:40px 44px 64px;">
 
-  <header style="max-width:1220px; margin:0 auto 24px; display:flex; justify-content:space-between; align-items:flex-end; gap:24px; flex-wrap:wrap; border-bottom:1px solid rgba(255,255,255,0.14); padding-bottom:20px;">
+  <header style="max-width:1220px; margin:0 auto 24px; display:flex; justify-content:space-between; align-items:flex-end; gap:24px; flex-wrap:wrap; border-bottom:1px solid var(--border); padding-bottom:20px;">
     <div>
-      <a href="Hub.dc.html" style="display:inline-block; font-family:'IBM Plex Mono',monospace; font-size:11px; color:#f7981d; text-decoration:none; margin-bottom:10px;">← Hub</a>
-      <div style="font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:2.5px; text-transform:uppercase; color:#9fb0ca; margin-bottom:8px;">Rack Elevation · Front View</div>
+      <a href="Hub.dc.html" style="display:inline-block; font-family:var(--mono); font-size:11px; color:var(--tool); text-decoration:none; margin-bottom:10px;">← Hub</a><button id="themeBtn" title="Switch between light and dark" style="display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:11px; color:var(--text-2); background:transparent; border:1px solid var(--border); border-radius:9px; padding:5px 9px; cursor:pointer; margin-left:10px; vertical-align:middle;"></button>
+      <div style="font-family:var(--mono); font-size:12px; letter-spacing:2.5px; text-transform:uppercase; color:var(--text-2); margin-bottom:8px;">Rack Elevation · Front View</div>
       <h1 style="margin:0; font-size:32px; font-weight:700; letter-spacing:-0.5px;">Interactive Cabinet Planner</h1>
-      <p style="margin:8px 0 0; font-size:15px; color:#9fb0ca; max-width:640px; line-height:1.5;">Interactive rack planner with our boot hardware chassis taken into consideration. Each U is dual-sided — cold and hot slots fill independently. Click a slot to add gear, drag a device to move it, and drag its bottom handle to span multiple Us on one side.</p>
+      <p style="margin:8px 0 0; font-size:15px; color:var(--text-2); max-width:640px; line-height:1.5;">Interactive rack planner with our boot hardware chassis taken into consideration. Each U is dual-sided — cold and hot slots fill independently. Click a slot to add gear, drag a device to move it, and drag its bottom handle to span multiple Us on one side.</p>
     </div>
-    <div style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#8296b3; text-align:right; line-height:1.7;">
+    <div style="font-family:var(--mono); font-size:12px; color:var(--text-2); text-align:right; line-height:1.7;">
       <div>47U &nbsp;·&nbsp; front view</div>
       <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:8px;">
-        <button onClick="{{ onExport }}" title="Download your layout as a file" style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#e6e9ee; background:#212c3e; border:1px solid rgba(255,255,255,0.14); border-radius:7px; padding:6px 12px; cursor:pointer;" style-hover="border-color:#9fb0ca;">Save file</button>
-        <label title="Open a saved layout file" style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#e6e9ee; background:#212c3e; border:1px solid rgba(255,255,255,0.14); border-radius:7px; padding:6px 12px; cursor:pointer;" style-hover="border-color:#9fb0ca;">Open file<input type="file" accept="application/json,.json" onChange="{{ onImport }}" style="display:none;" /></label>
-        <button onClick="{{ onReset }}" title="Reset to default layout" style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#8296b3; background:transparent; border:1px solid rgba(255,255,255,0.14); border-radius:7px; padding:6px 12px; cursor:pointer;" style-hover="color:#b91c1c; border-color:#fca5a5;">Reset</button>
+        <button onClick="{{ onExport }}" title="Download your layout as a file" style="font-family:var(--mono); font-size:12px; color:var(--primary-fg); background:var(--primary-bg); border:1px solid var(--primary-bg); border-radius:9px; padding:6px 12px; cursor:pointer;" style-hover="border-color:var(--text-2);">Save file</button>
+        <label title="Open a saved layout file" style="font-family:var(--mono); font-size:12px; color:var(--text); background:var(--surface-2); border:1px solid var(--border); border-radius:9px; padding:6px 12px; cursor:pointer;" style-hover="border-color:var(--text-2);">Open file<input type="file" accept="application/json,.json" onChange="{{ onImport }}" style="display:none;" /></label>
+        <button onClick="{{ onReset }}" title="Clear every cabinet and start over" style="font-family:var(--mono); font-size:12px; color:var(--danger-line); background:transparent; border:1px solid var(--danger-line); border-radius:9px; padding:6px 12px; cursor:pointer;" style-hover="color:#b91c1c; border-color:var(--err);">Reset</button>
       </div>
-      <div style="margin-top:6px; color:#9fb0ca; font-size:11px;">Auto-saves in this browser</div>
+      <div style="margin-top:6px; color:var(--text-2); font-size:11px;">Auto-saves in this browser</div>
     </div>
   </header>
 
-  <div style="max-width:1220px; margin:0 auto 30px; background:#1b2432; border:1px solid rgba(255,255,255,0.14); border-radius:10px; padding:16px 20px;">
+  <div style="max-width:1220px; margin:0 auto 30px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow-sm); padding:16px 20px;">
     <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
-      <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:2px; text-transform:uppercase; color:#9fb0ca;">Key</span>
-      <span style="flex:1; height:1px; background:rgba(255,255,255,0.13);"></span>
+      <span style="font-family:var(--mono); font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--text-2);">Key</span>
+      <span style="flex:1; height:1px; background:var(--border);"></span>
     </div>
     <div style="display:flex; flex-wrap:wrap; gap:10px 26px; align-items:center;">
       <sc-for list="{{ legend }}" as="item" hint-placeholder-count="11">
-        <span style="display:inline-flex; align-items:center; gap:8px; font-size:13px; color:#d5d9e0; font-weight:500;">
+        <span style="display:inline-flex; align-items:center; gap:8px; font-size:13px; color:var(--text); font-weight:500;">
           <span style="width:13px; height:13px; border-radius:3px; background: {{ item.accent }};"></span>{{ item.label }}
         </span>
       </sc-for>
-      <span style="display:inline-flex; align-items:center; gap:8px; font-size:13px; color:#d5d9e0; font-weight:500;">
+      <span style="display:inline-flex; align-items:center; gap:8px; font-size:13px; color:var(--text); font-weight:500;">
         <span style="width:13px; height:13px; border-radius:3px; background:#38bdf8;"></span>Cold-aisle facing
       </span>
-      <span style="display:inline-flex; align-items:center; gap:8px; font-size:13px; color:#d5d9e0; font-weight:500;">
+      <span style="display:inline-flex; align-items:center; gap:8px; font-size:13px; color:var(--text); font-weight:500;">
         <span style="width:13px; height:13px; border-radius:3px; background:#f87171;"></span>Hot-aisle facing
       </span>
     </div>
@@ -69,15 +68,15 @@
       <div style="flex:1 1 560px; max-width:620px;">
         <div style="margin-bottom:14px; display:flex; align-items:baseline; gap:10px;">
           <h2 contentEditable="true" suppressContentEditableWarning="{{ true }}" onBlur="{{ rack.onRenameName }}" title="Click to rename" style="margin:0; font-size:20px; font-weight:600; outline:none; cursor:text;">{{ rack.name }}</h2>
-          <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; padding:3px 9px; border-radius:999px; background: {{ rack.badgeBg }}; color: {{ rack.badgeFg }}; font-weight:500; letter-spacing:0.5px;">{{ rack.badge }}</span>
-          <span title="Occupied / free rack units" style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#8296b3;">{{ rack.cap }}</span>
+          <span style="font-family:var(--mono); font-size:11px; padding:3px 9px; border-radius:999px; background: {{ rack.badgeBg }}; color: {{ rack.badgeFg }}; font-weight:500; letter-spacing:0.5px;">{{ rack.badge }}</span>
+          <span title="Occupied / free rack units" style="font-family:var(--mono); font-size:11px; color:var(--text-2);">{{ rack.cap }}</span>
           <sc-if value="{{ rack.canRemove }}" hint-placeholder-val="{{ true }}">
-            <button onClick="{{ rack.onRemove }}" title="Remove cabinet" style="margin-left:auto; font-family:'IBM Plex Mono',monospace; font-size:11px; color:#9fb0ca; background:transparent; border:1px solid rgba(255,255,255,0.14); border-radius:6px; padding:3px 9px; cursor:pointer;" style-hover="color:#b91c1c; border-color:#fca5a5;">remove</button>
+            <button onClick="{{ rack.onRemove }}" title="Remove cabinet" style="margin-left:auto; font-family:var(--mono); font-size:11px; color:var(--text-2); background:transparent; border:1px solid var(--border); border-radius:6px; padding:3px 9px; cursor:pointer;" style-hover="color:#b91c1c; border-color:var(--err);">remove</button>
           </sc-if>
         </div>
 
-        <div style="background:#0d1219; border:1px solid #161d2b; border-radius:10px; padding:14px 12px; box-shadow:0 18px 40px -22px rgba(0,0,0,0.55);">
-          <div style="display:grid; grid-template-columns:28px 1fr 1fr; column-gap:6px; padding:0 4px 10px; font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:1.5px; color:#8296b3; text-transform:uppercase;">
+        <div style="background:var(--surface-3); border:1px solid var(--border); border-radius:var(--radius); padding:14px 12px; box-shadow:var(--shadow-lg);">
+          <div style="display:grid; grid-template-columns:28px 1fr 1fr; column-gap:6px; padding:0 4px 10px; font-family:var(--mono); font-size:10px; letter-spacing:1.5px; color:var(--text-2); text-transform:uppercase;">
             <span></span>
             <span style="text-align:left;">◀ Cold aisle</span>
             <span style="text-align:right;">Hot aisle ▶</span>
@@ -86,19 +85,19 @@
             <sc-for list="{{ rack.items }}" as="it" hint-placeholder-count="47">
 
               <sc-if value="{{ it.isULabel }}" hint-placeholder-val="{{ true }}">
-                <div contentEditable="true" suppressContentEditableWarning="{{ true }}" onBlur="{{ it.onRenameU }}" title="Click to edit U label" style="grid-column:1; grid-row: {{ it.gridRow }}; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:10px; color:#9fb0ca; outline:none; cursor:text;">{{ it.uLabel }}</div>
+                <div contentEditable="true" suppressContentEditableWarning="{{ true }}" onBlur="{{ it.onRenameU }}" title="Click to edit U label" style="grid-column:1; grid-row: {{ it.gridRow }}; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:10px; color:var(--text-2); outline:none; cursor:text;">{{ it.uLabel }}</div>
               </sc-if>
 
               <sc-if value="{{ it.isEmpty }}" hint-placeholder-val="{{ true }}">
-                <div onClick="{{ it.onOpenAdd }}" onDragEnter="{{ it.onDragEnter }}" onDragOver="{{ it.onDragOver }}" onDrop="{{ it.onDrop }}" title="Click to add" style="position:relative; grid-column: {{ it.gridCol }}; grid-row: {{ it.gridRow }}; display:flex; align-items:center; justify-content:center; border-radius:5px; background:#2d3a4e; border:1px dashed #273246; box-shadow: {{ it.dropOutline }}; cursor:pointer;" style-hover="border-color:#9fb0ca;">
-                  <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:#4b4640;">+ add</span>
+                <div onClick="{{ it.onOpenAdd }}" onDragEnter="{{ it.onDragEnter }}" onDragOver="{{ it.onDragOver }}" onDrop="{{ it.onDrop }}" title="Click to add" style="position:relative; grid-column: {{ it.gridCol }}; grid-row: {{ it.gridRow }}; display:flex; align-items:center; justify-content:center; border-radius:6px; background:transparent; border:1px dashed var(--border-strong); box-shadow: {{ it.dropOutline }}; cursor:pointer;" style-hover="border-color:var(--tool); background:var(--tool-soft);">
+                  <span style="font-family:var(--mono); font-size:10px; color:var(--text-3);">+ add</span>
                   <sc-if value="{{ it.addOpen }}" hint-placeholder-val="{{ true }}">
                     <div onClick="{{ it.onOpenAdd }}" style="position:fixed; inset:0; z-index:55;"></div>
-                    <div style="position:absolute; left:0; top:calc(100% + 4px); z-index:60; background:#161d2b; border:1px solid #44403c; border-radius:9px; padding:7px; width:300px; box-shadow:0 16px 40px rgba(0,0,0,0.55);">
-                      <div style="font-family:'IBM Plex Mono',monospace; font-size:9.5px; letter-spacing:1px; text-transform:uppercase; color:#8296b3; padding:2px 4px 8px;">Add to U{{ it.uLabel }} · {{ it.sideLabel }}</div>
+                    <div style="position:absolute; left:0; top:calc(100% + 4px); z-index:60; background:var(--surface-2); border:1px solid var(--border-strong); border-radius:var(--radius); padding:7px; width:300px; box-shadow:0 16px 40px rgba(0,0,0,0.55);">
+                      <div style="font-family:var(--mono); font-size:9.5px; letter-spacing:1px; text-transform:uppercase; color:var(--text-2); padding:2px 4px 8px;">Add to U{{ it.uLabel }} · {{ it.sideLabel }}</div>
                       <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px;">
                         <sc-for list="{{ it.addItems }}" as="opt" hint-placeholder-count="10">
-                          <button onClick="{{ opt.onClick }}" style="text-align:left; font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:#e6e9ee; background:#0d1219; border:1px solid #42506e; border-radius:6px; padding:8px 10px; cursor:pointer;" style-hover="background:#292524; border-color:#8296b3;">{{ opt.label }}</button>
+                          <button onClick="{{ opt.onClick }}" style="text-align:left; font-family:var(--mono); font-size:11.5px; color:var(--text); background:var(--surface-3); border:1px solid var(--border-strong); border-radius:6px; padding:8px 10px; cursor:pointer;" style-hover="background:#292524; border-color:var(--text-2);">{{ opt.label }}</button>
                         </sc-for>
                       </div>
                     </div>
@@ -109,32 +108,32 @@
               <sc-if value="{{ it.isLeftCell }}" hint-placeholder-val="{{ true }}">
                 <div draggable="true" onDragStart="{{ it.onDragStart }}" onDragEnter="{{ it.onDragEnter }}" onDragOver="{{ it.onDragOver }}" onDrop="{{ it.onDrop }}" onDragEnd="{{ it.onDragEnd }}" title="Drag to move · drag bottom handle to span" style="position:relative; grid-column: {{ it.gridCol }}; grid-row: {{ it.gridRow }}; display:flex; align-items:center; gap:6px; padding:0 11px; border-radius:5px; border-left:4px solid {{ it.accent }}; background: {{ it.tint }}; overflow:hidden; cursor:grab; box-shadow: {{ it.dropOutline }};">
                   <sc-if value="{{ it.badge }}" hint-placeholder-val="{{ true }}">
-                    <span style="flex:0 0 auto; font-family:'IBM Plex Mono',monospace; font-size:9px; font-weight:700; letter-spacing:0.5px; padding:2px 5px; border-radius:3px; color:#161d2b; background: {{ it.badgeColor }};">{{ it.badge }}</span>
+                    <span style="flex:0 0 auto; font-family:var(--mono); font-size:9px; font-weight:700; letter-spacing:0.5px; padding:2px 5px; border-radius:3px; color:var(--surface-2); background: {{ it.badgeColor }};">{{ it.badge }}</span>
                   </sc-if>
-                  <input type="text" value="{{ it.name }}" placeholder="{{ it.namePh }}" onMouseDown="{{ it.onNameMouseDown }}" onChange="{{ it.onNameChange }}" onBlur="{{ it.onRenameName }}" title="Click to rename" style="flex:1; min-width:0; background:transparent; border:none; outline:none; padding:0; font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:500; color:#eceff4; text-align:left;" />
-                  <button onClick="{{ it.onClear }}" title="Remove" style="flex:0 0 auto; width:18px; height:18px; display:flex; align-items:center; justify-content:center; padding:0; border:none; border-radius:4px; background:transparent; color:#9fb0ca; font-size:15px; line-height:1; cursor:pointer;" style-hover="background:rgba(0,0,0,0.35); color:#fff;">×</button>
-                  <div draggable="false" onMouseDown="{{ it.onResizeMouseDown }}" onPointerDown="{{ it.onResizeDown }}" onPointerMove="{{ it.onResizeMove }}" onPointerUp="{{ it.onResizeUp }}" title="Drag to span Us" style="position:absolute; left:8px; right:8px; bottom:0; height:8px; cursor:ns-resize; display:flex; align-items:center; justify-content:center;"><span style="width:26px; height:3px; border-radius:2px; background:rgba(255,255,255,0.28);"></span></div>
+                  <input type="text" value="{{ it.name }}" placeholder="{{ it.namePh }}" onMouseDown="{{ it.onNameMouseDown }}" onChange="{{ it.onNameChange }}" onBlur="{{ it.onRenameName }}" title="Click to rename" style="flex:1; min-width:0; background:transparent; border:none; outline:none; padding:0; font-family:var(--mono); font-size:12px; font-weight:500; color:var(--text); text-align:left;" />
+                  <button onClick="{{ it.onClear }}" title="Remove" style="flex:0 0 auto; width:18px; height:18px; display:flex; align-items:center; justify-content:center; padding:0; border:none; border-radius:4px; background:transparent; color:var(--text-2); font-size:15px; line-height:1; cursor:pointer;" style-hover="background:var(--surface-3); color:var(--text);">×</button>
+                  <div draggable="false" onMouseDown="{{ it.onResizeMouseDown }}" onPointerDown="{{ it.onResizeDown }}" onPointerMove="{{ it.onResizeMove }}" onPointerUp="{{ it.onResizeUp }}" title="Drag to span Us" style="position:absolute; left:8px; right:8px; bottom:0; height:8px; cursor:ns-resize; display:flex; align-items:center; justify-content:center;"><span style="width:26px; height:3px; border-radius:2px; background:var(--border-strong);"></span></div>
                 </div>
               </sc-if>
 
               <sc-if value="{{ it.isHotCell }}" hint-placeholder-val="{{ true }}">
                 <div draggable="true" onDragStart="{{ it.onDragStart }}" onDragEnter="{{ it.onDragEnter }}" onDragOver="{{ it.onDragOver }}" onDrop="{{ it.onDrop }}" onDragEnd="{{ it.onDragEnd }}" title="Drag to move · drag bottom handle to span" style="position:relative; grid-column: {{ it.gridCol }}; grid-row: {{ it.gridRow }}; display:flex; align-items:center; gap:6px; padding:0 11px; border-radius:5px; border-right:4px solid {{ it.accent }}; background: {{ it.tint }}; overflow:hidden; cursor:grab; box-shadow: {{ it.dropOutline }};">
-                  <button onClick="{{ it.onClear }}" title="Remove" style="flex:0 0 auto; width:18px; height:18px; display:flex; align-items:center; justify-content:center; padding:0; border:none; border-radius:4px; background:transparent; color:#9fb0ca; font-size:15px; line-height:1; cursor:pointer;" style-hover="background:rgba(0,0,0,0.35); color:#fff;">×</button>
-                  <input type="text" value="{{ it.name }}" placeholder="{{ it.namePh }}" onMouseDown="{{ it.onNameMouseDown }}" onChange="{{ it.onNameChange }}" onBlur="{{ it.onRenameName }}" title="Click to rename" style="flex:1; min-width:0; background:transparent; border:none; outline:none; padding:0; font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:500; color:#eceff4; text-align:right;" />
+                  <button onClick="{{ it.onClear }}" title="Remove" style="flex:0 0 auto; width:18px; height:18px; display:flex; align-items:center; justify-content:center; padding:0; border:none; border-radius:4px; background:transparent; color:var(--text-2); font-size:15px; line-height:1; cursor:pointer;" style-hover="background:var(--surface-3); color:var(--text);">×</button>
+                  <input type="text" value="{{ it.name }}" placeholder="{{ it.namePh }}" onMouseDown="{{ it.onNameMouseDown }}" onChange="{{ it.onNameChange }}" onBlur="{{ it.onRenameName }}" title="Click to rename" style="flex:1; min-width:0; background:transparent; border:none; outline:none; padding:0; font-family:var(--mono); font-size:12px; font-weight:500; color:var(--text); text-align:right;" />
                   <sc-if value="{{ it.badge }}" hint-placeholder-val="{{ true }}">
-                    <span style="flex:0 0 auto; font-family:'IBM Plex Mono',monospace; font-size:9px; font-weight:700; letter-spacing:0.5px; padding:2px 5px; border-radius:3px; color:#161d2b; background: {{ it.badgeColor }};">{{ it.badge }}</span>
+                    <span style="flex:0 0 auto; font-family:var(--mono); font-size:9px; font-weight:700; letter-spacing:0.5px; padding:2px 5px; border-radius:3px; color:var(--surface-2); background: {{ it.badgeColor }};">{{ it.badge }}</span>
                   </sc-if>
-                  <div draggable="false" onMouseDown="{{ it.onResizeMouseDown }}" onPointerDown="{{ it.onResizeDown }}" onPointerMove="{{ it.onResizeMove }}" onPointerUp="{{ it.onResizeUp }}" title="Drag to span Us" style="position:absolute; left:8px; right:8px; bottom:0; height:8px; cursor:ns-resize; display:flex; align-items:center; justify-content:center;"><span style="width:26px; height:3px; border-radius:2px; background:rgba(255,255,255,0.28);"></span></div>
+                  <div draggable="false" onMouseDown="{{ it.onResizeMouseDown }}" onPointerDown="{{ it.onResizeDown }}" onPointerMove="{{ it.onResizeMove }}" onPointerUp="{{ it.onResizeUp }}" title="Drag to span Us" style="position:absolute; left:8px; right:8px; bottom:0; height:8px; cursor:ns-resize; display:flex; align-items:center; justify-content:center;"><span style="width:26px; height:3px; border-radius:2px; background:var(--border-strong);"></span></div>
                 </div>
               </sc-if>
 
               <sc-if value="{{ it.isFullCell }}" hint-placeholder-val="{{ true }}">
                 <div draggable="true" onDragStart="{{ it.onDragStart }}" onDragEnter="{{ it.onDragEnter }}" onDragOver="{{ it.onDragOver }}" onDrop="{{ it.onDrop }}" onDragEnd="{{ it.onDragEnd }}" title="Drag to move" style="position:relative; grid-column:2 / 4; grid-row: {{ it.gridRow }}; display:flex; align-items:center; gap:6px; padding:0 12px; border-radius:5px; border-left:4px solid {{ it.accent }}; background: {{ it.tint }}; overflow:hidden; cursor:grab; box-shadow: {{ it.dropOutline }};">
                   <sc-if value="{{ it.badge }}" hint-placeholder-val="{{ true }}">
-                    <span style="flex:0 0 auto; font-family:'IBM Plex Mono',monospace; font-size:9px; font-weight:700; letter-spacing:0.5px; padding:2px 5px; border-radius:3px; color:#161d2b; background: {{ it.badgeColor }};">{{ it.badge }}</span>
+                    <span style="flex:0 0 auto; font-family:var(--mono); font-size:9px; font-weight:700; letter-spacing:0.5px; padding:2px 5px; border-radius:3px; color:var(--surface-2); background: {{ it.badgeColor }};">{{ it.badge }}</span>
                   </sc-if>
-                  <input type="text" value="{{ it.name }}" placeholder="{{ it.namePh }}" onMouseDown="{{ it.onNameMouseDown }}" onChange="{{ it.onNameChange }}" onBlur="{{ it.onRenameName }}" title="Click to rename" style="flex:1; min-width:0; background:transparent; border:none; outline:none; padding:0; font-family:'IBM Plex Mono',monospace; font-size:12.5px; font-weight:500; color:#eceff4; text-align:left;" />
-                  <button onClick="{{ it.onClear }}" title="Remove" style="flex:0 0 auto; width:18px; height:18px; display:flex; align-items:center; justify-content:center; padding:0; border:none; border-radius:4px; background:transparent; color:#9fb0ca; font-size:15px; line-height:1; cursor:pointer;" style-hover="background:rgba(0,0,0,0.35); color:#fff;">×</button>
+                  <input type="text" value="{{ it.name }}" placeholder="{{ it.namePh }}" onMouseDown="{{ it.onNameMouseDown }}" onChange="{{ it.onNameChange }}" onBlur="{{ it.onRenameName }}" title="Click to rename" style="flex:1; min-width:0; background:transparent; border:none; outline:none; padding:0; font-family:var(--mono); font-size:12.5px; font-weight:500; color:var(--text); text-align:left;" />
+                  <button onClick="{{ it.onClear }}" title="Remove" style="flex:0 0 auto; width:18px; height:18px; display:flex; align-items:center; justify-content:center; padding:0; border:none; border-radius:4px; background:transparent; color:var(--text-2); font-size:15px; line-height:1; cursor:pointer;" style-hover="background:var(--surface-3); color:var(--text);">×</button>
                 </div>
               </sc-if>
 
@@ -145,14 +144,14 @@
     </sc-for>
 
     <div style="flex:0 0 auto; align-self:center;">
-      <button onClick="{{ onAddCabinet }}" title="Add a blank cabinet" style="font-family:'IBM Plex Mono',monospace; font-size:13px; color:#9fb0ca; background:#1b2432; border:1px dashed rgba(255,255,255,0.18); border-radius:10px; padding:14px 18px; cursor:pointer; white-space:nowrap;" style-hover="border-color:#9fb0ca; color:#e6e9ee;">+ Add cabinet</button>
+      <button onClick="{{ onAddCabinet }}" title="Add a blank cabinet" style="font-family:var(--mono); font-size:13px; color:var(--text-2); background:var(--surface); border:1px dashed var(--border-strong); border-radius:var(--radius); padding:14px 18px; cursor:pointer; white-space:nowrap;" style-hover="border-color:var(--text-2); color:var(--text);">+ Add cabinet</button>
     </div>
   </div>
 
   <template id="__bundler_thumbnail">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
       <rect width="120" height="120" fill="#1c1917"/>
-      <rect x="42" y="18" width="36" height="84" rx="4" fill="none" stroke="#9fb0ca" stroke-width="2"/>
+      <rect x="42" y="18" width="36" height="84" rx="4" fill="none" stroke="var(--text-2)" stroke-width="2"/>
       <rect x="47" y="24" width="26" height="7" rx="1.5" fill="#2dd4bf"/>
       <rect x="47" y="34" width="26" height="7" rx="1.5" fill="#f7981d"/>
       <rect x="47" y="44" width="11" height="17" rx="1.5" fill="#fb7185"/>
@@ -178,6 +177,7 @@ class Component extends DCLogic {
   storageKey = 'cabplanner.v1.main';
 
   componentDidMount() {
+    if (window.CabTheme) window.CabTheme.bind(document.getElementById('themeBtn'));
     let loaded = null;
     try { const raw = window.localStorage.getItem(this.storageKey); if (raw) loaded = JSON.parse(raw); } catch (_) {}
     this.setState({ racks: (loaded && Array.isArray(loaded) && loaded.length) ? loaded : this.buildRacks() });
@@ -236,8 +236,34 @@ class Component extends DCLogic {
     C(36, 'hot', 'pdu', 'PDU B', 2);
     for (let u = 34; u >= 14; u--) { C(u, 'cold', 'chassis', ''); C(u, 'hot', 'chassis', ''); }
     return [
-      { name: 'Main Cabinet', badge: 'MAIN', badgeBg: '#dbe9ff', badgeFg: '#1d4e9e', cells: [], uLabels: {} },
+      { id: 'c' + Date.now().toString(36), name: 'Cabinet 1', badge: 'MAIN',
+        badgeBg: 'var(--accent-soft)', badgeFg: 'var(--accent)', row: 0, col: 0, cells: [], uLabels: {} },
     ];
+  }
+
+  // The 3D editor stores a catalog `model` id on each cell; this planner works in
+  // `kind`. Either one has to resolve, or a layout built in one tool blanks the
+  // other. Catalog category is the bridge.
+  KIND_BY_CATEGORY = {
+    spine: 'spine', network: 'network', dist: 'dist', mgmt: 'mgmt', console: 'console',
+    private: 'private', pdu: 'pdu', chassis: 'chassis', generic: 'supermicro', blank: 'reserved',
+  };
+
+  kindOf(cell) {
+    if (cell && cell.kind && this.KIND[cell.kind]) return cell.kind;
+    const cat = window.CabCatalog && window.CabCatalog.CATALOG;
+    const m = (cell && cell.model && cat) ? cat[cell.model] : null;
+    if (m) {
+      const k = this.KIND_BY_CATEGORY[m.category];
+      if (k && this.KIND[k]) return k;
+    }
+    return 'reserved';
+  }
+
+  // Kind -> catalog model, so gear added here carries a model id the 3D tools read.
+  modelForKind(kind) {
+    const KTM = (window.CabCatalog && window.CabCatalog.KIND_TO_MODEL) || {};
+    return KTM[kind] || null;
   }
 
   KIND = {
@@ -251,7 +277,7 @@ class Component extends DCLogic {
     private:    { label: 'Private switch',   accent: '#f97316', def: 'Private switch' },
     chassis:    { label: 'BH chassis',       accent: '#7dd3fc', def: '', ph: 'Boot Hardware Chassis' },
     supermicro: { label: 'Supermicro',       accent: '#f472b6', def: '', ph: 'Supermicro Chassis' },
-    reserved:   { label: 'Rail support',     accent: '#9fb0ca', def: 'rail support' },
+    reserved:   { label: 'Rail support',     accent: 'var(--text-2)', def: 'rail support' },
   };
 
   MENU = [
@@ -281,14 +307,15 @@ class Component extends DCLogic {
 
   addFromMenu(rackIdx, u, clickedSide, opt) {
     const side = opt.full ? 'full' : (opt.side || clickedSide);
-    const K = this.KIND[opt.kind];
+    const K = this.KIND[opt.kind] || this.KIND.reserved;
     let name = K.def;
     if (opt.kind === 'pdu') name = side === 'hot' ? 'PDU B' : 'PDU A';
     this.setState(s => {
       const racks = this.cloneRack(s, rackIdx);
       const rack = racks[rackIdx];
       rack.cells = rack.cells.filter(c => !this.occupies(c, u, side));
-      rack.cells.push({ id: 'c' + Date.now() + Math.floor(Math.random() * 1000), top: u, side, kind: opt.kind, name, span: 1 });
+      rack.cells.push({ id: 'c' + Date.now() + Math.floor(Math.random() * 1000), top: u, side,
+        kind: opt.kind, model: this.modelForKind(opt.kind), name, span: 1 });
       return { racks, addKey: null };
     });
   }
@@ -303,7 +330,9 @@ class Component extends DCLogic {
   }
 
   renameU(rackIdx, u, value) {
-    this.setState(s => { const racks = this.cloneRack(s, rackIdx); racks[rackIdx].uLabels[u] = value; return { racks }; });
+    this.setState(s => { const racks = this.cloneRack(s, rackIdx);
+      if (!racks[rackIdx].uLabels) racks[rackIdx].uLabels = {};
+      racks[rackIdx].uLabels[u] = value; return { racks }; });
   }
 
   renameRack(rackIdx, value) {
@@ -317,7 +346,9 @@ class Component extends DCLogic {
   addCabinet() {
     this.setState(s => {
       const n = s.racks.length;
-      return { racks: [...s.racks, { name: 'Cabinet ' + n, badge: 'NEW', badgeBg: '#e6e9ee', badgeFg: '#64779a', cells: [], uLabels: {} }] };
+      return { racks: [...s.racks, { id: 'c' + Date.now().toString(36) + Math.floor(Math.random() * 1e6).toString(36),
+        name: 'Cabinet ' + (n + 1), badge: 'NEW', badgeBg: 'var(--accent-soft)', badgeFg: 'var(--accent)',
+        row: 0, col: n, cells: [], uLabels: {} }] };
     });
   }
 
@@ -373,10 +404,13 @@ class Component extends DCLogic {
     const rowOf = (u) => UNITS - u + 1;
 
     const racks = model.map((rack, rackIdx) => {
-      const cells = rack.cells;
+      // Cabinets created in the 3D editor carry no uLabels map and their cells
+      // may have no span, so nothing here may assume this tool wrote the data.
+      const cells = Array.isArray(rack.cells) ? rack.cells : [];
+      const uLabels = rack.uLabels || {};
       const occ = {};
       cells.forEach(c => {
-        for (let k = 0; k < c.span; k++) {
+        for (let k = 0; k < Math.max(1, c.span || 1); k++) {
           const u = c.top - k;
           if (c.side === 'full') { occ[u + ':cold'] = 1; occ[u + ':hot'] = 1; }
           else occ[u + ':' + c.side] = 1;
@@ -386,11 +420,14 @@ class Component extends DCLogic {
       const items = [];
 
       for (let u = UNITS; u >= 1; u--) {
-        items.push({ isULabel: true, gridRow: String(rowOf(u)), uLabel: rack.uLabels[u] ?? u, onRenameU: (e) => this.renameU(rackIdx, u, e.target.textContent.trim()) });
+        items.push({ isULabel: true, gridRow: String(rowOf(u)), uLabel: uLabels[u] ?? u, onRenameU: (e) => this.renameU(rackIdx, u, e.target.textContent.trim()) });
       }
 
       cells.forEach(cell => {
-        const K = this.KIND[cell.kind];
+        // 0U gear (vertical PDUs) occupies no rack unit, so it has no row on a
+        // U-indexed elevation. It stays in the data and shows in the 3D tools.
+        if (!cell || (cell.span != null && cell.span < 1)) return;
+        const K = this.KIND[this.kindOf(cell)] || this.KIND.reserved;
         const tint = K.accent + '26';
         const gridRow = rowOf(cell.top) + ' / span ' + cell.span;
         const isFull = cell.side === 'full';
@@ -453,7 +490,7 @@ class Component extends DCLogic {
             isEmpty: true,
             gridRow: String(rowOf(u)),
             gridCol: side === 'hot' ? '3' : '2',
-            uLabel: rack.uLabels[u] ?? u,
+            uLabel: uLabels[u] ?? u,
             sideLabel: side === 'hot' ? 'Hot side' : 'Cold side',
             addOpen,
             dropOutline: dragOver === key ? '0 0 0 2px #f7981d' : 'none',

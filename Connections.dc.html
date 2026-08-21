@@ -10,59 +10,71 @@
 <helmet>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<style>
-  * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; }
-  body { background: #121924; -webkit-font-smoothing: antialiased; }
-  a { color: #f7981d; text-decoration: none; }
-  a:hover { color: #ffa940; }
-</style>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./theme.css">
+<script src="./theme.js"></script>
+<script>document.documentElement.dataset.tool = "wiring";</script>
 <script src="./catalog.js"></script>
 </helmet>
-<div style="min-height:100vh; background:#121924; background-image:linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px); background-size:44px 44px; font-family:'Space Grotesk',sans-serif; color:#e6e9ee; padding:34px 40px 64px;">
+<div style="min-height:100vh; background:var(--bg); background-image:linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px); background-size:44px 44px; font-family:var(--sans); color:var(--text); padding:34px 40px 64px;">
 
-  <header style="max-width:1240px; margin:0 auto 24px; display:flex; justify-content:space-between; align-items:flex-end; gap:24px; flex-wrap:wrap; border-bottom:1px solid rgba(255,255,255,0.14); padding-bottom:20px;">
+  <header style="max-width:1240px; margin:0 auto 24px; display:flex; justify-content:space-between; align-items:flex-end; gap:24px; flex-wrap:wrap; border-bottom:1px solid var(--border); padding-bottom:20px;">
     <div>
-      <a href="Hub.dc.html" style="display:inline-block; font-family:'IBM Plex Mono',monospace; font-size:11px; color:#f7981d; text-decoration:none; margin-bottom:10px;">← Hub</a>
-      <div style="font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:2.5px; text-transform:uppercase; color:#9fb0ca; margin-bottom:8px;">Connections</div>
+      <a href="Hub.dc.html" style="display:inline-block; font-family:var(--mono); font-size:11px; color:var(--tool); text-decoration:none; margin-bottom:10px;">← Hub</a><button id="themeBtn" title="Switch between light and dark" style="display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:11px; color:var(--text-2); background:transparent; border:1px solid var(--border); border-radius:9px; padding:5px 9px; cursor:pointer; margin-left:10px; vertical-align:middle;"></button>
+      <div style="font-family:var(--mono); font-size:12px; letter-spacing:2.5px; text-transform:uppercase; color:var(--text-2); margin-bottom:8px;">Connections</div>
       <h1 style="margin:0; font-size:30px; font-weight:700; letter-spacing:-0.5px;">Port &amp; Power Mapping</h1>
-      <p style="margin:8px 0 0; font-size:14px; color:#9fb0ca; max-width:640px; line-height:1.5;">Add devices, then click a free port on the left, a free port on the right, to wire them. Data links join network ports; power links join a PDU outlet to a device PSU inlet.</p>
+      <p style="margin:8px 0 0; font-size:14px; color:var(--text-2); max-width:640px; line-height:1.5;">Add devices, then click a free port on the left, a free port on the right, to wire them. Data links join network ports; power links join a PDU outlet to a device PSU inlet.</p>
     </div>
     <div style="display:flex; gap:8px;">
-      <button onClick="{{ onExport }}" title="Download connections (JSON)" style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#e6e9ee; background:#212c3e; border:1px solid rgba(255,255,255,0.14); border-radius:7px; padding:7px 13px; cursor:pointer;">Save file</button>
-      <button onClick="{{ onExportCsv }}" title="Download patch schedule (CSV)" style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#e6e9ee; background:#212c3e; border:1px solid rgba(255,255,255,0.14); border-radius:7px; padding:7px 13px; cursor:pointer;">CSV</button>
-      <label title="Open connections" style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#e6e9ee; background:#212c3e; border:1px solid rgba(255,255,255,0.14); border-radius:7px; padding:7px 13px; cursor:pointer;">Open file<input type="file" accept="application/json,.json" onChange="{{ onImport }}" style="display:none;" /></label>
-      <button onClick="{{ onReset }}" title="Clear all" style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#8296b3; background:transparent; border:1px solid rgba(255,255,255,0.14); border-radius:7px; padding:7px 13px; cursor:pointer;">Reset</button>
+      <button onClick="{{ onExport }}" title="Download connections (JSON)" style="font-family:var(--mono); font-size:12px; color:var(--text); background:var(--surface-2); border:1px solid var(--border); border-radius:9px; padding:7px 13px; cursor:pointer;">Save file</button>
+      <button onClick="{{ onExportCsv }}" title="Download patch schedule (CSV)" style="font-family:var(--mono); font-size:12px; color:var(--text); background:var(--surface-2); border:1px solid var(--border); border-radius:9px; padding:7px 13px; cursor:pointer;">CSV</button>
+      <label title="Open connections" style="font-family:var(--mono); font-size:12px; color:var(--text); background:var(--surface-2); border:1px solid var(--border); border-radius:9px; padding:7px 13px; cursor:pointer;">Open file<input type="file" accept="application/json,.json" onChange="{{ onImport }}" style="display:none;" /></label>
+      <button onClick="{{ onReset }}" title="Clear all" style="font-family:var(--mono); font-size:12px; color:var(--text-2); background:transparent; border:1px solid var(--border); border-radius:9px; padding:7px 13px; cursor:pointer;">Reset</button>
     </div>
   </header>
 
   <div style="max-width:1240px; margin:0 auto;">
 
-    <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; background:#1b2432; border:1px solid rgba(255,255,255,0.14); border-radius:10px; padding:12px 16px; margin-bottom:22px;">
-      <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:#9fb0ca;">Add device</span>
-      <select value="{{ addModel }}" onChange="{{ onAddModelChange }}" style="font-family:'IBM Plex Mono',monospace; font-size:12.5px; padding:7px 10px; border-radius:7px; border:1px solid rgba(255,255,255,0.14); background:#212c3e; color:#e6e9ee;">
+    <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow-sm); padding:12px 16px; margin-bottom:22px;">
+      <span style="font-family:var(--mono); font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--text-2);">Add device</span>
+      <select value="{{ addModel }}" onChange="{{ onAddModelChange }}" style="font-family:var(--mono); font-size:12.5px; padding:7px 10px; border-radius:9px; border:1px solid var(--border); background:var(--surface-2); color:var(--text);">
         <sc-for list="{{ modelOptions }}" as="o" hint-placeholder-count="6">
           <option value="{{ o.id }}">{{ o.label }}</option>
         </sc-for>
       </select>
-      <input type="text" value="{{ addName }}" placeholder="hostname (e.g. spine9)" onChange="{{ onAddNameChange }}" style="font-family:'IBM Plex Mono',monospace; font-size:12.5px; padding:7px 10px; border-radius:7px; border:1px solid rgba(255,255,255,0.14); background:#212c3e; color:#e6e9ee; min-width:200px;" />
-      <button onClick="{{ onAddDevice }}" style="font-family:'IBM Plex Mono',monospace; font-size:12.5px; font-weight:600; color:#fff; background:#f7981d; border:none; border-radius:7px; padding:8px 15px; cursor:pointer;">+ Add</button>
+      <input type="text" value="{{ addName }}" placeholder="hostname (e.g. spine9)" onChange="{{ onAddNameChange }}" style="font-family:var(--mono); font-size:12.5px; padding:7px 10px; border-radius:9px; border:1px solid var(--border); background:var(--surface-2); color:var(--text); min-width:200px;" />
+      <button onClick="{{ onAddDevice }}" style="font-family:var(--mono); font-size:12.5px; font-weight:600; color:var(--text); background:var(--tool); border:none; border-radius:9px; padding:8px 15px; cursor:pointer;">+ Add</button>
       <sc-if value="{{ hasPlanner }}" hint-placeholder-val="{{ true }}">
-        <span style="width:1px; height:20px; background:#ddd8d0; margin:0 2px;"></span>
-        <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:#9fb0ca;">From planner</span>
+        <span style="width:1px; height:20px; background:var(--border); margin:0 2px;"></span>
+        <span style="font-family:var(--mono); font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--text-2);">From planner</span>
         <sc-for list="{{ plannerLayouts }}" as="pl" hint-placeholder-count="1">
-          <button onClick="{{ pl.onClick }}" title="Import devices from this saved cabinet layout" style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#e6e9ee; background:#212c3e; border:1px solid rgba(255,255,255,0.14); border-radius:7px; padding:7px 11px; cursor:pointer;">⇩ {{ pl.label }}</button>
+          <button onClick="{{ pl.onClick }}" title="Import devices from this saved cabinet layout" style="font-family:var(--mono); font-size:12px; color:var(--text); background:var(--surface-2); border:1px solid var(--border); border-radius:9px; padding:7px 11px; cursor:pointer;">⇩ {{ pl.label }}</button>
         </sc-for>
       </sc-if>
       <span style="flex:1;"></span>
-      <span style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#8296b3;">{{ deviceCount }} devices · {{ linkCount }} links</span>
+      <span style="font-family:var(--mono); font-size:12px; color:var(--text-2);">{{ deviceCount }} devices · {{ linkCount }} links</span>
     </div>
 
+    <sc-if value="{{ hasStale }}" hint-placeholder-val="{{ false }}">
+      <div style="margin:0 auto 18px; max-width:1240px; background:var(--warn-soft); border:1px solid var(--warn); border-radius:var(--radius); padding:13px 16px; display:flex; align-items:flex-start; gap:14px; flex-wrap:wrap;">
+        <div style="flex:1; min-width:260px;">
+          <div style="font-size:13px; font-weight:600; color:var(--warn); margin-bottom:4px;">Stale entries</div>
+          <div style="font-size:12.5px; color:var(--text-2); line-height:1.5;">{{ staleSummary }}. Deleting gear from a cabinet does not delete its cables, so these records point at hardware that is no longer racked. Clearing them does not touch the layout.</div>
+          <div style="display:flex; flex-wrap:wrap; gap:6px 14px; margin-top:8px;">
+            <sc-for list="{{ staleRows }}" as="s" hint-placeholder-count="2">
+              <span style="font-family:var(--mono); font-size:11px; color:var(--text-2);"><span style="color:var(--text);">{{ s.name }}</span> — {{ s.reason }}</span>
+            </sc-for>
+            <span style="font-family:var(--mono); font-size:11px; color:var(--text-3);">{{ staleMore }}</span>
+          </div>
+        </div>
+        <button onClick="{{ onClearStale }}" style="font-family:var(--mono); font-size:12px; color:var(--primary-fg); background:var(--primary-bg); border:1px solid var(--primary-bg); border-radius:9px; padding:9px 14px; cursor:pointer; white-space:nowrap;">Clear stale entries</button>
+      </div>
+    </sc-if>
+
     <sc-if value="{{ hasPending }}" hint-placeholder-val="{{ true }}">
-      <div style="display:flex; align-items:center; gap:12px; background:rgba(247,152,29,0.12); border:1px solid rgba(247,152,29,0.4); border-radius:9px; padding:10px 16px; margin-bottom:18px;">
-        <span style="font-family:'IBM Plex Mono',monospace; font-size:12.5px; color:#f7981d;">Wiring from <strong>{{ pendingLabel }}</strong> — click a matching free port on the other device.</span>
-        <button onClick="{{ onCancelPending }}" style="margin-left:auto; font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:#f7981d; background:transparent; border:1px solid rgba(247,152,29,0.4); border-radius:6px; padding:5px 10px; cursor:pointer;">Cancel</button>
+      <div style="display:flex; align-items:center; gap:12px; background:var(--tool-soft); border:1px solid var(--tool); border-radius:var(--radius); padding:10px 16px; margin-bottom:18px;">
+        <span style="font-family:var(--mono); font-size:12.5px; color:var(--tool);">Wiring from <strong>{{ pendingLabel }}</strong> — click a matching free port on the other device.</span>
+        <button onClick="{{ onCancelPending }}" style="margin-left:auto; font-family:var(--mono); font-size:11.5px; color:var(--tool); background:transparent; border:1px solid var(--tool); border-radius:6px; padding:5px 10px; cursor:pointer;">Cancel</button>
       </div>
     </sc-if>
 
@@ -70,38 +82,38 @@
       <sc-for list="{{ panels }}" as="panel" hint-placeholder-count="2">
         <div style="flex:1 1 420px; min-width:340px;">
           <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
-            <span style="font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:1.5px; text-transform:uppercase; color:#9fb0ca;">{{ panel.side }}</span>
-            <select value="{{ panel.devId }}" onChange="{{ panel.onChange }}" style="flex:1; font-family:'IBM Plex Mono',monospace; font-size:13px; padding:8px 10px; border-radius:8px; border:1px solid rgba(255,255,255,0.14); background:#212c3e; color:#e6e9ee;">
+            <span style="font-family:var(--mono); font-size:10.5px; letter-spacing:1.5px; text-transform:uppercase; color:var(--text-2);">{{ panel.side }}</span>
+            <select value="{{ panel.devId }}" onChange="{{ panel.onChange }}" style="flex:1; font-family:var(--mono); font-size:13px; padding:8px 10px; border-radius:10px; border:1px solid var(--border); background:var(--surface-2); color:var(--text);">
               <option value="">— select device —</option>
               <sc-for list="{{ panel.devOptions }}" as="d" hint-placeholder-count="4">
                 <option value="{{ d.id }}">{{ d.label }}</option>
               </sc-for>
             </select>
             <sc-if value="{{ panel.hasDev }}" hint-placeholder-val="{{ true }}">
-              <button onClick="{{ panel.onRemoveDev }}" title="Remove device" style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#9fb0ca; background:transparent; border:1px solid rgba(255,255,255,0.14); border-radius:6px; padding:6px 9px; cursor:pointer;">✕</button>
+              <button onClick="{{ panel.onRemoveDev }}" title="Remove device" style="font-family:var(--mono); font-size:11px; color:var(--text-2); background:transparent; border:1px solid var(--border); border-radius:6px; padding:6px 9px; cursor:pointer;">✕</button>
             </sc-if>
           </div>
 
-          <div style="background:#0d1219; border:1px solid #161d2b; border-radius:11px; padding:16px; min-height:220px;">
+          <div style="background:var(--surface-3); border:1px solid var(--border); border-radius:11px; padding:16px; min-height:220px;">
             <sc-if value="{{ panel.hasDev }}" hint-placeholder-val="{{ true }}">
-              <div style="font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:600; color:#eceff4; margin-bottom:3px;">{{ panel.devName }}</div>
-              <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#8296b3; margin-bottom:14px;">{{ panel.devModel }} &nbsp;·&nbsp; {{ panel.usage }}</div>
+              <div style="font-family:var(--mono); font-size:13px; font-weight:600; color:var(--text); margin-bottom:3px;">{{ panel.devName }}</div>
+              <div style="font-family:var(--mono); font-size:11px; color:var(--text-2); margin-bottom:14px;">{{ panel.devModel }} &nbsp;·&nbsp; {{ panel.usage }}</div>
               <sc-for list="{{ panel.groups }}" as="g" hint-placeholder-count="3">
                 <div style="margin-bottom:14px;">
-                  <div style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:1px; text-transform:uppercase; color:#9fb0ca; margin-bottom:7px;">{{ g.label }}</div>
+                  <div style="font-family:var(--mono); font-size:10px; letter-spacing:1px; text-transform:uppercase; color:var(--text-2); margin-bottom:7px;">{{ g.label }}</div>
                   <div style="display:flex; flex-wrap:wrap; gap:5px;">
                     <sc-for list="{{ g.ports }}" as="p" hint-placeholder-count="8">
-                      <button onClick="{{ p.onClick }}" title="{{ p.title }}" style="font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:500; padding:5px 8px; border-radius:5px; border:1px solid {{ p.border }}; background: {{ p.bg }}; color: {{ p.color }}; cursor: {{ p.cursor }}; box-shadow: {{ p.glow }};">{{ p.label }}</button>
+                      <button onClick="{{ p.onClick }}" title="{{ p.title }}" style="font-family:var(--mono); font-size:11px; font-weight:500; padding:5px 8px; border-radius:5px; border:1px solid {{ p.border }}; background: {{ p.bg }}; color: {{ p.color }}; cursor: {{ p.cursor }}; box-shadow: {{ p.glow }};">{{ p.label }}</button>
                     </sc-for>
                   </div>
                 </div>
               </sc-for>
               <sc-if value="{{ panel.noPorts }}" hint-placeholder-val="{{ true }}">
-                <div style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#9fb0ca;">No front-panel ports (rear I/O only).</div>
+                <div style="font-family:var(--mono); font-size:12px; color:var(--text-2);">No front-panel ports (rear I/O only).</div>
               </sc-if>
             </sc-if>
             <sc-if value="{{ panel.empty }}" hint-placeholder-val="{{ true }}">
-              <div style="display:flex; align-items:center; justify-content:center; height:180px; font-family:'IBM Plex Mono',monospace; font-size:12.5px; color:#9fb0ca;">Select a device to see its ports</div>
+              <div style="display:flex; align-items:center; justify-content:center; height:180px; font-family:var(--mono); font-size:12.5px; color:var(--text-2);">Select a device to see its ports</div>
             </sc-if>
           </div>
         </div>
@@ -110,42 +122,79 @@
 
     <div style="margin-top:30px;">
       <div style="display:flex; align-items:center; gap:14px; margin-bottom:12px;">
-        <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:2px; text-transform:uppercase; color:#9fb0ca;">Connections</span>
-        <span style="flex:1; height:1px; background:rgba(255,255,255,0.13);"></span>
+        <span style="font-family:var(--mono); font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--text-2);">Connections</span>
+        <span style="flex:1; height:1px; background:var(--border);"></span>
       </div>
       <sc-if value="{{ hasLinks }}" hint-placeholder-val="{{ true }}">
-        <div style="border:1px solid rgba(255,255,255,0.14); border-radius:10px; overflow:hidden;">
+        <div style="border:1px solid var(--border); border-radius:var(--radius); overflow:hidden;">
           <sc-for list="{{ links }}" as="l" hint-placeholder-count="6">
-            <div style="display:flex; align-items:center; gap:14px; padding:11px 16px; background:#212c3e; border-bottom:1px solid rgba(255,255,255,0.08);">
-              <span style="flex:0 0 auto; font-family:'IBM Plex Mono',monospace; font-size:10px; font-weight:600; letter-spacing:0.5px; padding:3px 8px; border-radius:999px; color:#fff; background: {{ l.kindColor }};">{{ l.kind }}</span>
-              <span style="font-family:'IBM Plex Mono',monospace; font-size:12.5px; color:#e6e9ee;">{{ l.a }}</span>
-              <span style="color:#9fb0ca;">→</span>
-              <span style="font-family:'IBM Plex Mono',monospace; font-size:12.5px; color:#e6e9ee;">{{ l.b }}</span>
-              <input type="text" value="{{ l.label }}" placeholder="cable id / notes" onChange="{{ l.onLabel }}" style="margin-left:14px; flex:0 1 200px; min-width:120px; font-family:'IBM Plex Mono',monospace; font-size:11.5px; padding:4px 8px; border-radius:6px; border:1px solid rgba(255,255,255,0.12); background:#121924; color:#9fb0ca;" />
-              <button onClick="{{ l.onRemove }}" title="Remove" style="font-family:'IBM Plex Mono',monospace; font-size:14px; color:#9fb0ca; background:transparent; border:none; cursor:pointer;">×</button>
+            <div style="display:flex; align-items:center; gap:14px; padding:11px 16px; background:var(--surface-2); border-bottom:1px solid var(--border);">
+              <span style="flex:0 0 auto; font-family:var(--mono); font-size:10px; font-weight:600; letter-spacing:0.5px; padding:3px 8px; border-radius:999px; color:var(--text); background: {{ l.kindColor }};">{{ l.kind }}</span>
+              <span style="font-family:var(--mono); font-size:12.5px; color:var(--text);">{{ l.a }}</span>
+              <span style="color:var(--text-2);">→</span>
+              <span style="font-family:var(--mono); font-size:12.5px; color:var(--text);">{{ l.b }}</span>
+              <input type="text" value="{{ l.label }}" placeholder="cable id / notes" onChange="{{ l.onLabel }}" style="margin-left:14px; flex:0 1 200px; min-width:120px; font-family:var(--mono); font-size:11.5px; padding:4px 8px; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--text-2);" />
+              <button onClick="{{ l.onRemove }}" title="Remove" style="font-family:var(--mono); font-size:14px; color:var(--text-2); background:transparent; border:none; cursor:pointer;">×</button>
             </div>
           </sc-for>
         </div>
       </sc-if>
       <sc-if value="{{ noLinks }}" hint-placeholder-val="{{ true }}">
-        <div style="border:1px dashed rgba(255,255,255,0.18); border-radius:10px; padding:26px; text-align:center; font-family:'IBM Plex Mono',monospace; font-size:12.5px; color:#9fb0ca;">No connections yet — wire two ports above to begin.</div>
+        <div style="border:1px dashed var(--border-strong); border-radius:var(--radius); padding:26px; text-align:center; font-family:var(--mono); font-size:12.5px; color:var(--text-2);">No connections yet — wire two ports above to begin.</div>
       </sc-if>
     </div>
+
+    <sc-if value="{{ hasBom }}" hint-placeholder-val="{{ true }}">
+      <div style="margin-top:30px;">
+        <div style="display:flex; align-items:center; gap:14px; margin-bottom:12px;">
+          <span style="font-family:var(--mono); font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--text-2);">Cable BOM</span>
+          <span style="flex:1; height:1px; background:var(--border);"></span>
+          <span style="font-family:var(--mono); font-size:11px; color:var(--text-3);">{{ bomTotal }} · estimated</span>
+        </div>
+        <div style="background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden;">
+          <div style="display:grid; grid-template-columns:1.1fr 0.9fr 1fr 0.5fr; background:var(--surface-2); border-bottom:1px solid var(--border);">
+            <div style="padding:8px 14px; font-family:var(--mono); font-size:9.5px; letter-spacing:1.4px; text-transform:uppercase; color:var(--text-3);">Order</div>
+            <div style="padding:8px 10px; font-family:var(--mono); font-size:9.5px; letter-spacing:1.4px; text-transform:uppercase; color:var(--text-3);">Class</div>
+            <div style="padding:8px 10px; font-family:var(--mono); font-size:9.5px; letter-spacing:1.4px; text-transform:uppercase; color:var(--text-3);">Colour</div>
+            <div style="padding:8px 14px 8px 10px; font-family:var(--mono); font-size:9.5px; letter-spacing:1.4px; text-transform:uppercase; color:var(--text-3); text-align:right;">Qty</div>
+          </div>
+          <sc-for list="{{ bomRows }}" as="b" hint-placeholder-count="3">
+            <div style="display:grid; grid-template-columns:1.1fr 0.9fr 1fr 0.5fr; border-bottom:1px solid var(--border);">
+              <div style="padding:10px 14px; font-family:var(--mono); font-size:12.5px; color: {{ b.tone }};">{{ b.order }}</div>
+              <div style="padding:10px 10px; font-size:12.5px; color:var(--text-2);">{{ b.cls }}</div>
+              <div style="padding:10px 10px; font-size:12.5px; color:var(--text-2);">{{ b.colour }}</div>
+              <div style="padding:10px 14px 10px 10px; font-family:var(--mono); font-size:12.5px; color:var(--text); text-align:right;">{{ b.qty }}</div>
+            </div>
+          </sc-for>
+          <sc-if value="{{ noBomRows }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:16px 14px; font-size:12.5px; color:var(--text-2); line-height:1.55; border-bottom:1px solid var(--border);">
+              Nothing measurable yet. A cable can only be measured once both of its devices sit in a cabinet — import gear from the planner, or wire devices that came from a layout.
+            </div>
+          </sc-if>
+          <div style="padding:11px 14px; font-size:11.5px; color:var(--text-2); line-height:1.5;">
+            Lengths are estimates: the run allows for leaving the faceplate, crossing to the vertical manager, the vertical distance between the two Us, and a service loop at each end. Stock is 5 / 7 / 10 ft; private runs are made to length.
+            <sc-for list="{{ bomNotes }}" as="n" hint-placeholder-count="1">
+              <div style="margin-top:5px; color:var(--warn);">{{ n }}</div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </sc-if>
 
     <sc-if value="{{ hasPdus }}" hint-placeholder-val="{{ true }}">
       <div style="margin-top:30px;">
         <div style="display:flex; align-items:center; gap:14px; margin-bottom:12px;">
-          <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:2px; text-transform:uppercase; color:#9fb0ca;">PDU load</span>
-          <span style="flex:1; height:1px; background:rgba(255,255,255,0.13);"></span>
+          <span style="font-family:var(--mono); font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--text-2);">PDU load</span>
+          <span style="flex:1; height:1px; background:var(--border);"></span>
         </div>
         <div style="display:flex; flex-wrap:wrap; gap:14px;">
           <sc-for list="{{ pduLoad }}" as="pd" hint-placeholder-count="2">
-            <div style="flex:1 1 240px; background:#212c3e; border:1px solid rgba(255,255,255,0.14); border-radius:10px; padding:14px 16px;">
+            <div style="flex:1 1 240px; background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius); padding:14px 16px;">
               <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:9px;">
-                <span style="font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:600; color:#e6e9ee;">{{ pd.name }}</span>
-                <span style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#8296b3;">{{ pd.used }}/{{ pd.total }}</span>
+                <span style="font-family:var(--mono); font-size:13px; font-weight:600; color:var(--text);">{{ pd.name }}</span>
+                <span style="font-family:var(--mono); font-size:12px; color:var(--text-2);">{{ pd.used }}/{{ pd.total }}</span>
               </div>
-              <div style="height:8px; border-radius:999px; background:#33405a; overflow:hidden;">
+              <div style="height:8px; border-radius:999px; background:var(--surface-3); overflow:hidden;">
                 <div style="height:100%; width: {{ pd.pct }}; background: {{ pd.barColor }};"></div>
               </div>
             </div>
@@ -163,6 +212,7 @@ class Component extends DCLogic {
   storageKey = 'cabplanner.v1.connections';
 
   componentDidMount() {
+    if (window.CabTheme) window.CabTheme.bind(document.getElementById('themeBtn'));
     const grab = () => {
       const mod = window.CabCatalog;
       if (!mod) { setTimeout(grab, 60); return; }
@@ -203,12 +253,126 @@ class Component extends DCLogic {
   removeLink(id) { this.setState(s => ({ links: s.links.filter(l => l.id !== id) })); }
   setLinkLabel(id, label) { this.setState(s => ({ links: s.links.map(l => l.id === id ? { ...l, label } : l) })); }
 
+  // ---- cable length estimation ----------------------------------------------
+  // A patch cable does not fly point to point: it exits the faceplate, runs to a
+  // vertical manager, up or down, then back in. Estimating that path from the U
+  // positions gives a length you can actually order against, which a diagram
+  // alone never does. Every figure here is an estimate and is labelled as one.
+  GEOM = {
+    U_MM: 44.45,
+    exitFace: 120,      // out of the port and turn toward the channel
+    toChannel: 260,     // faceplate centre to the vertical manager
+    slack: 300,         // service loop at each end
+    rackPitchMm: 608,   // cabinet centre to cabinet centre in a row
+    trayClimbMm: 900,   // down/up to the overhead tray when crossing rows
+  };
+  // What this site actually stocks: 5, 7 and 10 ft in yellow (IPMI) and green
+  // (public). Anything longer than 10 ft is called out as over-stock rather than
+  // silently rounded, because it means a special order.
+  STOCK_FT = [5, 7, 10];
+  // Private-network runs are custom-made here, so they are not rounded to stock
+  // at all — the estimated length is the length to make.
+  CUSTOM_CLASSES = ['private'];
+
+  cellIndex() {
+    if (this._cellIdx) return this._cellIdx;
+    const idx = {};
+    for (const key of ['cabplanner.v1.main', 'cabplanner.v1.blank']) {
+      try {
+        const raw = window.localStorage.getItem(key);
+        if (!raw) continue;
+        const racks = JSON.parse(raw);
+        if (!Array.isArray(racks)) continue;
+        racks.forEach((r, ri) => (r.cells || []).forEach(c => {
+          if (c && c.id) idx[c.id] = { top: c.top, span: c.span || 1, side: c.side || 'full',
+            row: r.row || 0, col: (r.col != null ? r.col : ri), rack: r.name || ('Cabinet ' + (ri + 1)) };
+        }));
+      } catch (_) {}
+    }
+    this._cellIdx = idx;
+    return idx;
+  }
+  placeOf(devId) {
+    const d = (this.state.devices || []).find(x => x.id === devId);
+    if (!d || !d.src) return null;
+    const cellId = String(d.src).split('#')[2];
+    return this.cellIndex()[cellId] || null;
+  }
+  // → { mm, ft, stockFt, exact:false } or null when either end is not placed
+  cableLength(l) {
+    const A = this.placeOf(l.a.devId), B = this.placeOf(l.b.devId);
+    if (!A || !B) return null;
+    const G = this.GEOM;
+    const midU = (p) => p.top - (p.span - 1) / 2;
+    const vertical = Math.abs(midU(A) - midU(B)) * G.U_MM;
+    let horizontal = 0;
+    if (A.row !== B.row) horizontal = Math.abs(A.col - B.col) * G.rackPitchMm + G.trayClimbMm * 2;
+    else horizontal = Math.abs(A.col - B.col) * G.rackPitchMm;
+    // both ends: out of the face, across to the channel, plus a loop each end
+    const ends = 2 * (G.exitFace + G.toChannel + G.slack);
+    const mm = vertical + horizontal + ends;
+    const ft = Math.round((mm / 304.8) * 10) / 10;
+    return { mm: Math.round(mm), ft };
+  }
+  // Turn an estimated length into what you actually order for that class.
+  orderFor(l) {
+    const len = this.cableLength(l);
+    if (!len) return null;
+    const cls = this.classOf(l);
+    if (this.CUSTOM_CLASSES.indexOf(cls.key) >= 0) {
+      // custom-made: round up to the next foot so the spec is buildable
+      return { kind: 'custom', label: Math.ceil(len.ft) + ' ft custom', sortFt: Math.ceil(len.ft) };
+    }
+    const stock = this.STOCK_FT.find(s => s >= len.ft);
+    if (stock) return { kind: 'stock', label: stock + ' ft', sortFt: stock };
+    return { kind: 'over', label: Math.ceil(len.ft) + ' ft special order', sortFt: Math.ceil(len.ft) };
+  }
+  classOf(l) {
+    if (l.kind === 'power' || (l.net === 'power')) return { key: 'power', label: 'Power', colour: '—' };
+    if (l.net === 'ipmi') return { key: 'ipmi', label: 'IPMI', colour: 'Yellow' };
+    if (l.net === 'private') return { key: 'private', label: 'Private', colour: 'Custom-made' };
+    return { key: 'public', label: 'Public', colour: 'Green' };
+  }
+  // Purchase list: one row per (order length × class), which is how you buy them.
+  // Stock runs group into 5/7/10 ft; custom private runs are listed per length so
+  // the cut list is usable; anything over 10 ft in a stock class is flagged.
+  cableBom() {
+    const groups = {};
+    let unplaced = 0, over = 0, custom = 0;
+    (this.state.links || []).forEach(l => {
+      const ord = this.orderFor(l);
+      const cls = this.classOf(l);
+      if (!ord) { unplaced++; return; }
+      if (ord.kind === 'over') over++;
+      if (ord.kind === 'custom') custom++;
+      const k = ord.label + '|' + cls.key;
+      if (!groups[k]) groups[k] = { order: ord, cls, qty: 0 };
+      groups[k].qty++;
+    });
+    const rows = Object.values(groups).sort((a, b) =>
+      a.order.sortFt - b.order.sortFt || a.cls.key.localeCompare(b.cls.key));
+    return { rows, unplaced, over, custom, totalCables: (this.state.links || []).length };
+  }
+
   exportCsv() {
-    const rows = [['kind','A_device','A_port','A_type','B_device','B_port','B_type','label']];
-    this.state.links.forEach(l => rows.push([
-      l.kind, this.nameOf(l.a.devId), l.a.addr, l.a.type,
-      this.nameOf(l.b.devId), l.b.addr, l.b.type, (l.label||'').replace(/"/g,'""')
-    ]));
+    const rows = [['kind','class','colour','A_device','A_port','A_type','B_device','B_port','B_type','est_ft','order_ft','label']];
+    this.state.links.forEach(l => {
+      const len = this.cableLength(l), cls = this.classOf(l), ord = this.orderFor(l);
+      rows.push([
+        l.kind, cls.label, cls.colour,
+        this.nameOf(l.a.devId), l.a.addr, l.a.type,
+        this.nameOf(l.b.devId), l.b.addr, l.b.type,
+        len ? String(len.ft) : '', ord ? ord.label : '',
+        (l.label||'').replace(/"/g,'""')
+      ]);
+    });
+    const bom = this.cableBom();
+    if (bom.rows.length) {
+      rows.push([]);
+      rows.push(['CABLE BOM (estimated — route allows for faceplate exit, vertical manager and a service loop each end)']);
+      rows.push(['order','class','colour','qty']);
+      bom.rows.forEach(r => rows.push([r.order.label, r.cls.label, r.cls.colour, String(r.qty)]));
+    }
     const csv = rows.map(r => r.map(c => /[,"\n]/.test(c) ? '"'+c+'"' : c).join(',')).join('\n');
     try {
       const blob = new Blob([csv], { type: 'text/csv' });
@@ -243,7 +407,10 @@ class Component extends DCLogic {
     try {
       for (let i = 0; i < window.localStorage.length; i++) {
         const k = window.localStorage.key(i);
-        if (k && k.indexOf('cabplanner.v1.') === 0 && k.indexOf('connections') < 0) {
+        // Only layout stores are importable. The wiring, theme and user-model
+        // keys share the prefix but are not cabinets.
+        const NOT_LAYOUTS = ['connections', 'theme', 'models'];
+        if (k && k.indexOf('cabplanner.v1.') === 0 && !NOT_LAYOUTS.some(s => k.indexOf(s) >= 0)) {
           out.push({ key: k, label: k.replace('cabplanner.v1.', '') });
         }
       }
@@ -290,6 +457,59 @@ class Component extends DCLogic {
   }
   resetAll() { if (window.confirm('Clear all devices and connections?')) this.setState({ devices: [], links: [], pending: null }); }
 
+  // ---- stale entry detection -------------------------------------------------
+  // Deleting gear from a layout does not delete its wiring: the link records
+  // still point at a cell id that no longer exists. Those entries are stale, and
+  // silently listing them makes a patch schedule lie. Find them and say so.
+  staleReport() {
+    const devices = this.state.devices || [];
+    const live = new Set();
+    let sawLayout = false;
+    for (const key of ['cabplanner.v1.main', 'cabplanner.v1.blank']) {
+      try {
+        const raw = window.localStorage.getItem(key);
+        if (!raw) continue;
+        const racks = JSON.parse(raw);
+        if (!Array.isArray(racks)) continue;
+        sawLayout = true;
+        racks.forEach(r => (r.cells || []).forEach(c => { if (c && c.id) live.add(c.id); }));
+      } catch (_) {}
+    }
+    const reasons = {};
+    devices.forEach(d => {
+      // Only devices that claim to come from a layout can be judged. A device
+      // added by hand here has no src and is never stale.
+      if (!d.src) return;
+      const cellId = String(d.src).split('#')[2];
+      if (!cellId) return;
+      if (sawLayout && !live.has(cellId)) reasons[d.id] = 'gear no longer in the layout';
+    });
+    const badModel = devices.filter(d => !this.CAT[d.model]).map(d => d.id);
+    badModel.forEach(id => { reasons[id] = 'model no longer in the catalog'; });
+    const staleDevIds = Object.keys(reasons);
+    const staleSet = new Set(staleDevIds);
+    const danglingLinks = (this.state.links || []).filter(l =>
+      staleSet.has(l.a.devId) || staleSet.has(l.b.devId) ||
+      !devices.some(d => d.id === l.a.devId) || !devices.some(d => d.id === l.b.devId));
+    return { staleDevIds, reasons, danglingLinks, checked: sawLayout };
+  }
+
+  clearStale() {
+    const { staleDevIds, danglingLinks } = this.staleReport();
+    const drop = new Set(staleDevIds);
+    const dropLinks = new Set(danglingLinks.map(l => l.id));
+    const n = staleDevIds.length, m = danglingLinks.length;
+    if (!n && !m) return;
+    const msg = 'Remove ' + n + ' stale device' + (n === 1 ? '' : 's') +
+      ' and ' + m + ' orphaned link' + (m === 1 ? '' : 's') + '? The layout is not touched.';
+    if (!window.confirm(msg)) return;
+    this.setState(s => ({
+      devices: s.devices.filter(d => !drop.has(d.id)),
+      links: s.links.filter(l => !dropLinks.has(l.id) && !drop.has(l.a.devId) && !drop.has(l.b.devId)),
+      pending: null,
+    }));
+  }
+
   nameOf(devId) { const d = (this.state.devices || []).find(x => x.id === devId); return d ? d.name : '?'; }
 
   buildPanel(side, devId, onChange) {
@@ -310,10 +530,10 @@ class Component extends DCLogic {
         const link = this.linkOf(dev.id, p.addr);
         const used = !!link;
         const isPending = pending && pending.devId === dev.id && pending.addr === p.addr;
-        const tdef = this.TYPES[p.type] || { color: '#94a3b8' };
-        let bg = '#2d3a4e', color = '#e6e9ee', border = '#42506e', title = p.addr + ' · ' + p.type, cursor = 'pointer', glow = 'none';
-        if (used) { const other = (link.a.devId === dev.id) ? link.b : link.a; bg = '#161d2b'; color = '#8296b3'; border = '#2d3a4e'; cursor = 'not-allowed'; title = p.addr + ' → ' + this.nameOf(other.devId) + ':' + other.addr; }
-        else if (isPending) { bg = tdef.color; color = '#161d2b'; border = '#fff'; glow = '0 0 0 2px #f7981d'; }
+        const tdef = this.TYPES[p.type] || { color: 'var(--text-2)' };
+        let bg = 'var(--surface-2)', color = 'var(--text)', border = 'var(--border-strong)', title = p.addr + ' · ' + p.type, cursor = 'pointer', glow = 'none';
+        if (used) { const other = (link.a.devId === dev.id) ? link.b : link.a; bg = 'var(--surface-2)'; color = 'var(--text-2)'; border = 'var(--surface-2)'; cursor = 'not-allowed'; title = p.addr + ' → ' + this.nameOf(other.devId) + ':' + other.addr; }
+        else if (isPending) { bg = tdef.color; color = 'var(--surface-2)'; border = '#fff'; glow = '0 0 0 2px var(--tool)'; }
         else { border = tdef.color + '66'; }
         return { label: p.addr, bg, color, border, cursor, glow, title, onClick: () => this.clickPort(dev.id, p.addr, p.type) };
       }),
@@ -323,7 +543,8 @@ class Component extends DCLogic {
 
   renderVals() {
     if (!this.state.ready) {
-      return { modelOptions: [], panels: [], links: [], pduLoad: [], plannerLayouts: [], hasPlanner: false, deviceCount: 0, linkCount: 0, addModel: '', addName: '', hasPending: false, hasLinks: false, noLinks: true, hasPdus: false, hasBothPanels: false, onExportCsv: () => {} };
+      return { bomRows: [], hasBom: false, noBom: true, hasBomRows: false, noBomRows: true, bomNotes: [], hasBomNotes: false, bomTotal: '',
+        hasStale: false, staleSummary: '', staleRows: [], staleMore: '', onClearStale: () => {}, modelOptions: [], panels: [], links: [], pduLoad: [], plannerLayouts: [], hasPlanner: false, deviceCount: 0, linkCount: 0, addModel: '', addName: '', hasPending: false, hasLinks: false, noLinks: true, hasPdus: false, hasBothPanels: false, onExportCsv: () => {} };
     }
     const CAT = this.CAT;
     const modelOptions = Object.keys(CAT).map(id => ({ id, label: CAT[id].short }));
@@ -333,7 +554,7 @@ class Component extends DCLogic {
       this.buildPanel('Device B', this.state.panelB, (e) => this.setState({ panelB: e.target.value })),
     ];
     const links = this.state.links.map(l => ({
-      kind: l.kind, kindColor: l.kind === 'power' ? '#d1332e' : '#0ea5e9',
+      kind: l.kind, kindColor: l.kind === 'power' ? 'var(--err)' : '#0ea5e9',
       a: this.nameOf(l.a.devId) + ' : ' + l.a.addr,
       b: this.nameOf(l.b.devId) + ' : ' + l.b.addr,
       label: l.label || '',
@@ -345,10 +566,41 @@ class Component extends DCLogic {
       const total = this.portsOf(d.model).filter(p => this.isPower(p.type)).length;
       const used = this.state.links.filter(l => (l.a.devId === d.id && this.isPower(l.a.type)) || (l.b.devId === d.id && this.isPower(l.b.type))).length;
       const pct = total ? Math.round(used / total * 100) : 0;
-      return { name: d.name, used, total, pct: pct + '%', barColor: pct >= 90 ? '#d1332e' : pct >= 70 ? '#f7981d' : '#34d399' };
+      return { name: d.name, used, total, pct: pct + '%', barColor: pct >= 90 ? 'var(--err)' : pct >= 70 ? 'var(--tool)' : 'var(--ok)' };
     });
+    this._cellIdx = null; // recompute against the live layout each render
+    const bom = this.cableBom();
+    const bomRows = bom.rows.map(r => ({
+      order: r.order.label,
+      cls: r.cls.label,
+      colour: r.cls.colour,
+      qty: r.qty + '\u00d7',
+      tone: r.order.kind === 'over' ? 'var(--warn)' : r.order.kind === 'custom' ? 'var(--tool)' : 'var(--text)',
+    }));
+    const bomNotes = [];
+    if (bom.custom) bomNotes.push(bom.custom + ' private run' + (bom.custom === 1 ? '' : 's') + ' to be made to length');
+    if (bom.over) bomNotes.push(bom.over + ' run' + (bom.over === 1 ? '' : 's') + ' over 10 ft \u2014 special order');
+    if (bom.unplaced) bomNotes.push(bom.unplaced + ' cable' + (bom.unplaced === 1 ? '' : 's') + ' not measurable (device not placed in a cabinet)');
+
     const pending = this.state.pending;
+    const stale = this.staleReport();
+    const sn = stale.staleDevIds.length, sl = stale.danglingLinks.length;
+    const staleRows = stale.staleDevIds.slice(0, 8).map(id => {
+      const d = (this.state.devices || []).find(x => x.id === id);
+      return { name: d ? d.name : id, reason: stale.reasons[id] || 'stale' };
+    });
     return {
+      // Show the card whenever there are cables at all: if none can be measured,
+      // the notes say why rather than the section silently disappearing.
+      bomRows, hasBom: bom.totalCables > 0, noBom: bom.totalCables === 0,
+      hasBomRows: bomRows.length > 0, noBomRows: bomRows.length === 0,
+      bomNotes, hasBomNotes: bomNotes.length > 0,
+      bomTotal: bom.totalCables + (bom.totalCables === 1 ? ' cable' : ' cables'),
+      hasStale: sn > 0 || sl > 0,
+      staleSummary: sn + (sn === 1 ? ' device' : ' devices') + ' and ' + sl + (sl === 1 ? ' link' : ' links') + ' no longer match the layout',
+      staleRows,
+      staleMore: stale.staleDevIds.length > 8 ? '+' + (stale.staleDevIds.length - 8) + ' more' : '',
+      onClearStale: () => this.clearStale(),
       modelOptions, panels, links, pduLoad, plannerLayouts, hasPlanner: plannerLayouts.length > 0,
       addModel: this.state.addModel, addName: this.state.addName,
       onAddModelChange: (e) => this.setState({ addModel: e.target.value }),

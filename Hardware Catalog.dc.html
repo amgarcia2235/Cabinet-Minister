@@ -10,33 +10,37 @@
 <helmet>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<style>
-  * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; }
-  body { background: #121924; -webkit-font-smoothing: antialiased; }
-  a { color: #f7981d; text-decoration: none; }
-  a:hover { color: #ffa940; }
-</style>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./theme.css">
+<script src="./theme.js"></script>
+<script>document.documentElement.dataset.tool = "catalog";</script>
 <script src="./catalog.js"></script>
 </helmet>
-<div style="min-height:100vh; background:#121924; background-image:linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px); background-size:44px 44px; font-family:'Space Grotesk',sans-serif; color:#e6e9ee; display:flex;">
+<div style="min-height:100vh; background:var(--bg); background-image:linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px); background-size:44px 44px; font-family:var(--sans); color:var(--text); display:flex;">
 
-  <aside style="flex:0 0 264px; background:#1b2432; border-right:1px solid rgba(255,255,255,0.13); min-height:100vh; padding:24px 18px;">
-    <a href="Hub.dc.html" style="display:inline-block; font-family:'IBM Plex Mono',monospace; font-size:11px; color:#f7981d; text-decoration:none; margin-bottom:10px;">← Hub</a>
-    <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:2.5px; text-transform:uppercase; color:#9fb0ca; margin-bottom:6px;">Hardware</div>
+  <aside style="flex:0 0 264px; background:var(--surface); border-right:1px solid var(--border); min-height:100vh; padding:24px 18px;">
+    <a href="Hub.dc.html" style="display:inline-block; font-family:var(--mono); font-size:11px; color:var(--tool); text-decoration:none; margin-bottom:10px;">← Hub</a><button id="themeBtn" title="Switch between light and dark" style="display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:11px; color:var(--text-2); background:transparent; border:1px solid var(--border); border-radius:9px; padding:5px 9px; cursor:pointer; margin-left:10px; vertical-align:middle;"></button>
+    <div style="font-family:var(--mono); font-size:11px; letter-spacing:2.5px; text-transform:uppercase; color:var(--text-2); margin-bottom:6px;">Hardware</div>
     <h1 style="margin:0 0 4px; font-size:21px; font-weight:700; letter-spacing:-0.3px;">Port Catalog</h1>
-    <p style="margin:0 0 20px; font-size:12.5px; color:#8296b3; line-height:1.5;">Faceplates from official hardware guides. Click a port to select its address.</p>
+    <p style="margin:0 0 14px; font-size:12.5px; color:var(--text-2); line-height:1.5;">Faceplates from official hardware guides. Click a port to select its address.</p>
+    <input type="search" value="{{ query }}" onInput="{{ onQuery }}" placeholder="Search model or port…" style="width:100%; font-family:var(--mono); font-size:12px; color:var(--text); background:var(--surface-3); border:1px solid var(--border); border-radius:10px; padding:9px 11px; margin-bottom:6px;" />
+    <div style="font-family:var(--mono); font-size:10px; color:var(--text-3); margin-bottom:12px; min-height:14px;">{{ searchNote }}</div>
     <div style="display:flex; flex-direction:column; gap:7px;">
       <sc-for list="{{ models }}" as="m" hint-placeholder-count="6">
-        <button onClick="{{ m.onSelect }}" style="text-align:left; display:flex; align-items:center; gap:10px; padding:11px 12px; border-radius:9px; border:1px solid {{ m.borderColor }}; background: {{ m.bg }}; cursor:pointer;">
+        <button onClick="{{ m.onSelect }}" style="text-align:left; display:flex; align-items:center; gap:10px; padding:11px 12px; border-radius:var(--radius); border:1px solid {{ m.borderColor }}; background: {{ m.bg }}; cursor:pointer;">
           <span style="flex:0 0 auto; width:11px; height:11px; border-radius:3px; background: {{ m.accent }};"></span>
           <span style="display:flex; flex-direction:column; gap:1px; min-width:0;">
-            <span style="font-family:'IBM Plex Mono',monospace; font-size:12.5px; font-weight:600; color:#e6e9ee; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ m.short }}</span>
-            <span style="font-size:11px; color:#9fb0ca;">{{ m.meta }}</span>
+            <span style="font-family:var(--mono); font-size:12.5px; font-weight:600; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ m.short }}</span>
+            <span style="font-size:11px; color:var(--text-2);">{{ m.meta }}</span>
+            <sc-if value="{{ m.hitNote }}" hint-placeholder-val="{{ false }}">
+              <span style="font-family:var(--mono); font-size:10px; color:var(--tool);">{{ m.hitNote }}</span>
+            </sc-if>
           </span>
         </button>
       </sc-for>
+      <sc-if value="{{ noResults }}" hint-placeholder-val="{{ false }}">
+        <div style="font-size:12px; color:var(--text-2); line-height:1.55; padding:8px 2px;">Nothing matches that. Search a model name, a port type like <span style="font-family:var(--mono);">QSFP28</span>, or an address like <span style="font-family:var(--mono);">et-0/0/12</span>.</div>
+      </sc-if>
     </div>
   </aside>
 
@@ -45,57 +49,51 @@
       <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; row-gap:8px; margin-bottom:10px;">
         <h2 style="margin:0; font-size:26px; font-weight:700; letter-spacing:-0.4px; line-height:1.2;">{{ sel.name }}</h2>
         <sc-if value="{{ sel.custom }}" hint-placeholder-val="{{ true }}">
-          <span style="font-family:'IBM Plex Mono',monospace; font-size:10.5px; padding:3px 9px; border-radius:999px; background:#fef3c7; color:#92400e; font-weight:600; letter-spacing:0.5px;">ASSUMED · CONFIRM</span>
+          <span style="font-family:var(--mono); font-size:10.5px; padding:3px 9px; border-radius:999px; background:var(--warn-soft); color:var(--warn); font-weight:600; letter-spacing:0.5px;">ASSUMED · CONFIRM</span>
         </sc-if>
       </div>
-      <p style="margin:0 0 6px; font-size:14px; color:#9fb0ca; max-width:720px; line-height:1.5;">{{ sel.note }}</p>
-      <div style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#9fb0ca; margin-bottom:22px;">{{ sel.dims }} &nbsp;·&nbsp; {{ sel.portCount }} ports</div>
+      <p style="margin:0 0 6px; font-size:14px; color:var(--text-2); max-width:720px; line-height:1.5;">{{ sel.note }}</p>
+      <div style="font-family:var(--mono); font-size:12px; color:var(--text-2); margin-bottom:22px;">{{ sel.dims }} &nbsp;·&nbsp; {{ sel.portCount }} ports</div>
 
-      <div style="background:#0d1219; border:1px solid #161d2b; border-radius:12px; padding:22px; box-shadow:0 20px 44px -26px rgba(0,0,0,0.55);">
-        <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:1.5px; color:#8296b3; text-transform:uppercase; margin-bottom:12px;">
+      <div style="background:var(--surface-3); border:1px solid var(--border); border-radius:var(--radius-lg); padding:22px; box-shadow:0 20px 44px -26px rgba(0,0,0,0.55);">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; font-family:var(--mono); font-size:10px; letter-spacing:1.5px; color:var(--text-2); text-transform:uppercase; margin-bottom:12px;">
           <span>{{ sel.frontLabel }}</span>
-          <span style="display:flex; align-items:center; gap:6px; letter-spacing:0;">
-            <span style="letter-spacing:1.5px;">Zoom</span>
-            <sc-for list="{{ zoomOptions }}" as="z" hint-placeholder-count="4">
-              <button onClick="{{ z.onPick }}" title="{{ z.title }}" style="font-family:'IBM Plex Mono',monospace; font-size:11px; padding:4px 9px; border-radius:6px; cursor:pointer; border:1px solid {{ z.border }}; background: {{ z.bg }}; color: {{ z.color }};" style-hover="border-color:#f7981d;">{{ z.label }}</button>
-            </sc-for>
-            <span style="color:#5f6a7d; letter-spacing:0; text-transform:none;">{{ zoomHint }}</span>
-          </span>
+          <span>{{ sel.short }}</span>
         </div>
-        <div style="width:100%; overflow-x: {{ zoomOverflow }}; overflow-y:hidden; border-radius:7px;">
-          <div style="position:relative; width: {{ zoomWidth }}; aspect-ratio: {{ sel.aspect }}; background:linear-gradient(180deg,#33405a,#17181c); border-radius:7px; border:1px solid #161d2b; overflow:hidden;">
+        <div style="width:100%; border-radius:9px;">
+          <div style="position:relative; width:100%; aspect-ratio: {{ sel.aspect }}; background:var(--surface-2); border-radius:9px; border:1px solid var(--border); overflow:hidden;">
             <sc-if value="{{ sel.hasPhoto }}" hint-placeholder-val="{{ false }}">
               {{ sel.frontImg }}
             </sc-if>
             <sc-for list="{{ sel.ports }}" as="p" hint-placeholder-count="32">
-              <button onClick="{{ p.onSelect }}" title="{{ p.title }}" style="position:absolute; left: {{ p.left }}; top: {{ p.top }}; width: {{ p.w }}; height: {{ p.h }}; transform:translate(-50%,-50%); padding:0; border-radius:2px; border:1px solid {{ p.border }}; background: {{ p.fill }}; cursor:pointer; box-shadow: {{ p.glow }};" style-hover="box-shadow:0 0 0 2px #f7981d; background:rgba(247,152,29,0.32);"></button>
+              <button onClick="{{ p.onSelect }}" title="{{ p.title }}" style="position:absolute; left: {{ p.left }}; top: {{ p.top }}; width: {{ p.w }}; height: {{ p.h }}; transform:translate(-50%,-50%); padding:0; border-radius:2px; border:1px solid {{ p.border }}; background: {{ p.fill }}; cursor:pointer; box-shadow: {{ p.glow }};" style-hover="box-shadow:0 0 0 2px #f7981d; background:var(--accent-line);"></button>
             </sc-for>
             <sc-if value="{{ sel.noPorts }}" hint-placeholder-val="{{ true }}">
-              <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:12px; color:#9fb0ca;">No front-panel ports — rear I/O only</div>
+              <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:12px; color:var(--text-2);">No front-panel ports — rear I/O only</div>
             </sc-if>
           </div>
         </div>
         <sc-if value="{{ sel.hasRear }}" hint-placeholder-val="{{ false }}">
-          <div style="display:flex; justify-content:space-between; font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:1.5px; color:#8296b3; text-transform:uppercase; margin:18px 0 12px;">
+          <div style="display:flex; justify-content:space-between; font-family:var(--mono); font-size:10px; letter-spacing:1.5px; color:var(--text-2); text-transform:uppercase; margin:18px 0 12px;">
             <span>{{ sel.rearLabel }}</span><span>{{ sel.short }}</span>
           </div>
-          <div style="width:100%; overflow-x: {{ zoomOverflow }}; overflow-y:hidden; border-radius:7px;">
-            <div style="position:relative; width: {{ zoomWidth }}; aspect-ratio: {{ sel.rearAspect }}; background:linear-gradient(180deg,#232a38,#141519); border-radius:7px; border:1px solid #161d2b; overflow:hidden;">
+          <div style="width:100%; border-radius:9px;">
+            <div style="position:relative; width:100%; aspect-ratio: {{ sel.rearAspect }}; background:var(--surface-2); border-radius:9px; border:1px solid var(--border); overflow:hidden;">
               <sc-if value="{{ sel.hasRearPhoto }}" hint-placeholder-val="{{ false }}">
                 {{ sel.rearImg }}
               </sc-if>
               <sc-if value="{{ sel.noRearPhoto }}" hint-placeholder-val="{{ true }}">
-                <span style="position:absolute; right:10px; bottom:8px; font-family:'IBM Plex Mono',monospace; font-size:10px; color:#5f6a7d;">fans / PSUs occupy remaining width</span>
+                <span style="position:absolute; right:10px; bottom:8px; font-family:var(--mono); font-size:10px; color:var(--text-3);">fans / PSUs occupy remaining width</span>
               </sc-if>
               <sc-for list="{{ sel.rearPorts }}" as="p" hint-placeholder-count="4">
-                <button onClick="{{ p.onSelect }}" title="{{ p.title }}" style="position:absolute; left: {{ p.left }}; top: {{ p.top }}; width: {{ p.w }}; height: {{ p.h }}; transform:translate(-50%,-50%); padding:0; border-radius:2px; border:1px solid {{ p.border }}; background: {{ p.fill }}; cursor:pointer; box-shadow: {{ p.glow }};" style-hover="box-shadow:0 0 0 2px #f7981d; background:rgba(247,152,29,0.32);"></button>
+                <button onClick="{{ p.onSelect }}" title="{{ p.title }}" style="position:absolute; left: {{ p.left }}; top: {{ p.top }}; width: {{ p.w }}; height: {{ p.h }}; transform:translate(-50%,-50%); padding:0; border-radius:2px; border:1px solid {{ p.border }}; background: {{ p.fill }}; cursor:pointer; box-shadow: {{ p.glow }};" style-hover="box-shadow:0 0 0 2px #f7981d; background:var(--accent-line);"></button>
               </sc-for>
             </div>
           </div>
         </sc-if>
         <div style="display:flex; flex-wrap:wrap; gap:8px 18px; margin-top:16px;">
           <sc-for list="{{ sel.groupKey }}" as="g" hint-placeholder-count="4">
-            <span style="display:inline-flex; align-items:center; gap:7px; font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:#d5d9e0;">
+            <span style="display:inline-flex; align-items:center; gap:7px; font-family:var(--mono); font-size:11.5px; color:var(--text);">
               <span style="width:11px; height:11px; border-radius:2px; background: {{ g.color }};"></span>{{ g.label }} · {{ g.type }}
             </span>
           </sc-for>
@@ -104,42 +102,42 @@
 
       <div style="display:flex; gap:24px; flex-wrap:wrap; margin-top:26px; align-items:flex-start;">
         <div style="flex:1 1 320px; min-width:280px;">
-          <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:2px; text-transform:uppercase; color:#9fb0ca; margin-bottom:10px;">Port inventory</div>
-          <div style="border:1px solid rgba(255,255,255,0.14); border-radius:10px; overflow:hidden;">
+          <div style="font-family:var(--mono); font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--text-2); margin-bottom:10px;">Port inventory</div>
+          <div style="border:1px solid var(--border); border-radius:var(--radius); overflow:hidden;">
             <sc-for list="{{ sel.groups }}" as="g" hint-placeholder-count="3">
-              <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; padding:11px 14px; background:#212c3e; border-bottom:1px solid rgba(255,255,255,0.08);">
+              <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; padding:11px 14px; background:var(--surface-2); border-bottom:1px solid var(--border);">
                 <span style="display:flex; align-items:center; gap:9px;">
                   <span style="width:11px; height:11px; border-radius:3px; background: {{ g.color }};"></span>
-                  <span style="font-size:13.5px; font-weight:500; color:#e6e9ee;">{{ g.label }}</span>
+                  <span style="font-size:13.5px; font-weight:500; color:var(--text);">{{ g.label }}</span>
                 </span>
-                <span style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#8296b3;">{{ g.count }}× {{ g.type }}</span>
+                <span style="font-family:var(--mono); font-size:12px; color:var(--text-2);">{{ g.count }}× {{ g.type }}</span>
               </div>
             </sc-for>
           </div>
         </div>
 
         <div style="flex:1 1 300px; min-width:260px;">
-          <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:2px; text-transform:uppercase; color:#9fb0ca; margin-bottom:10px;">Selected port</div>
-          <div style="border:1px solid rgba(255,255,255,0.14); border-radius:10px; padding:18px; background:#212c3e; min-height:120px;">
+          <div style="font-family:var(--mono); font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--text-2); margin-bottom:10px;">Selected port</div>
+          <div style="border:1px solid var(--border); border-radius:var(--radius); padding:18px; background:var(--surface-2); min-height:120px;">
             <sc-if value="{{ hasSelection }}" hint-placeholder-val="{{ true }}">
               <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
-                <span style="font-family:'IBM Plex Mono',monospace; font-size:22px; font-weight:600; color:#e6e9ee;">{{ picked.addr }}</span>
-                <button onClick="{{ onCopy }}" title="Copy address" style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#9fb0ca; background:#33405a; border:1px solid rgba(255,255,255,0.14); border-radius:6px; padding:4px 9px; cursor:pointer;" style-hover="border-color:#f7981d; color:#f7981d;">{{ copyLabel }}</button>
+                <span style="font-family:var(--mono); font-size:22px; font-weight:600; color:var(--text);">{{ picked.addr }}</span>
+                <button onClick="{{ onCopy }}" title="Copy address" style="font-family:var(--mono); font-size:11px; color:var(--text-2); background:var(--surface-3); border:1px solid var(--border); border-radius:6px; padding:4px 9px; cursor:pointer;" style-hover="border-color:var(--tool); color:var(--tool);">{{ copyLabel }}</button>
               </div>
               <div style="display:flex; flex-wrap:wrap; gap:8px;">
-                <span style="font-family:'IBM Plex Mono',monospace; font-size:12px; padding:4px 10px; border-radius:999px; background:#33405a; color:#9fb0ca;">{{ picked.type }}</span>
-                <span style="font-family:'IBM Plex Mono',monospace; font-size:12px; padding:4px 10px; border-radius:999px; background:#33405a; color:#9fb0ca;">{{ picked.groupLabel }}</span>
+                <span style="font-family:var(--mono); font-size:12px; padding:4px 10px; border-radius:999px; background:var(--surface-3); color:var(--text-2);">{{ picked.type }}</span>
+                <span style="font-family:var(--mono); font-size:12px; padding:4px 10px; border-radius:999px; background:var(--surface-3); color:var(--text-2);">{{ picked.groupLabel }}</span>
                 <sc-if value="{{ pickedRear }}" hint-placeholder-val="{{ false }}">
-                  <span style="font-family:'IBM Plex Mono',monospace; font-size:12px; padding:4px 10px; border-radius:999px; background:#33405a; color:#e6e9ee;">rear panel</span>
+                  <span style="font-family:var(--mono); font-size:12px; padding:4px 10px; border-radius:999px; background:var(--surface-3); color:var(--text);">rear panel</span>
                 </sc-if>
                 <sc-if value="{{ picked.assumed }}" hint-placeholder-val="{{ true }}">
-                  <span style="font-family:'IBM Plex Mono',monospace; font-size:12px; padding:4px 10px; border-radius:999px; background:#fef3c7; color:#92400e;">assumed</span>
+                  <span style="font-family:var(--mono); font-size:12px; padding:4px 10px; border-radius:999px; background:var(--warn-soft); color:var(--warn);">assumed</span>
                 </sc-if>
               </div>
-              <p style="margin:14px 0 0; font-size:12.5px; color:#9fb0ca; line-height:1.5;">Use this address when wiring in Connections or the 3D view.</p>
+              <p style="margin:14px 0 0; font-size:12.5px; color:var(--text-2); line-height:1.5;">Use this address when wiring in Connections or the 3D view.</p>
             </sc-if>
             <sc-if value="{{ noSelection }}" hint-placeholder-val="{{ true }}">
-              <p style="margin:0; font-size:13px; color:#9fb0ca; line-height:1.5;">Click any port on a faceplate to see its address and type.</p>
+              <p style="margin:0; font-size:13px; color:var(--text-2); line-height:1.5;">Click any port on a faceplate to see its address and type.</p>
             </sc-if>
           </div>
         </div>
@@ -151,9 +149,10 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{}">
 class Component extends DCLogic {
-  state = { sel: 'qfx5200-32c', picked: null, catalog: null, order: [], zoom: 1 };
+  state = { sel: 'qfx5200-32c', picked: null, catalog: null, order: [] };
 
   componentDidMount() {
+    if (window.CabTheme) window.CabTheme.bind(document.getElementById('themeBtn'));
     const grab = () => {
       const mod = window.CabCatalog;
       if (!mod) { setTimeout(grab, 60); return; }
@@ -171,27 +170,6 @@ class Component extends DCLogic {
     clearTimeout(this._ct); this._ct = setTimeout(() => this.setState({ copied: false }), 1200);
   }
   select(id) { this.setState({ sel: id, picked: null }); }
-  setZoom(z) { this.setState({ zoom: z }); }
-
-  // Faceplates are 5:1 to 10:1 strips, so at page width the silkscreen is
-  // unreadable. Zoom widens the panel inside a scroller; ports are positioned
-  // in %, so they track the photo at every step.
-  zoomVals() {
-    const z = this.state.zoom || 1;
-    return {
-      zoomWidth: z === 1 ? '100%' : (z * 100) + '%',
-      zoomOverflow: z === 1 ? 'hidden' : 'auto',
-      zoomHint: z === 1 ? '' : 'scroll sideways',
-      zoomOptions: [1, 2, 3, 5].map(v => ({
-        label: v + '\u00d7',
-        title: v === 1 ? 'Fit to page' : v + '\u00d7 — read the silkscreen',
-        onPick: () => this.setZoom(v),
-        border: v === z ? '#f7981d' : 'rgba(255,255,255,0.16)',
-        bg: v === z ? 'rgba(247,152,29,0.18)' : 'rgba(255,255,255,0.04)',
-        color: v === z ? '#f7981d' : '#9fb0ca',
-      })),
-    };
-  }
 
   panelImg(src, alt) {
     return React.createElement('img', { src, alt, style: {
@@ -242,7 +220,7 @@ class Component extends DCLogic {
           w: 'clamp(6px, ' + pw.toFixed(2) + '%, 26px)',
           h: 'clamp(7px, ' + ph.toFixed(2) + '%, 30px)',
           fill: isPicked ? tdef.color : tdef.color + 'cc',
-          border: isPicked ? '#fff' : '#161d2b',
+          border: isPicked ? '#fff' : 'var(--surface-2)',
           glow: isPicked ? '0 0 0 2px #f7981d, 0 0 10px ' + tdef.color : 'none',
         }));
       }
@@ -252,23 +230,48 @@ class Component extends DCLogic {
 
   renderVals() {
     if (!this.state.catalog) {
-      return Object.assign({ models: [], sel: { name: 'Loading…', note: '', dims: '', short: '', portCount: 0, aspect: '19 / 1.75', rearAspect: '19 / 1.75', hasPhoto: false, photoSrc: '', frontImg: null, rearImg: null, hasRearPhoto: false, noRearPhoto: true, rearPhotoSrc: '', frontLabel: 'Front faceplate', rearLabel: 'Rear panel', ports: [], rearPorts: [], hasRear: false, groups: [], groupKey: [], custom: false, noPorts: false }, hasSelection: false, noSelection: true, picked: {}, pickedRear: false, onCopy: () => {}, copyLabel: 'copy' }, this.zoomVals());
+      return ({ models: [], sel: { name: 'Loading…', note: '', dims: '', short: '', portCount: 0, aspect: '19 / 1.75', rearAspect: '19 / 1.75', hasPhoto: false, photoSrc: '', frontImg: null, rearImg: null, hasRearPhoto: false, noRearPhoto: true, rearPhotoSrc: '', frontLabel: 'Front faceplate', rearLabel: 'Rear panel', ports: [], rearPorts: [], hasRear: false, groups: [], groupKey: [], custom: false, noPorts: false }, hasSelection: false, noSelection: true, picked: {}, pickedRear: false, onCopy: () => {}, copyLabel: 'copy' });
     }
     const CAT = this.state.catalog, TYPES = this.TYPES;
     const selId = this.state.sel;
     const m = CAT[selId];
 
-    const models = this.state.order.map(id => {
+    // Search covers the things a tech actually knows: the model name, a port type
+    // (QSFP28), or a specific address (et-0/0/12, C13-7). Address hits say which
+    // group matched so the list explains itself.
+    const q = (this.state.query || '').trim().toLowerCase();
+    const matches = (id) => {
+      const c = CAT[id];
+      if (!q) return { ok: true, note: '' };
+      const hay = [c.name, c.short, c.category, id].join(' ').toLowerCase();
+      if (hay.indexOf(q) >= 0) return { ok: true, note: '' };
+      const ports = this.portsOf(id);
+      const hit = ports.find(p => (p.addr || '').toLowerCase().indexOf(q) >= 0);
+      if (hit) return { ok: true, note: 'has ' + hit.addr };
+      const typeHit = ports.find(p => (p.type || '').toLowerCase().indexOf(q) >= 0
+        || (p.typeLabel || '').toLowerCase().indexOf(q) >= 0);
+      if (typeHit) {
+        const n = ports.filter(p => p.type === typeHit.type).length;
+        return { ok: true, note: n + '\u00d7 ' + typeHit.type };
+      }
+      const groupHit = (c.groups || []).find(g => (g.label || '').toLowerCase().indexOf(q) >= 0);
+      if (groupHit) return { ok: true, note: groupHit.label };
+      return { ok: false, note: '' };
+    };
+
+    const shown = this.state.order.filter(id => matches(id).ok);
+    const models = shown.map(id => {
       const c = CAT[id];
       const n = this.portsOf(id).length;
       const active = id === selId;
       return {
         short: c.short, accent: c.accent,
+        hitNote: matches(id).note,
         meta: (c.mount === 'zeroU' ? '0U' : c.u + 'U') + ' · ' + n + ' ports'
               + (c.user ? ' · custom' : c.generic ? ' · generic' : ''),
         onSelect: () => this.select(id),
-        bg: active ? '#2b3648' : 'transparent',
-        borderColor: active ? c.accent : 'rgba(255,255,255,0.12)',
+        bg: active ? 'var(--tool-soft)' : 'transparent',
+        borderColor: active ? c.accent : 'var(--border)',
       };
     });
 
@@ -311,7 +314,7 @@ class Component extends DCLogic {
       groups, groupKey, noPorts: ports.length === 0,
     };
 
-    return Object.assign({
+    return ({
       models, sel,
       picked: this.state.picked || {},
       pickedRear: !!(this.state.picked && this.state.picked.rear),
@@ -319,7 +322,7 @@ class Component extends DCLogic {
       noSelection: !this.state.picked,
       onCopy: () => this.copyAddr(),
       copyLabel: this.state.copied ? 'copied ✓' : 'copy',
-    }, this.zoomVals());
+    });
   }
 }
 </script>

@@ -20,54 +20,57 @@
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./theme.css">
+<script src="./theme.js"></script>
+<script>document.documentElement.dataset.tool = "scene";</script>
 <style>
   * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #0a0d14; font-family: 'Space Grotesk', sans-serif; color: #e6e9ee; }
+  html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; background: var(--bg); font-family: var(--sans); color: var(--text); }
   #app { position: fixed; inset: 0; }
   canvas { display: block; }
-  .panel { position: fixed; background: rgba(13,18,28,0.86); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+  .panel { position: fixed; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
   #title { top: 20px; left: 20px; padding: 16px 20px; max-width: 340px; }
-  #title .kick { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase; color: #9fb0ca; margin-bottom: 7px; }
+  #title .kick { font-family: var(--mono); font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--text-2); margin-bottom: 7px; }
   #title h1 { margin: 0; font-size: 21px; font-weight: 700; letter-spacing: -0.3px; }
-  #title p { margin: 8px 0 0; font-size: 12.5px; line-height: 1.5; color: #9fb0ca; }
+  #title p { margin: 8px 0 0; font-size: 12.5px; line-height: 1.5; color: var(--text-2); }
   #controls { top: 20px; right: 20px; padding: 12px; display: flex; flex-direction: column; gap: 8px; width: 190px; }
   #controls .row { display: flex; gap: 8px; }
-  button.ctl { flex: 1; font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: #e6e9ee; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; padding: 9px 10px; cursor: pointer; text-align: center; user-select: none; transition: background .15s, border-color .15s; }
-  button.ctl:hover { background: rgba(255,255,255,0.11); border-color: rgba(255,255,255,0.25); }
-  button.ctl.on { background: #f7981d; border-color: #ffb54d; color: #fff; }
+  button.ctl { flex: 1; font-family: var(--mono); font-size: 11.5px; color: var(--text); background: var(--surface-3); border: 1px solid var(--border); border-radius: 10px; padding: 9px 10px; cursor: pointer; text-align: center; user-select: none; transition: background .15s, border-color .15s; }
+  button.ctl:hover { background: var(--hover); border-color: var(--border-strong); }
+  button.ctl.on { background: var(--accent); border-color: var(--tool); color: var(--accent-fg); }
   #legend { bottom: 20px; left: 20px; padding: 13px 16px; display: flex; flex-direction: column; gap: 8px; max-width: 400px; }
-  #legend .lk { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: #9fb0ca; }
+  #legend .lk { font-family: var(--mono); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-2); }
   #legend .items { display: grid; grid-template-columns: 1fr 1fr; gap: 5px 18px; }
-  #legend .it { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #d5d9e0; }
+  #legend .it { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text); }
   #legend .sw { width: 12px; height: 12px; border-radius: 3px; flex: 0 0 12px; }
   #legend .cw { width: 18px; height: 4px; border-radius: 2px; flex: 0 0 18px; }
-  #hint { bottom: 20px; right: 20px; padding: 9px 14px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #9fb0ca; }
-  #tip { position: fixed; pointer-events: none; display: none; padding: 9px 12px; font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: #eceff4; background: rgba(13,18,28,0.94); border: 1px solid rgba(247,152,29,0.55); border-radius: 8px; z-index: 40; max-width: 320px; line-height: 1.55; }
-  #tip .pa { font-size: 13px; font-weight: 600; color: #fff; }
-  #tip .pt { color: #9fb0ca; }
-  #tip .pw { color: #f7981d; }
-  #tip .warn { color: #eab308; }
+  #hint { bottom: 20px; right: 20px; padding: 9px 14px; font-family: var(--mono); font-size: 11px; color: var(--text-2); }
+  #tip { position: fixed; pointer-events: none; display: none; padding: 9px 12px; font-family: var(--mono); font-size: 11.5px; color: var(--text); background: rgba(13,18,28,0.94); border: 1px solid var(--tool); border-radius: 10px; z-index: 40; max-width: 320px; line-height: 1.55; }
+  #tip .pa { font-size: 13px; font-weight: 600; color: var(--text); }
+  #tip .pt { color: var(--text-2); }
+  #tip .pw { color: var(--tool); }
+  #tip .warn { color: var(--warn); }
   #wire { top: 210px; right: 20px; width: 250px; padding: 14px; display: none; }
-  #wire .wk { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: #9fb0ca; margin-bottom: 8px; }
-  #wire .src { font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: #fff; line-height: 1.5; margin-bottom: 4px; }
-  #wire .sub { font-size: 11.5px; color: #9fb0ca; line-height: 1.45; margin-bottom: 10px; }
+  #wire .wk { font-family: var(--mono); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-2); margin-bottom: 8px; }
+  #wire .src { font-family: var(--mono); font-size: 12.5px; color: var(--text); line-height: 1.5; margin-bottom: 4px; }
+  #wire .sub { font-size: 11.5px; color: var(--text-2); line-height: 1.45; margin-bottom: 10px; }
   #wire .types { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 10px; }
-  #wire .tbtn { font-family: 'IBM Plex Mono', monospace; font-size: 11px; padding: 8px 6px; border-radius: 7px; border: 1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.04); color: #d5d9e0; cursor: pointer; display: flex; align-items: center; gap: 6px; justify-content: center; }
+  #wire .tbtn { font-family: var(--mono); font-size: 11px; padding: 8px 6px; border-radius: 7px; border: 1px solid var(--border); background: var(--surface-3); color: var(--text); cursor: pointer; display: flex; align-items: center; gap: 6px; justify-content: center; }
   #wire .tbtn .d { width: 9px; height: 9px; border-radius: 50%; }
-  #wire .tbtn.sel { border-width: 2px; color: #fff; background: rgba(255,255,255,0.08); }
+  #wire .tbtn.sel { border-width: 2px; color: var(--text); background: var(--hover); }
   #wire .act { display: flex; gap: 6px; }
-  #wire .abtn { flex: 1; font-family: 'IBM Plex Mono', monospace; font-size: 11px; padding: 8px 6px; border-radius: 7px; border: 1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.04); color: #d5d9e0; cursor: pointer; }
-  #wire .abtn:hover { background: rgba(255,255,255,0.1); }
-  #wire .abtn.danger { color: #ff8589; border-color: rgba(229,72,77,0.5); }
-  #loading { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #8296b3; background: #0a0d14; z-index: 50; }
+  #wire .abtn { flex: 1; font-family: var(--mono); font-size: 11px; padding: 8px 6px; border-radius: 7px; border: 1px solid var(--border); background: var(--surface-3); color: var(--text); cursor: pointer; }
+  #wire .abtn:hover { background: var(--hover); }
+  #wire .abtn.danger { color: #ff8589; border-color: var(--err); }
+  #loading { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 13px; color: var(--text-2); background: var(--bg); z-index: 50; }
   #loading.hide { opacity: 0; pointer-events: none; transition: opacity .6s; }
 </style>
 </head>
 <body>
-<template id="__bundler_thumbnail" data-bg-color="#0a0d14">
+<template id="__bundler_thumbnail" data-bg-color="#eae7e0">
   <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
-    <rect width="1200" height="800" fill="#0a0d14"/>
+    <rect width="1200" height="800" fill="#eae7e0"/>
     <rect x="500" y="120" width="200" height="560" rx="10" fill="none" stroke="#33405a" stroke-width="6"/>
     <rect x="522" y="150" width="156" height="34" rx="4" fill="#2dd4bf"/>
     <rect x="522" y="196" width="156" height="34" rx="4" fill="#4d9fff"/>
@@ -85,10 +88,10 @@
 <div id="loading">building data-center scene…</div>
 
 <div id="title" class="panel">
-  <a href="Hub.dc.html" style="display:inline-block; font-family:'IBM Plex Mono',monospace; font-size:11px; color:#f7981d; text-decoration:none; margin-bottom:8px;">← Hub</a>
+  <a href="Hub.dc.html" style="display:inline-block; font-family:var(--mono); font-size:11px; color:var(--tool); text-decoration:none; margin-bottom:8px;">← Hub</a>
   <div class="kick">3D Rack Environment</div>
   <h1>Interactive Cabinet Planner</h1>
-  <p>Faceplates render from the hardware catalog. Hover any port to identify it · click a port to start a cable · double-click a device to inspect.</p>
+  <p>Faceplates render from the hardware catalog. Hover any port to identify it · click a port to start a cable · double-click a device to inspect. <a href="Cabinet%203D%20Editor.html" style="color:var(--tool); text-decoration:none;">Open the 3D Editor</a> to add or move gear.</p>
 </div>
 
 <div id="controls" class="panel">
@@ -103,6 +106,9 @@
   <div class="row">
     <button class="ctl" id="btnRear">Rear (hot)</button>
     <button class="ctl on" id="btnCables">Cables</button>
+  </div>
+  <div class="row">
+    <button class="ctl" id="btnTheme" title="Switch between light and dark" style="display:flex; align-items:center; justify-content:center; gap:6px;"></button>
   </div>
 </div>
 
@@ -138,6 +144,12 @@
 </div>
 
 <div id="hint" class="panel">47U · hover a port · click to wire</div>
+<div id="notice" class="panel" style="display:none; top:20px; left:50%; transform:translateX(-50%); padding:10px 16px; max-width:520px; border-color:rgba(234,179,8,0.5); background:rgba(30,24,8,0.9);">
+  <div style="font-family:var(--mono); font-size:11.5px; color:#f0dca8; line-height:1.5;">
+    <strong style="color:#ffd97a;">Sample layout.</strong> Nothing is saved yet, so this is a demo build — it is not in the shared layout store, which is why it does not appear in the planner or the 3D Editor.
+    <a href="Cabinet%203D%20Editor.html" style="color:var(--tool); text-decoration:none;">Build a real one →</a>
+  </div>
+</div>
 <div id="tip"></div>
 
 <script src="./catalog.js"></script>
@@ -228,8 +240,19 @@ function portMat(hex){
 }
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x0d1420);
-scene.fog = new THREE.Fog(0x0d1420, 9, 26);
+// Scene colours come from the theme, so the canvas matches the chrome and
+// re-reads when the user flips light/dark.
+function cssColor(name, fallback){
+  const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  return v || fallback;
+}
+let SCENE_THEME = { bg:'#ddd9d0', fog:'#ddd9d0', floor:'#b9b5aa' };
+function readSceneTheme(){
+  SCENE_THEME = { bg: cssColor('--scene-bg','#ddd9d0'), fog: cssColor('--scene-fog','#ddd9d0'), floor: cssColor('--scene-floor','#b9b5aa') };
+}
+readSceneTheme();
+scene.background = new THREE.Color(SCENE_THEME.bg);
+scene.fog = new THREE.Fog(new THREE.Color(SCENE_THEME.fog), 9, 26);
 function box(w,h,d,mat){ return new THREE.Mesh(new THREE.BoxGeometry(w,h,d), mat); }
 function yOfU(uBottom, span){ return BASE_Y + (uBottom-1)*U + span*U/2; }
 
@@ -526,15 +549,28 @@ const DEFAULT_CELLS = (()=>{
   C(13,'full','supermicro'); C(12,'full','supermicro');
   return c;
 })();
-let LOADED_KEY = null;
+let LOADED_KEY = null, USING_SAMPLE = false;
+// Read the SAME store every other tool writes. The sample build is only ever
+// used when nothing has been saved yet, and it says so on screen — a phantom
+// cabinet that exists only here is why cabinet 1 looked like it never
+// registered in the editor.
 function loadRacks(){
   try{
     for(const key of ['cabplanner.v1.main','cabplanner.v1.blank']){
       const raw = localStorage.getItem(key);
-      if(raw){ const rk = JSON.parse(raw); if(Array.isArray(rk) && rk.length){ LOADED_KEY = key; return rk.map(r=>({ name:r.name||'', cells:Array.isArray(r.cells)?r.cells:[] })); } }
+      if(raw){
+        const rk = JSON.parse(raw);
+        if(Array.isArray(rk) && rk.length){
+          LOADED_KEY = key;
+          return rk.map((r,i)=>({ id:r.id||null, name:r.name||('Cabinet '+(i+1)),
+            row:r.row||0, col:(r.col!=null?r.col:i),
+            cells:Array.isArray(r.cells)?r.cells:[] }));
+        }
+      }
     }
   }catch(e){}
-  return [{ name:'Main Cabinet', cells:DEFAULT_CELLS }];
+  USING_SAMPLE = true;
+  return [{ id:null, name:'Sample Cabinet', row:0, col:0, cells:DEFAULT_CELLS }];
 }
 
 const KIND_LABEL = { patch:'Fiber patch', dist:'IPMI distributor', mgmt:'Mgmt switch', console:'Console switch', network:'Network switch', private:'Private switch', spine:'Spine', pdu:'APC 2U PDU', chassis:'BH chassis', supermicro:'Supermicro' };
@@ -565,13 +601,19 @@ function populateInto(cells, contents, rackName, rackIdx){
 }
 
 const allRacks = new THREE.Group(); scene.add(allRacks);
-const RACK_PITCH = RACK_W + 0.08;
-loadRacks().forEach((r, i)=>{
+const RACK_PITCH = RACK_W + 0.008, AISLE = 1.5;
+const LOADED_RACKS = loadRacks();
+// row/col come from the shared layout, so a room laid out in the editor shows
+// here in the same arrangement. Odd rows turn to face a shared cold aisle.
+function rackPos(r){ return new THREE.Vector3((r.col||0)*RACK_PITCH, 0, (r.row||0)*(RACK_D+AISLE)); }
+function rackRot(r){ return ((r.row||0)%2!==0) ? Math.PI : 0; }
+LOADED_RACKS.forEach((r, i)=>{
   const frame = buildFrame();
   const contents = new THREE.Group();
   populateInto(r.cells, contents, r.name, i);
   frame.add(contents);
-  frame.position.set(i*RACK_PITCH, 0, 0);
+  frame.position.copy(rackPos(r));
+  frame.rotation.y = rackRot(r);
   allRacks.add(frame);
 });
 
@@ -592,20 +634,40 @@ function makeLabel(text, uCenter){
   plate.position.set(RACK_W/2 + 0.035 + w/2, BASE_Y + (uCenter-1)*U + U/2, FRONT_Z + 0.06);
   labelGroup.add(plate);
 }
-makeLabel('Patch', 47); makeLabel('Distribution', 44.5); makeLabel('Spines', 42.5);
-makeLabel('Rail support', 41); makeLabel('Switches', 38); makeLabel('2U PDUs', 35.5);
-makeLabel('BH chassis', 24); makeLabel('Supermicro', 12.5);
+// Sample layouts get the documented section labels; a real saved layout gets a
+// name plate per cabinet instead, since its U ranges are whatever you built.
+if(USING_SAMPLE){
+  makeLabel('Patch', 47); makeLabel('Distribution', 44.5); makeLabel('Spines', 42.5);
+  makeLabel('Rail support', 41); makeLabel('Switches', 38); makeLabel('2U PDUs', 35.5);
+  makeLabel('BH chassis', 24); makeLabel('Supermicro', 12.5);
+} else {
+  LOADED_RACKS.forEach(r=>{
+    const t = tex(512, 96, (ctx)=>{
+      ctx.fillStyle='rgba(13,18,28,0.92)'; roundRect(ctx,2,2,508,92,16); ctx.fill();
+      ctx.strokeStyle='rgba(247,152,29,0.4)'; ctx.lineWidth=2; roundRect(ctx,2,2,508,92,16); ctx.stroke();
+      ctx.fillStyle='#eceff4'; ctx.font='600 44px "IBM Plex Mono", monospace'; ctx.textBaseline='middle';
+      ctx.textAlign='center'; ctx.fillText(r.name.slice(0,22), 256, 52);
+    });
+    const w=0.40, h=w*96/512;
+    const plate = new THREE.Mesh(new THREE.PlaneGeometry(w,h),
+      new THREE.MeshBasicMaterial({ map:t, transparent:true, toneMapped:false, depthTest:false, depthWrite:false }));
+    plate.renderOrder = 20;
+    const p = rackPos(r);
+    plate.position.set(p.x, rackH + 0.10, p.z);
+    labelGroup.add(plate);
+  });
+}
 scene.add(labelGroup);
 
 // ---------- room ----------
 const solidT = floorTile(false), perfT = floorTile(true);
 solidT.wrapS = solidT.wrapT = THREE.RepeatWrapping; solidT.repeat.set(24,24);
 perfT.wrapS = perfT.wrapT = THREE.RepeatWrapping; perfT.repeat.set(24,2);
-const floor = new THREE.Mesh(new THREE.PlaneGeometry(40,40), new THREE.MeshStandardMaterial({ map:solidT, roughness:0.8, metalness:0.15, color:0x9aa0a6 }));
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(40,40), new THREE.MeshStandardMaterial({ map:solidT, roughness:0.8, metalness:0.15, color:new THREE.Color(SCENE_THEME.floor) }));
 floor.rotation.x=-Math.PI/2; scene.add(floor);
 const coldStrip = new THREE.Mesh(new THREE.PlaneGeometry(40, 40/12), new THREE.MeshStandardMaterial({ map:perfT, roughness:0.8, metalness:0.15, color:0xa8b6c4 }));
 coldStrip.rotation.x=-Math.PI/2; coldStrip.position.set(0, 0.002, FRONT_Z + 0.95); scene.add(coldStrip);
-const ceil = new THREE.Mesh(new THREE.PlaneGeometry(40,40), new THREE.MeshStandardMaterial({ color:0x10141c, roughness:0.9 }));
+const ceil = new THREE.Mesh(new THREE.PlaneGeometry(40,40), new THREE.MeshStandardMaterial({ color:new THREE.Color(SCENE_THEME.bg), roughness:0.9 }));
 ceil.rotation.x=Math.PI/2; ceil.position.y=3.2; scene.add(ceil);
 const backWall = new THREE.Mesh(new THREE.PlaneGeometry(40,6), new THREE.MeshStandardMaterial({ color:0x0c1017, roughness:0.95 }));
 backWall.position.set(0,3,-6); scene.add(backWall);
@@ -651,8 +713,22 @@ function neighbor(x,z){
   g.add(sp);
   g.position.set(x,0,z); return g;
 }
-for(let i=1;i<=4;i++) scene.add(neighbor(-(RACK_PITCH)*i, 0));
-for(let i=-1;i<=4;i++){ if(i===0) continue; scene.add(neighbor(RACK_PITCH*i, -RACK_D-2.4)); }
+// Filler racks are set dressing for the sample scene only. With a real layout
+// they would sit on top of actual cabinets, so they are left out.
+if(USING_SAMPLE){
+  for(let i=1;i<=4;i++) scene.add(neighbor(-(RACK_PITCH+0.072)*i, 0));
+  for(let i=-1;i<=4;i++){ if(i===0) continue; scene.add(neighbor((RACK_PITCH+0.072)*i, -RACK_D-2.4)); }
+}
+
+// Flipping the theme repaints the room without a reload.
+addEventListener('cabthemechange', ()=>{
+  readSceneTheme();
+  scene.background = new THREE.Color(SCENE_THEME.bg);
+  scene.fog.color = new THREE.Color(SCENE_THEME.fog);
+  floor.material.color = new THREE.Color(SCENE_THEME.floor);
+  ceil.material.color = new THREE.Color(SCENE_THEME.bg);
+  renderer.shadowMap.needsUpdate = true;
+});
 
 // ---------- lighting ----------
 scene.add(new THREE.AmbientLight(0xffffff, 0.5));
@@ -668,7 +744,7 @@ const front = new THREE.DirectionalLight(0xffffff, 0.55); front.position.set(0,2
 // ---------- renderer / camera ----------
 const renderer = new THREE.WebGLRenderer({ antialias:true, logarithmicDepthBuffer:true });
 renderer.setSize(innerWidth, innerHeight); renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));
-renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFShadowMap;
 renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.5;
 document.getElementById('app').appendChild(renderer.domElement);
 const pmrem = new THREE.PMREMGenerator(renderer);
@@ -777,9 +853,31 @@ function rebuildCables(){
 }
 rebuildCables();
 
-// ---------- wiring interaction ----------
+// ---------- read-only viewer notices + fit to the loaded layout ----------
+{
+  const dev = Object.keys(DEVREG).length;
+  document.getElementById('hint').textContent =
+    LOADED_RACKS.length + (LOADED_RACKS.length===1?' cabinet':' cabinets') + ' \u00b7 ' +
+    dev + (dev===1?' device':' devices') + ' \u00b7 hover a port \u00b7 click to wire';
+  if(USING_SAMPLE) document.getElementById('notice').style.display = 'block';
+  // frame whatever was actually loaded, instead of a fixed one-rack view
+  const bb = new THREE.Box3();
+  LOADED_RACKS.forEach(r=>{ const p = rackPos(r);
+    bb.expandByPoint(new THREE.Vector3(p.x-RACK_W, 0, p.z-RACK_D));
+    bb.expandByPoint(new THREE.Vector3(p.x+RACK_W, rackH, p.z+RACK_D)); });
+  const c = bb.getCenter(new THREE.Vector3()), s = bb.getSize(new THREE.Vector3());
+  if(LOADED_RACKS.length > 1){
+    const dist = Math.max(4.4, Math.max(s.x, s.z)*1.65);
+    camera.position.set(c.x + dist*0.40, rackH*0.92, c.z + dist);
+    controls.target.set(c.x, rackH*0.55, c.z);
+    controls.maxDistance = Math.max(9, dist*2.6);
+    controls.update();
+    START_POS.copy(camera.position); TARGET.copy(controls.target);
+  }
+}
 const tip = document.getElementById('tip');
 const wirePanel = document.getElementById('wire');
+// ---------- wiring interaction ----------
 const wireKick = document.getElementById('wireKick');
 const wireSrc = document.getElementById('wireSrc');
 const wireSub = document.getElementById('wireSub');
@@ -955,6 +1053,7 @@ document.getElementById('btnReset').onclick = ()=>{ camera.position.copy(START_P
 document.getElementById('btnFront').onclick = ()=>{ camera.position.set(0,1.05,3.0); controls.target.copy(TARGET); controls.update(); };
 document.getElementById('btnRear').onclick = ()=>{ camera.position.set(0,1.1,-2.2); controls.target.copy(TARGET); controls.update(); };
 const btnCables = document.getElementById('btnCables');
+if (window.CabTheme) window.CabTheme.bind(document.getElementById('btnTheme'));
 btnCables.onclick = ()=>{ cablesGroup.visible = !cablesGroup.visible; btnCables.classList.toggle('on', cablesGroup.visible); };
 addEventListener('resize', ()=>{ camera.aspect = innerWidth/innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
 

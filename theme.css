@@ -1,0 +1,149 @@
+/* ============================================================================
+   cabinetminister — theme tokens
+   Direction: a system a veteran network engineer would build for himself.
+   Dense, neutral, high contrast. Structure comes from thin rules and a real
+   table grid, not from cards floating on tinted panels. Small radii, small type,
+   monospace for anything you would type into a switch. Colour is reserved for
+   state and for categorical data (device kind, cable class, airflow) — chrome
+   is grey so the coloured things are the only coloured things.
+   ========================================================================= */
+:root {
+  --sans: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+  --bg: #eef0f3;
+  --surface: #ffffff;
+  --surface-2: #e7eaee;   /* table headers, toolbars */
+  --surface-3: #f6f7f9;   /* inset / zebra rows */
+  --border: #d3d8de;
+  --border-strong: #aeb5bf;
+  --hover: #e9edf2;
+
+  --text: #12161b;
+  --text-2: #4a525c;
+  --text-3: #79828d;
+
+  /* Chrome accent is a link blue — what an engineer expects a link to be. The
+     cold-aisle / spine blues in the data palette are bright cyans (#38bdf8,
+     #4d9fff); this is deliberately deeper so chrome never reads as a chip. */
+  --accent: #1a5fb4;
+  --accent-fg: #ffffff;
+  --accent-soft: #dfe8f6;
+  --accent-line: #7da4dc;
+
+  --link: #1a5fb4;
+  --ok: #1a7f37;
+  --ok-soft: #ddf3e2;
+  --warn: #8a6300;
+  --warn-soft: #fbf0d5;
+  --err: #c1291f;
+  --err-soft: #fbe3e1;
+
+  --radius: 4px;
+  --radius-lg: 6px;
+  --shadow-sm: 0 1px 0 rgba(18,22,27,0.04);
+  --shadow: 0 1px 3px rgba(18,22,27,0.10);
+  --shadow-lg: 0 6px 18px -6px rgba(18,22,27,0.22);
+
+  /* Buttons: one filled primary per view, everything else a grey outline. */
+  --btn-bg: #f6f7f9;
+  --btn-fg: #12161b;
+  --btn-border: #b8bfc8;
+  --primary-bg: #1a5fb4;
+  --primary-fg: #ffffff;
+  --primary-bg-hover: #14508f;
+  --danger-bg: #b42318;
+  --danger-fg: #ffffff;
+  --danger-line: #c1291f;
+
+  /* Decorative graph-paper is off by default — it is noise behind a dense
+     elevation. Set to a colour per page if a tool genuinely wants it. */
+  --grid: transparent;
+
+  /* 3D scene */
+  --scene-bg: #d9dde2;
+  --scene-fog: #d9dde2;
+  --scene-floor: #b0b6bd;
+
+  /* Per-tool identity. Muted and technical: enough to tell the tools apart in a
+     tab strip, never bright enough to compete with a status colour. */
+  --tool: #1a5fb4;
+  --tool-soft: #dfe8f6;
+  --tool-ink: #123f78;
+}
+
+[data-theme="dark"] {
+  --bg: #14181d;
+  --surface: #1b2027;
+  --surface-2: #232a33;
+  --surface-3: #11151a;
+  --border: #2f3742;
+  --border-strong: #46505d;
+  --hover: #242c36;
+
+  --text: #e6eaef;
+  --text-2: #9aa4b0;
+  --text-3: #6d7883;
+
+  --accent: #6aa6f0;
+  --accent-fg: #0d1117;
+  --accent-soft: rgba(106,166,240,0.14);
+  --accent-line: #3d6da8;
+
+  --link: #6aa6f0;
+  --ok: #4ac26b;
+  --ok-soft: rgba(74,194,107,0.13);
+  --warn: #d9a441;
+  --warn-soft: rgba(217,164,65,0.13);
+  --err: #f0776c;
+  --err-soft: rgba(240,119,108,0.13);
+
+  --shadow-sm: 0 1px 0 rgba(0,0,0,0.3);
+  --shadow: 0 1px 3px rgba(0,0,0,0.4);
+  --shadow-lg: 0 6px 18px -6px rgba(0,0,0,0.6);
+
+  --btn-bg: #232a33;
+  --btn-fg: #e6eaef;
+  --btn-border: #46505d;
+  --primary-bg: #2b6cb8;
+  --primary-fg: #ffffff;
+  --primary-bg-hover: #3579c7;
+  --danger-bg: #a8332a;
+  --danger-fg: #ffffff;
+  --danger-line: #f0776c;
+
+  --grid: transparent;
+
+  --scene-bg: #0f1318;
+  --scene-fog: #0f1318;
+  --scene-floor: #8b939d;
+
+  --tool: #6aa6f0;
+  --tool-soft: rgba(106,166,240,0.14);
+  --tool-ink: #a9cbf5;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; }
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+::selection { background: var(--accent-soft); color: var(--text); }
+
+::-webkit-scrollbar { width: 11px; height: 11px; }
+::-webkit-scrollbar-track { background: var(--surface-3); }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 2px; border: 2px solid var(--surface-3); }
+::-webkit-scrollbar-thumb:hover { background: var(--text-3); }
+
+/* ---- per-tool identity --------------------------------------------------- */
+[data-tool="planner"] { --tool: #1a5fb4; --tool-soft: #dfe8f6; --tool-ink: #123f78; }
+[data-tool="catalog"] { --tool: #2a6b62; --tool-soft: #dcebe8; --tool-ink: #1c4a44; }
+[data-tool="wiring"]  { --tool: #6d4a72; --tool-soft: #ece1ee; --tool-ink: #4b3050; }
+[data-tool="scene"]   { --tool: #5a6472; --tool-soft: #e4e7ec; --tool-ink: #3b434e; }
+[data-tool="editor"]  { --tool: #8a5a1a; --tool-soft: #f4e9d8; --tool-ink: #6a4413; }
+
+[data-theme="dark"][data-tool="planner"] { --tool: #6aa6f0; --tool-soft: rgba(106,166,240,0.14); --tool-ink: #a9cbf5; }
+[data-theme="dark"][data-tool="catalog"] { --tool: #5fb3a6; --tool-soft: rgba(95,179,166,0.14); --tool-ink: #a3d8cf; }
+[data-theme="dark"][data-tool="wiring"]  { --tool: #b98fc0; --tool-soft: rgba(185,143,192,0.14); --tool-ink: #dcc4e0; }
+[data-theme="dark"][data-tool="scene"]   { --tool: #9aa4b0; --tool-soft: rgba(154,164,176,0.14); --tool-ink: #c6cdd6; }
+[data-theme="dark"][data-tool="editor"]  { --tool: #d9a441; --tool-soft: rgba(217,164,65,0.14); --tool-ink: #f0dca8; }

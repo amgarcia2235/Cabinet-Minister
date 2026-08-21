@@ -1,0 +1,1751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>3D Cabinet Editor</title>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.184.0/build/three.module.js",
+    "three/addons/controls/OrbitControls.js": "https://unpkg.com/three@0.184.0/examples/jsm/controls/OrbitControls.js",
+    "three/addons/environments/RoomEnvironment.js": "https://unpkg.com/three@0.184.0/examples/jsm/environments/RoomEnvironment.js"
+  },
+  "integrity": {
+    "https://unpkg.com/three@0.184.0/build/three.module.js": "sha384-8FCZ1eVO6it4+pbec2aDtnTrwjWXZLJRC+MAGCIPDgsYnUrl/E0A2YlF8ioMKI/J",
+    "https://unpkg.com/three@0.184.0/build/three.core.js": "sha384-dw2ooPewaEIrAgl6oFDBmmBWCE9oW9LxRGcfwZ0hLvEprzo202wXl7vCYHRlSnOT",
+    "https://unpkg.com/three@0.184.0/examples/jsm/controls/OrbitControls.js": "sha384-4rziNxOBZKQ69i+w+f89KJ55TCYquwchVbByQwmaOeIOXdOU2PLDn3kOfXHwIJC9"
+  }
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./theme.css">
+<script src="./theme.js"></script>
+<script>document.documentElement.dataset.tool = "editor";</script>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin:0; padding:0; height:100%; overflow:hidden; background:var(--bg); font-family:var(--sans); color:var(--text); }
+  #app { position:fixed; inset:0; }
+  canvas { display:block; }
+  .mono { font-family:var(--mono); }
+
+  /* ---- chrome shell ---- */
+  #bar { position:fixed; top:0; left:0; right:0; min-height:48px; background:var(--surface); border-bottom:1px solid var(--border);
+         display:flex; align-items:center; gap:10px; padding:7px 12px; z-index:30; backdrop-filter:blur(10px); flex-wrap:wrap; }
+  #bar .brand { font-size:13px; font-weight:700; letter-spacing:-0.2px; white-space:nowrap; flex:0 0 auto; }
+  #bar .brand a { color:var(--tool); text-decoration:none; }
+  #bar .brand span { color:var(--text-2); font-weight:500; }
+  #bar .sp { flex:1 0 12px; }
+  .grp { display:flex; gap:5px; flex:0 0 auto; }
+  .tb { font-family:var(--mono); font-size:11px; color:var(--text); background:var(--surface-3);
+        border:1px solid var(--border); border-radius:9px; padding:7px 10px; cursor:pointer; white-space:nowrap; }
+  .tb:hover { background:var(--hover); border-color:var(--border-strong); }
+  .tb.on { background:var(--accent); border-color:var(--tool); color:var(--accent-fg); }
+  .tb:disabled { opacity:0.35; cursor:default; }
+  .tb.danger { color:var(--err); border-color:var(--err); }
+
+  aside { position:fixed; top:var(--barH,48px); bottom:0; width:252px; background:var(--surface); backdrop-filter:blur(10px);
+          z-index:20; overflow-y:auto; overflow-x:hidden; padding:12px; display:flex; flex-direction:column; gap:12px; }
+  #left { left:0; border-right:1px solid var(--border); }
+  #right { right:0; border-left:1px solid var(--border); width:288px; }
+  aside::-webkit-scrollbar { width:8px; }
+  aside::-webkit-scrollbar-thumb { background:var(--border-strong); border-radius:4px; }
+  aside > .card { flex:0 0 auto; }
+  #palette { max-height:min(52vh,520px); overflow-y:auto; overflow-x:hidden; }
+  #palette::-webkit-scrollbar { width:7px; }
+  #palette::-webkit-scrollbar-thumb { background:var(--border-strong); border-radius:4px; }
+
+  .card { background:var(--surface-3); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; }
+  .card > h3 { margin:0; font-family:var(--mono); font-size:9.5px; letter-spacing:1.8px; text-transform:uppercase;
+               color:var(--text-2); padding:10px 12px; background:var(--surface-3); border-bottom:1px solid var(--border);
+               display:flex; align-items:center; justify-content:space-between; gap:8px; }
+  .card > .body { padding:10px 12px; display:flex; flex-direction:column; gap:8px; }
+
+  /* ---- hardware key ---- */
+  .cat { font-family:var(--mono); font-size:9px; letter-spacing:1.6px; text-transform:uppercase; color:var(--text-3); margin:4px 0 -2px; }
+  .item { display:flex; align-items:center; gap:9px; padding:7px 8px; border-radius:9px; cursor:grab;
+          border:1px solid var(--border); background:var(--surface-3); user-select:none; }
+  .item:hover { border-color:var(--accent-line); background:var(--tool-soft); }
+  .item.arm { border-color:var(--tool); background:var(--tool-soft); }
+  .item .sw { width:5px; align-self:stretch; min-height:26px; border-radius:3px; flex:0 0 5px; }
+  .item .tx { min-width:0; flex:1; display:flex; flex-direction:column; }
+  .item .nm { display:block; font-size:12px; font-weight:500; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .item .mt { display:block; font-family:var(--mono); font-size:9.5px; color:var(--text-3); margin-top:1px; }
+  .item .u { font-family:var(--mono); font-size:11px; color:var(--text-2); flex:0 0 auto; }
+
+  /* ---- cabinet list ---- */
+  .cab { display:flex; align-items:center; gap:7px; padding:6px 8px; border-radius:9px; cursor:pointer;
+         border:1px solid var(--border); background:var(--surface-3); }
+  .cab:hover { border-color:var(--border-strong); }
+  .cab.sel { border-color:var(--tool); background:var(--tool-soft); }
+  .cab .nm { flex:1; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .cab .mt { font-family:var(--mono); font-size:9.5px; color:var(--text-3); }
+
+  /* ---- inspector ---- */
+  label.f { display:flex; flex-direction:column; gap:4px; font-family:var(--mono); font-size:9.5px;
+            letter-spacing:1.2px; text-transform:uppercase; color:var(--text-3); }
+  input.f, select.f { font-family:var(--mono); font-size:12px; color:var(--text); background:var(--surface-3);
+            border:1px solid var(--border); border-radius:6px; padding:7px 8px; width:100%; }
+  input.f:focus, select.f:focus { outline:none; border-color:var(--tool); }
+  .row2 { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .row3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; }
+  .kv { display:flex; justify-content:space-between; gap:10px; font-size:11.5px; color:var(--text-2); }
+  .kv b { color:var(--text); font-family:var(--mono); font-weight:500; }
+  .est { color:var(--text-2); font-style:italic; }
+  .empty { font-size:12px; color:var(--text-3); line-height:1.55; }
+
+  /* ---- validation ---- */
+  .warn { display:flex; gap:8px; padding:7px 9px; border-radius:9px; font-size:11.5px; line-height:1.45; cursor:pointer;
+          background:var(--warn-soft); border:1px solid var(--warn); color:var(--warn); }
+  .warn:hover { background:var(--warn-soft); }
+  .warn.err { background:var(--err-soft); border-color:var(--err); color:var(--err); }
+  .warn .d { flex:0 0 6px; width:6px; height:6px; border-radius:50%; background:currentColor; margin-top:5px; }
+  .ok { font-size:11.5px; color:var(--ok); display:flex; gap:7px; align-items:center; }
+
+  #tip { position:fixed; pointer-events:none; display:none; padding:9px 12px; font-family:var(--mono); font-size:11.5px;
+         color:var(--text); background:var(--surface); border:1px solid var(--tool); border-radius:8px; z-index:40; max-width:320px; line-height:1.55; }
+  #tip .pa { font-size:13px; font-weight:600; color:var(--text); }
+  #tip .pt { color:var(--text-2); }
+  #tip .pw { color:var(--tool); }
+  #tip .wr { color:var(--warn); }
+
+  #hint { position:fixed; bottom:14px; left:calc(252px + (100% - 540px)/2); transform:translateX(-50%); z-index:25; padding:8px 14px; border-radius:8px;
+          background:var(--surface); border:1px solid var(--border); font-family:var(--mono);
+          font-size:11px; color:var(--text-2); backdrop-filter:blur(8px); white-space:nowrap; }
+  #hint b { color:var(--tool); font-weight:500; }
+
+  #modal { position:fixed; inset:0; z-index:60; display:none; align-items:center; justify-content:center; background:rgba(35,40,29,0.4); backdrop-filter:blur(4px); }
+  #modal.open { display:flex; }
+  #modalBox { width:min(760px,94vw); max-height:88vh; overflow-y:auto; background:var(--surface); border:1px solid var(--border);
+              border-radius:var(--radius-lg); padding:20px; }
+  #modalBox h2 { margin:0 0 4px; font-size:19px; font-weight:700; letter-spacing:-0.3px; }
+  #modalBox .sub { font-size:12.5px; color:var(--text-2); line-height:1.5; margin-bottom:16px; }
+  .grpRow { display:grid; grid-template-columns:1.4fr 0.9fr 0.5fr 0.5fr 0.5fr 1fr 0.5fr auto; gap:6px; align-items:end; }
+  .sec { font-family:var(--mono); font-size:9.5px; letter-spacing:1.6px; text-transform:uppercase; color:var(--text-2);
+         padding-top:14px; margin-top:14px; border-top:1px solid var(--border); }
+  #loading { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; font-family:var(--mono);
+             font-size:13px; color:var(--text-2); background:var(--bg); z-index:50; }
+  #loading.hide { opacity:0; pointer-events:none; transition:opacity .5s; }
+</style>
+</head>
+<body>
+<template id="__bundler_thumbnail" data-bg-color="#eae7e0">
+  <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+    <rect width="1200" height="800" fill="#eae7e0"/>
+    <rect x="470" y="130" width="260" height="540" rx="12" fill="none" stroke="#33405a" stroke-width="7"/>
+    <rect x="498" y="164" width="204" height="38" rx="5" fill="#2dd4bf"/>
+    <rect x="498" y="212" width="204" height="38" rx="5" fill="#4d9fff"/>
+    <rect x="498" y="260" width="204" height="38" rx="5" fill="#e5484d"/>
+    <rect x="498" y="322" width="204" height="38" rx="5" fill="#f7981d"/>
+    <rect x="498" y="370" width="98" height="32" rx="5" fill="#38bdf8"/>
+    <rect x="604" y="370" width="98" height="32" rx="5" fill="#f87171"/>
+    <rect x="498" y="412" width="204" height="38" rx="5" fill="#22c55e"/>
+    <rect x="490" y="470" width="220" height="46" rx="6" fill="none" stroke="#f7981d" stroke-width="6" stroke-dasharray="14 10"/>
+  </svg>
+</template>
+
+<div id="app"></div>
+<div id="loading">building editor…</div>
+
+<div id="bar">
+  <div class="brand"><a href="Hub.dc.html">← cabinetminister</a> <span>/ 3D Editor</span></div>
+  <div class="grp">
+    <button class="tb" id="bUndo" title="Ctrl/Cmd+Z">Undo</button>
+    <button class="tb" id="bRedo" title="Shift+Ctrl/Cmd+Z">Redo</button>
+  </div>
+  <div class="grp">
+    <button class="tb" id="bCopy" title="Ctrl/Cmd+C">Copy</button>
+    <button class="tb" id="bPaste" title="Ctrl/Cmd+V">Paste</button>
+    <button class="tb danger" id="bDel" title="Delete">Delete</button>
+  </div>
+  <div class="sp"></div>
+  <div class="grp">
+    <button class="tb" id="bFront">Front</button>
+    <button class="tb" id="bRear">Rear</button>
+    <button class="tb" id="bTop">Aisle</button>
+    <button class="tb" id="bFit">Fit</button>
+  </div>
+  <div class="grp">
+    <button class="tb on" id="bShadow" title="Shadows off keeps big rows smooth">Shadows</button>
+    <button class="tb on" id="bCables">Cables</button>
+    <button class="tb" id="bWire" title="Wire mode: click a port, then a compatible port. Works on the front and rear face.">Wire</button>
+    <button class="tb" id="bGhost" title="Dim everything except the selected cabinet">Isolate</button>
+  </div>
+  <div class="grp">
+    <button class="tb" id="bSave">Save file</button>
+    <button class="tb" id="bOpen">Open file</button>
+    <button class="tb" id="bTheme" title="Switch between light and dark" style="display:flex; align-items:center; gap:6px;"></button>
+  </div>
+</div>
+
+<aside id="left">
+  <div class="card">
+    <h3>Hardware key <span class="mono" style="letter-spacing:0; text-transform:none; color:var(--text-3);">drag → a U</span></h3>
+    <div class="body" id="palette"></div>
+  </div>
+  <div class="card">
+    <h3>Cabinets <button class="tb" id="bAddCab" style="padding:4px 8px; font-size:10px;">+ Add</button></h3>
+    <div class="body" id="cabList"></div>
+  </div>
+</aside>
+
+<aside id="right">
+  <div class="card">
+    <h3>Inspector</h3>
+    <div class="body" id="inspector"></div>
+  </div>
+  <div class="card">
+    <h3>Checks <span id="warnCount" class="mono" style="letter-spacing:0; text-transform:none;"></span></h3>
+    <div class="body" id="checks"></div>
+  </div>
+  <div class="card">
+    <h3>Cabinet totals</h3>
+    <div class="body" id="totals"></div>
+  </div>
+</aside>
+
+<div id="hint"></div>
+<div id="wire" style="position:fixed; top:calc(var(--barH,48px) + 12px); left:calc(252px + 12px); z-index:26; display:none; width:250px; padding:12px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow-lg);">
+  <div style="font-family:var(--mono); font-size:9.5px; letter-spacing:1.6px; text-transform:uppercase; color:var(--text-3); margin-bottom:7px;">New cable</div>
+  <div id="wireSrc" style="font-family:var(--mono); font-size:12.5px; color:var(--text); line-height:1.5;"></div>
+  <div id="wireSub" style="font-size:11.5px; color:var(--text-2); line-height:1.45; margin:4px 0 10px;"></div>
+  <div id="wireTypes" style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:10px;"></div>
+  <button id="wireCancel" class="tb" style="width:100%;">Cancel</button>
+</div>
+<div id="tip"></div>
+
+<div id="modal"><div id="modalBox"></div></div>
+
+<script src="./catalog.js"></script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+const CC = window.CabCatalog;
+const { CATALOG, KIND_TO_MODEL, PORT_TYPES, specOf, modelsByCategory, saveUserModel, removeUserModel } = CC;
+
+const U = 0.04445, EQ_W = 0.448, FRONT_Z = 0.47, BACK_Z = -0.47;
+const RACK_W = 0.6, RACK_D = 1.07, POST = 0.028, BASE_Y = 0.06, N_U = 47;
+const RACK_PITCH = RACK_W + 0.008, AISLE = 1.5;
+const rackH = BASE_Y*2 + N_U*U + 0.02;
+const NET_COLOR = { ipmi:0xeab308, public:0x22c55e, private:0xf97316, power:0xe5484d };
+const POWER_TYPES = ['C13','C19','C14','POWER'];
+const LOD_DIST = 4.6;
+
+// ============================================================ textures / mats
+function tex(w,h,draw){ const c=document.createElement('canvas'); c.width=w; c.height=h; draw(c.getContext('2d'),w,h);
+  const t=new THREE.CanvasTexture(c); t.anisotropy=16; t.colorSpace=THREE.SRGBColorSpace; return t; }
+const faceTexCache = {};
+function faceTex(label, accent, sub){
+  const key=label+accent+sub; if(faceTexCache[key]) return faceTexCache[key];
+  const t = tex(1024,128,(x)=>{
+    x.fillStyle='#141519'; x.fillRect(0,0,1024,128);
+    for(let i=0;i<340;i++){ x.fillStyle='rgba(255,255,255,'+(Math.random()*0.022)+')'; x.fillRect(Math.random()*1024,Math.random()*128,60+Math.random()*160,1); }
+    x.fillStyle=accent; x.fillRect(14,18,7,92);
+    x.fillStyle='#dfe3e9'; x.font='600 27px "IBM Plex Mono", monospace'; x.textBaseline='middle'; x.fillText(label,38,44);
+    x.fillStyle='rgba(255,255,255,0.34)'; x.font='500 19px "IBM Plex Mono", monospace'; x.fillText(sub||'',38,84);
+    x.fillStyle='#0c0d10';
+    for(const [px,py] of [[988,26],[988,102]]){ x.beginPath(); x.arc(px,py,9,0,7); x.fill();
+      x.strokeStyle='rgba(255,255,255,0.25)'; x.lineWidth=2; x.beginPath(); x.moveTo(px-6,py); x.lineTo(px+6,py); x.stroke(); }
+  });
+  faceTexCache[key]=t; return t;
+}
+const grilleTex = tex(512,128,(x)=>{ x.fillStyle='#131418'; x.fillRect(0,0,512,128); x.fillStyle='#07080a';
+  for(let i=0;i<32;i++) for(let j=0;j<8;j++){ x.beginPath(); x.arc(10+i*16,10+j*15,4.6,0,7); x.fill(); } });
+const fanBladeTex = tex(256,256,(x)=>{ const cx=128,cy=128;
+  x.fillStyle='#14161a'; x.beginPath(); x.arc(cx,cy,120,0,7); x.fill(); x.fillStyle='#242833';
+  for(let b=0;b<7;b++){ const a=b/7*Math.PI*2; x.beginPath(); x.moveTo(cx,cy);
+    x.quadraticCurveTo(cx+Math.cos(a+0.6)*95,cy+Math.sin(a+0.6)*95,cx+Math.cos(a)*115,cy+Math.sin(a)*115);
+    x.quadraticCurveTo(cx+Math.cos(a-0.25)*70,cy+Math.sin(a-0.25)*70,cx,cy); x.fill(); }
+  x.fillStyle='#31353f'; x.beginPath(); x.arc(cx,cy,26,0,7); x.fill(); });
+function floorTile(perf){ return tex(256,256,(x)=>{
+  x.fillStyle='#181a1f'; x.fillRect(0,0,256,256);
+  for(let i=0;i<200;i++){ x.fillStyle='rgba(255,255,255,'+(Math.random()*0.02)+')'; x.fillRect(Math.random()*256,Math.random()*256,2,2); }
+  x.strokeStyle='#26282e'; x.lineWidth=6; x.strokeRect(0,0,256,256); x.fillStyle='#0e1014';
+  if(perf){ for(let i=0;i<12;i++) for(let j=0;j<12;j++){ x.beginPath(); x.arc(14+i*20.5,14+j*20.5,5,0,7); x.fill(); } }
+  else { for(let i=0;i<8;i++) for(let j=0;j<8;j++){ x.beginPath(); x.arc(24+i*30,24+j*30,3,0,7); x.fill(); } } }); }
+const uStripTex = tex(64,2048,(x)=>{ x.fillStyle='#1c1d21'; x.fillRect(0,0,64,2048);
+  x.textAlign='center'; x.textBaseline='middle';
+  for(let u=1;u<=N_U;u++){ const y=2048-(u-0.5)/N_U*2048;
+    x.fillStyle = u%5===0?'#8ea6cc':'#4a5568';
+    x.font=(u%5===0?'600 26px':'500 20px')+' "IBM Plex Mono", monospace'; x.fillText(String(u),32,y);
+    x.fillStyle='#2a3140'; x.fillRect(6,y+22,52,2); } });
+
+const M = {
+  chassis:new THREE.MeshStandardMaterial({color:0x2a2d33,roughness:0.6,metalness:0.4}),
+  rail:new THREE.MeshStandardMaterial({color:0x3a3d42,roughness:0.4,metalness:0.75}),
+  frame:new THREE.MeshStandardMaterial({color:0x1c1d21,roughness:0.5,metalness:0.6}),
+  steel:new THREE.MeshStandardMaterial({color:0x8a8f98,roughness:0.35,metalness:0.85}),
+  port:new THREE.MeshStandardMaterial({color:0x0a0b0d,roughness:0.7,metalness:0.2}),
+  apcred:new THREE.MeshStandardMaterial({color:0xe5484d,roughness:0.5,metalness:0.25}),
+  cold:new THREE.MeshStandardMaterial({color:0x38bdf8,roughness:0.5,metalness:0.2}),
+  hot:new THREE.MeshStandardMaterial({color:0xf87171,roughness:0.5,metalness:0.2}),
+  vent:new THREE.MeshStandardMaterial({map:grilleTex,roughness:0.8,metalness:0.15}),
+  lcd:new THREE.MeshStandardMaterial({color:0x0a1a12,emissive:0x2bd07a,emissiveIntensity:1.1,roughness:0.3}),
+  ledG:new THREE.MeshStandardMaterial({color:0x1a1a1a,emissive:0x39d353,emissiveIntensity:2.0,roughness:0.4}),
+  proxy:new THREE.MeshStandardMaterial({color:0x232833,roughness:0.7,metalness:0.35}),
+  blank:new THREE.MeshStandardMaterial({color:0x4a5160,roughness:0.75,metalness:0.25}),
+};
+const portMatCache = {};
+function portMat(hex){ if(!portMatCache[hex]) portMatCache[hex]=new THREE.MeshStandardMaterial({
+  color:new THREE.Color(hex).multiplyScalar(0.55), roughness:0.55, metalness:0.3,
+  emissive:new THREE.Color(hex), emissiveIntensity:0.10 }); return portMatCache[hex]; }
+function own(m){ m.userData.__own = true; return m; }
+
+const PHOTO_CACHE = new Map();
+function photoFaceTex(url,label,accentHex,aspect){
+  const key=url+'|'+label+'|'+accentHex; if(PHOTO_CACHE.has(key)) return PHOTO_CACHE.get(key);
+  const W=2048, H=Math.max(64,Math.round(W/(aspect||10)));
+  const c=document.createElement('canvas'); c.width=W; c.height=H; const x=c.getContext('2d');
+  x.fillStyle='#3a4048'; x.fillRect(0,0,W,H);
+  const t=new THREE.CanvasTexture(c); t.anisotropy=16; t.colorSpace=THREE.SRGBColorSpace;
+  const img=new Image();
+  img.onload=()=>{ x.drawImage(img,0,0,W,H);
+    if(label){ x.font='600 '+Math.round(H*0.15)+'px "IBM Plex Mono", monospace';
+      const tw=x.measureText(label).width, pad=H*0.05;
+      const bx=W*0.155, by=H*0.035, bw=tw+pad*2, bh=H*0.20;
+      x.fillStyle='rgba(8,11,16,0.82)'; x.fillRect(bx,by,bw,bh);
+      x.fillStyle=accentHex||'#f7981d'; x.fillRect(bx,by,H*0.022,bh);
+      x.fillStyle='#e6e9ee'; x.textBaseline='middle'; x.fillText(label,bx+pad,by+bh/2+H*0.008); }
+    t.needsUpdate=true; };
+  img.src=url; PHOTO_CACHE.set(key,t); return t;
+}
+
+const scene = new THREE.Scene();
+// Scene colours come from the theme, so the canvas matches the chrome and
+// re-reads when the user flips light/dark.
+function cssColor(name, fallback){
+  const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  return v || fallback;
+}
+let SCENE_THEME = { bg:'#ddd9d0', fog:'#ddd9d0', floor:'#b9b5aa' };
+function readSceneTheme(){
+  SCENE_THEME = { bg: cssColor('--scene-bg','#ddd9d0'), fog: cssColor('--scene-fog','#ddd9d0'), floor: cssColor('--scene-floor','#b9b5aa') };
+}
+readSceneTheme();
+scene.background = new THREE.Color(SCENE_THEME.bg);
+scene.fog = new THREE.Fog(new THREE.Color(SCENE_THEME.fog), 14, 42);
+function box(w,h,d,mat){ return new THREE.Mesh(new THREE.BoxGeometry(w,h,d), mat); }
+function yOfU(uBottom, span){ return BASE_Y + (uBottom-1)*U + span*U/2; }
+
+// ============================================================ device builders
+const ACT = [], FANS = [];
+function activityLeds(group,{count,cols,x0,x1,y,z}){
+  const inst=new THREE.InstancedMesh(new THREE.BoxGeometry(0.0045,0.003,0.004),
+    own(new THREE.MeshBasicMaterial({color:0xffffff,toneMapped:false})), count);
+  const d=new THREE.Object3D();
+  const COLS=[new THREE.Color(0x39d353),new THREE.Color(0x39d353),new THREE.Color(0x0d1f12),new THREE.Color(0xf5a623)];
+  for(let i=0;i<count;i++){ const c=i%cols, r=Math.floor(i/cols); const fx=cols>1?c/(cols-1):0.5;
+    d.position.set(THREE.MathUtils.lerp(x0,x1,fx), y+r*0.0055, z); d.updateMatrix(); inst.setMatrixAt(i,d.matrix);
+    inst.setColorAt(i, COLS[(Math.random()*4)|0]); }
+  inst.instanceColor.needsUpdate=true; group.add(inst); ACT.push({inst,n:count});
+}
+function ears(g,w,h,fz){
+  for(const sx of [-1,1]){
+    const ear=box(0.016,Math.min(h,U-0.006),0.004,M.chassis); ear.position.set(sx*(w/2+0.008),0,fz-0.002); g.add(ear);
+    const sg=new THREE.CylinderGeometry(0.0045,0.0045,0.004,12);
+    for(const oy of [-0.012,0.012]){ const s=new THREE.Mesh(sg,M.steel); s.rotation.x=Math.PI/2; s.position.set(sx*(w/2+0.008),oy,fz); g.add(s); }
+  }
+}
+function skin(g,w,h,fz,label,accentHex,sub,photo){
+  const map = photo&&photo.front ? photoFaceTex(photo.front,label,accentHex,photo.aspect) : faceTex(label,accentHex,sub);
+  const plate=new THREE.Mesh(new THREE.PlaneGeometry(w*0.995,h*0.96),
+    own(new THREE.MeshStandardMaterial({map,roughness:photo?0.62:0.55,metalness:photo?0.18:0.35})));
+  plate.position.set(0,0,fz-0.0005); g.add(plate);
+}
+function rearSkin(g,w,h,d,photo){
+  if(!(photo&&photo.rear)) return false;
+  const plate=new THREE.Mesh(new THREE.PlaneGeometry(w*0.995,h*0.96),
+    own(new THREE.MeshStandardMaterial({map:photoFaceTex(photo.rear,'','',photo.rearAspect),roughness:0.62,metalness:0.18})));
+  plate.rotation.y=Math.PI; plate.position.set(0,0,-d/2-0.0025); g.add(plate); return true;
+}
+function rearDetail(g,w,h,d,fanCount){
+  const bz=-d/2-0.002;
+  for(const i of [0,1]){
+    const psu=box(w*0.115,h*0.82,0.014,M.chassis); psu.position.set(-(w*0.40-i*w*0.125),0,bz-0.004); g.add(psu);
+    const grill=new THREE.Mesh(new THREE.PlaneGeometry(w*0.10,h*0.5),M.vent);
+    grill.rotation.y=Math.PI; grill.position.set(-(w*0.40-i*w*0.125),h*0.05,bz-0.011); g.add(grill);
+    const led=box(0.004,0.004,0.003,M.ledG); led.rotation.y=Math.PI; led.position.set(-(w*0.435-i*w*0.125),h*0.30,bz-0.0115); g.add(led);
+    const sock=box(0.015,0.011,0.004,M.port); sock.rotation.y=Math.PI; sock.position.set(-(w*0.37-i*w*0.125),-h*0.28,bz-0.0115); g.add(sock);
+  }
+  const x0=-w*0.26, x1=w*0.14, fw=(x1-x0)/fanCount;
+  for(let i=0;i<fanCount;i++){
+    const cx=x0+fw*(i+0.5);
+    const tray=box(fw*0.92,h*0.82,0.012,M.frame); tray.position.set(cx,0,bz-0.003); g.add(tray);
+    const r=Math.min(fw*0.40,h*0.36);
+    const blade=new THREE.Mesh(new THREE.CircleGeometry(r,24),
+      own(new THREE.MeshStandardMaterial({map:fanBladeTex,transparent:true,roughness:0.8,metalness:0.1})));
+    blade.rotation.y=Math.PI; blade.position.set(cx,0,bz-0.0095); g.add(blade); FANS.push(blade);
+    const ring=new THREE.Mesh(new THREE.RingGeometry(r*0.98,r*1.12,24),M.steel);
+    ring.rotation.y=Math.PI; ring.position.set(cx,0,bz-0.0094); g.add(ring);
+  }
+}
+const ACCENT_BY_KIND = { spine:'#4d9fff', network:'#22c55e', dist:'#eab308', mgmt:'#a78bfa', console:'#64748b',
+  private:'#f97316', pdu:'#e5484d', chassis:'#7dd3fc', supermicro:'#f472b6' };
+const SUB_BY_KIND = { spine:'SPINE', network:'NETWORK', dist:'IPMI DISTRIBUTOR', mgmt:'MGMT', console:'CONSOLE',
+  private:'PRIVATE', pdu:'RACK PDU', chassis:'BOOT HW', supermicro:'8 BAY' };
+
+function addPortGroup(g,gr,w,h,fz,deviceRef,photoMode){
+  const t = PORT_TYPES[gr.type] || {label:gr.type,color:'#94a3b8',w:1,h:1};
+  const [rx,ry,rw,rh] = gr.region || [0.1,0.2,0.8,0.6];
+  const anchors = photoMode && gr.anchors ? gr.anchors : null;
+  const a0 = anchors ? anchors[0] : null;
+  const pw = anchors ? a0[2]*w : Math.min(0.0115*t.w,(rw*w/gr.cols)*0.82);
+  const ph = anchors ? a0[3]*h : Math.min(0.0115*t.h,(rh*h/gr.rows)*0.78);
+  const mat = anchors ? own(new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false})) : portMat(t.color);
+  const inst = new THREE.InstancedMesh(new THREE.BoxGeometry(pw,ph,anchors?0.002:0.007), mat, gr.count);
+  const d=new THREE.Object3D(), recs=[];
+  for(let i=0;i<gr.count;i++){
+    let x,y;
+    if(anchors && anchors[i]){ const [ax,ay,aw,ah]=anchors[i]; x=(ax+aw/2-0.5)*w; y=(0.5-(ay+ah/2))*h; }
+    else { const r=Math.floor(i/gr.cols), c=i%gr.cols; x=(rx+((c+0.5)/gr.cols)*rw-0.5)*w; y=(0.5-(ry+((r+0.5)/gr.rows)*rh))*h; }
+    const px = gr.rear ? -x : x, pz = gr.rear ? -fz : fz;
+    d.position.set(px,y,pz); d.updateMatrix(); inst.setMatrixAt(i,d.matrix);
+    const addr = gr.naming && gr.naming.names ? gr.naming.names[i]
+      : (gr.naming ? gr.naming.prefix + ((gr.naming.start ?? 0)+i) : gr.id+'-'+i);
+    recs.push({addr,type:gr.type,typeLabel:t.label,group:gr.label+(gr.rear?' · rear panel':''),assumed:!!gr.assumed});
+    deviceRef.userData.portPos[addr]=new THREE.Vector3(px,y,pz);
+    deviceRef.userData.portType[addr]=gr.type;
+  }
+  inst.userData.ports=recs; inst.userData.isPorts=true; g.add(inst);
+  if(gr.count>=6 && !gr.rear && !anchors) activityLeds(g,{count:gr.count,cols:gr.cols,
+    x0:(rx+(0.5/gr.cols)*rw-0.5)*w, x1:(rx+((gr.cols-0.5)/gr.cols)*rw-0.5)*w, y:(0.5-ry)*h+0.0035, z:fz+0.001});
+}
+
+function buildDevice(modelId, cell){
+  const m = CATALOG[modelId]; if(!m) return null;
+  const span = cell.span || m.u || 1, h = Math.max(0.008, span*U-0.004);
+  const w = EQ_W * Math.min(1,(m.widthIn||19)/19);
+  const spec = specOf(modelId);
+  const dmm = (spec.depth.value != null) ? spec.depth.value : 500;
+  const d = Math.max(0.03, dmm/1000);
+  const g = new THREE.Group();
+  g.userData.portPos={}; g.userData.portType={};
+  g.add(box(w,h,d, m.category==='blank' ? M.blank : M.chassis));
+  g.userData.depth=d;
+  const fz = d/2+0.002;
+  const accent = ACCENT_BY_KIND[cell.kind] || m.accent || '#8296b3';
+  const nm = (cell.name||'').trim();
+  const photo = m.photo || null;
+  skin(g,w,h,fz,(nm||m.short||modelId).toUpperCase(),accent, nm?(m.short||'').toUpperCase():(SUB_BY_KIND[cell.kind]||''), photo);
+  ears(g,w,h,fz);
+  const rearPhoto = rearSkin(g,w,h,d,photo);
+  if(m.groups && m.groups.length) m.groups.forEach(gr=>addPortGroup(g,gr,w,h,fz,g,gr.rear?rearPhoto:!!(photo&&photo.front)));
+  else if(m.category!=='blank'){
+    const bays=8;
+    const inst=new THREE.InstancedMesh(new THREE.BoxGeometry(0.032,h*0.52,0.006),M.vent,bays);
+    const dm=new THREE.Object3D();
+    for(let i=0;i<bays;i++){ dm.position.set(-w*0.30+i*(w*0.64/(bays-1)),0,fz); dm.updateMatrix(); inst.setMatrixAt(i,dm.matrix); }
+    g.add(inst); activityLeds(g,{count:bays,cols:bays,x0:-w*0.30,x1:w*0.34,y:h*0.33,z:fz+0.001});
+  }
+  if(m.meter){ const lcd=box(0.034,0.022,0.004,M.lcd); lcd.position.set(-w/2+0.045,h*0.30,fz); g.add(lcd);
+    const band=box(w*0.9,0.01,0.003,M.apcred); band.position.set(0,h*0.44,fz); g.add(band); }
+  if(m.category==='chassis'){ const st=box(0.008,h*0.7,0.0035, cell.side==='hot'?M.hot:M.cold); st.position.set(-w/2+0.010,0,fz); g.add(st); }
+  if(['spine','network','dist','pdu'].indexOf(m.category)>=0 && !rearPhoto && span<=2)
+    rearDetail(g,w,h,d, modelId==='qfx5200-32c'?5:3);
+  return g;
+}
+// Vertical 0U PDU — lives in the rear channel beside the posts, consumes no U.
+function buildZeroU(modelId, cell){
+  const m = CATALOG[modelId]; if(!m) return null;
+  const g = new THREE.Group(); g.userData.portPos={}; g.userData.portType={};
+  const w = Math.max(0.03,(m.widthIn||2.2)*0.0254), hh = N_U*U*0.92, d = Math.max(0.03,(m.depthMm||70)/1000);
+  g.add(box(w,hh,d,M.chassis)); g.userData.depth=d;
+  const band=box(w*0.7,hh*0.99,0.004,M.apcred); band.position.set(0,0,d/2+0.002); g.add(band);
+  const fz=d/2+0.004;
+  if(m.groups) m.groups.forEach(gr=>addPortGroup(g,gr,w,hh,fz,g,false));
+  return g;
+}
+
+// ============================================================ rack frame
+function buildFrame(){
+  const rack=new THREE.Group();
+  for(const sx of [-1,1]) for(const sz of [-1,1]){
+    const p=box(POST,rackH,POST,M.frame); p.position.set(sx*(RACK_W/2-POST/2),rackH/2,sz*(RACK_D/2-POST/2)); rack.add(p); }
+  for(const sy of [0,1]){ const cap=box(RACK_W,POST,RACK_D,M.frame); cap.position.set(0,sy?rackH-POST/2:POST/2,0); rack.add(cap); }
+  const panelMat=new THREE.MeshStandardMaterial({color:0x141519,roughness:0.5,metalness:0.5,transparent:true,opacity:0.14,side:THREE.DoubleSide});
+  const back=box(RACK_W-POST,rackH-POST*2,0.006,own(panelMat)); back.position.set(0,rackH/2,-RACK_D/2+POST/2); rack.add(back);
+  for(const sx of [-1,1]){
+    const railX=sx*(EQ_W/2+0.012);
+    for(const rz of [FRONT_Z-0.01,BACK_Z+0.01]){ const r=box(0.012,N_U*U,0.02,M.rail); r.position.set(railX,BASE_Y+N_U*U/2,rz); rack.add(r); }
+    const cages=new THREE.InstancedMesh(new THREE.BoxGeometry(0.0075,0.0075,0.004),M.steel,N_U*2);
+    const d=new THREE.Object3D(); let ci=0;
+    for(let u=0;u<N_U;u++) for(const oy of [-0.013,0.013]){
+      d.position.set(railX,BASE_Y+u*U+U/2+oy,FRONT_Z+0.0005); d.updateMatrix(); cages.setMatrixAt(ci++,d.matrix); }
+    rack.add(cages);
+  }
+  const strip=new THREE.Mesh(new THREE.PlaneGeometry(0.022,N_U*U), own(new THREE.MeshBasicMaterial({map:uStripTex,toneMapped:false})));
+  strip.position.set(-(EQ_W/2+0.032),BASE_Y+N_U*U/2,FRONT_Z+0.001); rack.add(strip);
+  return rack;
+}
+
+// ============================================================ model layer
+const LS_LAYOUT = 'cabplanner.v1.main';
+const CONN_KEY = 'cabplanner.v1.connections';
+function uid(){ return 'c'+Date.now().toString(36)+Math.floor(Math.random()*1e6).toString(36); }
+
+let RACKS = [];
+function modelOfCell(cell){
+  if(cell.model && CATALOG[cell.model]) return cell.model;
+  const m = KIND_TO_MODEL[cell.kind];
+  return (m && CATALOG[m]) ? m : null;
+}
+function isZeroU(cell){ const m=CATALOG[modelOfCell(cell)]; return !!(m && m.mount==='zeroU'); }
+function spanOf(cell){ return isZeroU(cell) ? 0 : Math.max(1, cell.span||1); }
+function rangeOf(cell){ const s=spanOf(cell); return [cell.top-s+1, cell.top]; }
+
+function loadLayout(){
+  try{
+    for(const key of [LS_LAYOUT,'cabplanner.v1.blank']){
+      const raw=localStorage.getItem(key);
+      if(raw){ const rk=JSON.parse(raw);
+        if(Array.isArray(rk)&&rk.length) return rk.map((r,i)=>({
+          id:r.id||uid(), name:r.name||('Cabinet '+(i+1)),
+          row:r.row||0, col:(r.col!=null?r.col:i),
+          cells:(Array.isArray(r.cells)?r.cells:[]).map(c=>({...c, id:c.id||uid()})) })); }
+    }
+  }catch(e){}
+  return [{ id:uid(), name:'Cabinet 1', row:0, col:0, cells:[] }];
+}
+function normaliseIds(){
+  // DEVREG is keyed by cell id alone, so ids must be unique across every rack.
+  const seen=new Set();
+  RACKS.forEach(r=>r.cells.forEach(c=>{ if(!c.id||seen.has(c.id)) c.id=uid(); seen.add(c.id); }));
+}
+function saveLayout(){
+  try{ localStorage.setItem(LS_LAYOUT, JSON.stringify(RACKS)); }catch(e){}
+}
+let conn={devices:[],links:[]};
+try{ const raw=localStorage.getItem(CONN_KEY); if(raw){ const d=JSON.parse(raw); conn.devices=d.devices||[]; conn.links=d.links||[]; } }catch(e){}
+function saveConn(){ try{ localStorage.setItem(CONN_KEY, JSON.stringify(conn)); }catch(e){} }
+const cellOfDev={}; conn.devices.forEach(d=>{ if(d.src) cellOfDev[d.id]=d.src.split('#')[2]; });
+
+// Wiring created here lands in the same store Connections and the 3D viewer read.
+function connUid(){ return 'x'+Date.now().toString(36)+Math.floor(Math.random()*1e6).toString(36); }
+function ensureDevice(cellId){
+  for(const d of conn.devices){ if(d.src && d.src.split('#')[2]===cellId) return d; }
+  const meta=CELLMETA[cellId], dev=DEVREG[cellId];
+  const rec={ id:connUid(), model:(dev&&dev.userData.model)||'unknown', name:(dev&&dev.userData.name)||cellId,
+    src: LS_LAYOUT+'#'+(meta?meta.rackIdx:0)+'#'+cellId };
+  conn.devices.push(rec); cellOfDev[rec.id]=cellId; saveConn();
+  return rec;
+}
+function suggestNet(cellId, addr){
+  const dev=DEVREG[cellId]; if(!dev) return 'public';
+  const t=dev.userData.portType[addr]||'';
+  if(POWER_TYPES.indexOf(t)>=0) return 'power';
+  const model=dev.userData.model||'';
+  const cat=(CATALOG[model]||{}).category;
+  if(cat==='dist'||cat==='mgmt'||/ipmi|mgmt|bmc/i.test(addr)) return 'ipmi';
+  if(cat==='chassis'||cat==='generic') return 'private';
+  return 'public';
+}
+function compatible(aCell,aAddr,bCell,bAddr){
+  const ta=DEVREG[aCell].userData.portType[aAddr], tb=DEVREG[bCell].userData.portType[bAddr];
+  return (POWER_TYPES.indexOf(ta)>=0) === (POWER_TYPES.indexOf(tb)>=0);
+}
+function portIsWired(cellId, addr){
+  const dev=conn.devices.find(d=>d.src && d.src.split('#')[2]===cellId);
+  if(!dev) return null;
+  const l=conn.links.find(l=>(l.a.devId===dev.id&&l.a.port===addr)||(l.b.devId===dev.id&&l.b.port===addr));
+  if(!l) return null;
+  const far = l.a.devId===dev.id ? l.b : l.a;
+  const fd = conn.devices.find(d=>d.id===far.devId);
+  return (fd?fd.name:'?')+' : '+far.port;
+}
+
+// ---- undo / redo ----
+const UNDO=[], REDO=[]; const UNDO_CAP=60;
+function snapshot(){ return JSON.stringify(RACKS); }
+function pushUndo(){ UNDO.push(snapshot()); if(UNDO.length>UNDO_CAP) UNDO.shift(); REDO.length=0; }
+function applySnap(s){ RACKS=JSON.parse(s); rebuildScene(); syncUI(); saveLayout(); }
+function undo(){ if(!UNDO.length) return; REDO.push(snapshot()); applySnap(UNDO.pop()); }
+function redo(){ if(!REDO.length) return; UNDO.push(snapshot()); applySnap(REDO.pop()); }
+function commit(){ saveLayout(); rebuildScene(); syncUI(); }
+
+// ---- collision ----
+function sidesOverlap(a,b){ a=a||'full'; b=b||'full'; return a==='full'||b==='full'||a===b; }
+function collides(rack, cand, ignoreIds){
+  if(isZeroU(cand)) return null;
+  const [b1,t1]=rangeOf(cand);
+  if(b1<1||t1>N_U) return {oob:true};
+  for(const c of rack.cells){
+    if(ignoreIds && ignoreIds.indexOf(c.id)>=0) continue;
+    if(isZeroU(c)) continue;
+    if(!sidesOverlap(cand.side,c.side)) continue;
+    const [b2,t2]=rangeOf(c);
+    if(b1<=t2 && b2<=t1) return c;
+  }
+  return null;
+}
+
+// ============================================================ scene build
+const allRacks = new THREE.Group(); scene.add(allRacks);
+const dropTargets = new THREE.Group(); dropTargets.visible=false; scene.add(dropTargets);
+const DEVREG={}, CELLMETA={}; const RACKOBJ={};
+function rackPos(r){ return new THREE.Vector3((r.col||0)*RACK_PITCH, 0, (r.row||0)*(RACK_D+AISLE)); }
+function rackRot(r){ return ((r.row||0)%2!==0) ? Math.PI : 0; }
+
+function disposeTree(g){
+  g.traverse(o=>{
+    if(o.geometry) o.geometry.dispose();
+    const ms = o.material ? (Array.isArray(o.material)?o.material:[o.material]) : [];
+    ms.forEach(m=>{ if(m && m.userData && m.userData.__own) m.dispose(); });
+  });
+}
+function clearRacks(){
+  while(allRacks.children.length){ const c=allRacks.children.pop(); disposeTree(c); }
+  while(dropTargets.children.length){ const c=dropTargets.children.pop(); disposeTree(c); }
+  for(const k in DEVREG) delete DEVREG[k];
+  for(const k in CELLMETA) delete CELLMETA[k];
+  for(const k in RACKOBJ) delete RACKOBJ[k];
+  ACT.length=0; FANS.length=0;
+}
+function detailLevel(r){
+  if(RACKS.length<=6) return 2;
+  const p=rackPos(r); return camera.position.distanceTo(p) < LOD_DIST ? 2 : 1;
+}
+function buildRack(r, idx){
+  const grp=new THREE.Group();
+  grp.position.copy(rackPos(r)); grp.rotation.y=rackRot(r);
+  grp.userData.rackId=r.id; grp.userData.rackIdx=idx;
+  const lvl=detailLevel(r); grp.userData.lod=lvl;
+  if(lvl===1){
+    const b=box(RACK_W,rackH,RACK_D,M.proxy); b.position.y=rackH/2; grp.add(b);
+    const used=r.cells.filter(c=>!isZeroU(c)).reduce((n,c)=>n+spanOf(c),0);
+    const fill=box(EQ_W, Math.max(0.01,(used/N_U)*N_U*U), 0.008, own(new THREE.MeshStandardMaterial({color:0x33405a,roughness:0.6})));
+    fill.position.set(0, BASE_Y+Math.max(0.005,(used/N_U)*N_U*U)/2, RACK_D/2+0.005); grp.add(fill);
+  } else {
+    grp.add(buildFrame());
+    const contents=new THREE.Group(); grp.add(contents);
+    r.cells.forEach(cell=>{
+      const modelId=modelOfCell(cell); if(!modelId) return;
+      const zero=isZeroU(cell);
+      const dev = zero ? buildZeroU(modelId,cell) : buildDevice(modelId,cell);
+      if(!dev) return;
+      const span=spanOf(cell), bottom=cell.top-span+1;
+      const m=CATALOG[modelId];
+      dev.userData.cellId=cell.id; dev.userData.rackId=r.id;
+      dev.userData.side=cell.side||'full'; dev.userData.model=modelId;
+      dev.userData.name=(cell.name&&cell.name.trim())?cell.name.trim():((r.name||'CAB').split(' ')[0]+'-U'+cell.top+(cell.side&&cell.side!=='full'?'-'+cell.side:''));
+      dev.userData.label = dev.userData.name+' · '+(m.short||modelId)+
+        (zero ? ' · 0U '+(cell.channel==='right'?'right':'left')+' channel'
+              : ' · U'+(span>1?bottom+'–'+cell.top:cell.top)+(cell.side&&cell.side!=='full'?' · '+(cell.side==='hot'?'hot':'cold'):''));
+      if(zero){
+        const sx = cell.channel==='right' ? 1 : -1;
+        dev.position.set(sx*(RACK_W/2-POST-0.02), BASE_Y+N_U*U/2, BACK_Z+0.10);
+      } else if((cell.side||'full')==='hot'){
+        dev.rotation.y=Math.PI; dev.position.set(0,yOfU(bottom,span),BACK_Z+(dev.userData.depth||0.5)/2+0.003);
+      } else {
+        dev.position.set(0,yOfU(bottom,span),FRONT_Z-(dev.userData.depth||0.5)/2-0.003);
+      }
+      contents.add(dev);
+      DEVREG[cell.id]=dev; CELLMETA[cell.id]={cell,rackId:r.id,rackIdx:idx,rackName:r.name};
+    });
+    // invisible drop planes — two per rack instead of 94 slot meshes
+    for(const face of ['cold','hot']){
+      const pl=new THREE.Mesh(new THREE.PlaneGeometry(EQ_W,N_U*U),
+        own(new THREE.MeshBasicMaterial({visible:false,side:THREE.DoubleSide})));
+      pl.position.set(0,BASE_Y+N_U*U/2, face==='cold'?FRONT_Z-0.01:BACK_Z+0.01);
+      if(face==='hot') pl.rotation.y=Math.PI;
+      pl.userData.dropFace=face; pl.userData.rackId=r.id;
+      pl.position.applyAxisAngle(new THREE.Vector3(0,1,0), rackRot(r));
+      pl.position.add(rackPos(r));
+      pl.rotation.y += rackRot(r);
+      dropTargets.add(pl);
+    }
+  }
+  RACKOBJ[r.id]=grp;
+  allRacks.add(grp);
+}
+function rebuildScene(){
+  normaliseIds();
+  clearRacks();
+  RACKS.forEach((r,i)=>buildRack(r,i));
+  allRacks.traverse(o=>{ if(o.isMesh||o.isInstancedMesh){ o.castShadow=shadowsOn; o.receiveShadow=shadowsOn; } });
+  applyIsolate();
+  rebuildCables();
+  renderer.shadowMap.needsUpdate=true;
+}
+
+// ============================================================ cables
+const cablesGroup=new THREE.Group(); scene.add(cablesGroup);
+function facing(dev){ return dev.userData.side==='hot' ? -1 : 1; }
+// A front-mounted device still has REAR ports facing the hot aisle. Routing off
+// the device's mounting side alone sent those cables out the wrong face, so
+// direction is taken from the port's own local z and then flipped by the
+// device's rotation. This is what makes both faces of a cabinet usable.
+function portFacing(dev, addr){
+  const local = dev.userData.portPos && dev.userData.portPos[addr];
+  const sign = local ? (local.z >= 0 ? 1 : -1) : 1;
+  return sign * facing(dev);
+}
+function portWorld(cellId,addr){
+  const dev=DEVREG[cellId]; if(!dev) return null;
+  const local=dev.userData.portPos && dev.userData.portPos[addr];
+  if(local) return dev.localToWorld(local.clone());
+  const v=new THREE.Vector3(); dev.getWorldPosition(v); return v;
+}
+function netOf(l){ if(l.net) return l.net; return l.kind==='power'?'power':'public'; }
+function routeCurve(pa,fa,pb,fb,net){
+  const ea=pa.clone(); ea.z+=fa*0.06; const eb=pb.clone(); eb.z+=fb*0.06;
+  const side = net==='power' ? -1 : 1;
+  const mid=new THREE.Vector3((ea.x+eb.x)/2 + side*0.16,(ea.y+eb.y)/2,(ea.z+eb.z)/2 + (fa===fb?fa*0.10:0));
+  return new THREE.CatmullRomCurve3([pa,ea,mid,eb,pb],false,'catmullrom',0.5);
+}
+function rebuildCables(){
+  while(cablesGroup.children.length){ const c=cablesGroup.children.pop(); c.geometry.dispose(); c.material.dispose(); }
+  scene.updateMatrixWorld(true);
+  conn.links.forEach(l=>{
+    const ca=cellOfDev[l.a.devId], cb=cellOfDev[l.b.devId];
+    const da=DEVREG[ca], db=DEVREG[cb]; if(!da||!db) return;
+    const pa=portWorld(ca,l.a.port), pb=portWorld(cb,l.b.port); if(!pa||!pb) return;
+    const net=netOf(l);
+    const tube=new THREE.Mesh(new THREE.TubeGeometry(routeCurve(pa,portFacing(da,l.a.port),pb,portFacing(db,l.b.port),net),36,0.0038,7,false),
+      new THREE.MeshStandardMaterial({color:NET_COLOR[net],roughness:0.6,metalness:0.1}));
+    tube.userData.link=l; cablesGroup.add(tube);
+  });
+}
+
+// ============================================================ room
+const solidT=floorTile(false), perfT=floorTile(true);
+solidT.wrapS=solidT.wrapT=THREE.RepeatWrapping; solidT.repeat.set(40,40);
+perfT.wrapS=perfT.wrapT=THREE.RepeatWrapping; perfT.repeat.set(40,3);
+const floor=new THREE.Mesh(new THREE.PlaneGeometry(70,70),new THREE.MeshStandardMaterial({map:solidT,roughness:0.8,metalness:0.15,color:new THREE.Color(SCENE_THEME.floor)}));
+floor.rotation.x=-Math.PI/2; floor.receiveShadow=true; scene.add(floor);
+const aisleStrips=new THREE.Group(); scene.add(aisleStrips);
+function rebuildAisles(){
+  while(aisleStrips.children.length){ const c=aisleStrips.children.pop(); c.geometry.dispose(); }
+  const rows=[...new Set(RACKS.map(r=>r.row||0))].sort((a,b)=>a-b);
+  const mat=new THREE.MeshStandardMaterial({map:perfT,roughness:0.8,metalness:0.15,color:0xa8b6c4});
+  rows.forEach(row=>{
+    const s=new THREE.Mesh(new THREE.PlaneGeometry(60,(AISLE)*0.62),mat);
+    s.rotation.x=-Math.PI/2;
+    const z=row*(RACK_D+AISLE) + (row%2===0 ? RACK_D/2+AISLE*0.36 : -(RACK_D/2+AISLE*0.36));
+    s.position.set(0,0.002,z); aisleStrips.add(s);
+  });
+}
+const ceil=new THREE.Mesh(new THREE.PlaneGeometry(70,70),new THREE.MeshStandardMaterial({color:new THREE.Color(SCENE_THEME.bg),roughness:0.9}));
+ceil.rotation.x=Math.PI/2; ceil.position.y=3.4; scene.add(ceil);
+const stripMat=new THREE.MeshStandardMaterial({color:0xffffff,emissive:0xcfe3ff,emissiveIntensity:1.3});
+for(let i=-4;i<=4;i++){ const s=box(0.5,0.04,7,stripMat); s.position.set(i*2.6,3.34,0); scene.add(s); }
+
+scene.add(new THREE.AmbientLight(0xffffff,0.55));
+scene.add(new THREE.HemisphereLight(0xdce8ff,0x2a2d33,1.2));
+const key=new THREE.DirectionalLight(0xffffff,1.5); key.position.set(4,6,5); key.castShadow=true;
+key.shadow.mapSize.set(1024,1024); key.shadow.camera.near=0.5; key.shadow.camera.far=30;
+key.shadow.camera.left=-6; key.shadow.camera.right=6; key.shadow.camera.top=6; key.shadow.camera.bottom=-6; key.shadow.bias=-0.0004;
+scene.add(key);
+const fill=new THREE.DirectionalLight(0xbcd2ff,0.7); fill.position.set(-5,3,2); scene.add(fill);
+const rimL=new THREE.DirectionalLight(0xffffff,0.6); rimL.position.set(0,4,-6); scene.add(rimL);
+const frontL=new THREE.DirectionalLight(0xffffff,0.5); frontL.position.set(0,2,7); scene.add(frontL);
+
+// ============================================================ renderer
+const renderer=new THREE.WebGLRenderer({antialias:true,logarithmicDepthBuffer:true});
+renderer.setSize(innerWidth,innerHeight); renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));
+renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFShadowMap;
+renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.5;
+renderer.shadowMap.autoUpdate=false; renderer.shadowMap.needsUpdate=true;
+document.getElementById('app').appendChild(renderer.domElement);
+const pmrem=new THREE.PMREMGenerator(renderer);
+scene.environment=pmrem.fromScene(new RoomEnvironment(),0.04).texture;
+scene.environmentIntensity=0.35;
+let shadowsOn=true;
+
+const camera=new THREE.PerspectiveCamera(46,innerWidth/innerHeight,0.02,120);
+camera.position.set(1.5,1.5,3.3);
+const controls=new OrbitControls(camera,renderer.domElement);
+controls.target.set(0,1.05,0.1); controls.enableDamping=true; controls.dampingFactor=0.08;
+controls.minDistance=0.07; controls.maxDistance=26; controls.maxPolarAngle=Math.PI*0.54; controls.zoomSpeed=1.15;
+controls.update();
+
+// ============================================================ editor state
+let selection=[];              // cell ids
+let selRack=null;              // rack id
+let placing=null;              // { modelId }
+let wireMode=false, armed=null; // { cellId, port, net }
+const wireMarker=new THREE.Mesh(new THREE.RingGeometry(0.008,0.011,24),
+  new THREE.MeshBasicMaterial({color:0xf7981d,toneMapped:false,side:THREE.DoubleSide}));
+wireMarker.visible=false; scene.add(wireMarker);
+let cableGhost=null;
+let moving=null;               // { ids, dy }
+let clipboard=[];
+let isolate=false;
+const selBoxes=new THREE.Group(); scene.add(selBoxes);
+const ghostGroup=new THREE.Group(); scene.add(ghostGroup);
+
+function cellById(id){ for(const r of RACKS){ const c=r.cells.find(c=>c.id===id); if(c) return {rack:r,cell:c}; } return null; }
+function selCells(){ return selection.map(cellById).filter(Boolean); }
+
+function applyIsolate(){
+  allRacks.children.forEach(g=>{
+    const dim = isolate && selRack && g.userData.rackId!==selRack;
+    g.traverse(o=>{
+      if(!(o.isMesh||o.isInstancedMesh)) return;
+      const ms=Array.isArray(o.material)?o.material:[o.material];
+      ms.forEach(m=>{ if(!m) return;
+        if(dim){ if(m.userData.__op===undefined) m.userData.__op=m.opacity;
+          m.transparent=true; m.opacity=0.12; }
+        else if(m.userData.__op!==undefined){ m.opacity=m.userData.__op; m.transparent=m.userData.__op<1; } });
+    });
+  });
+}
+function refreshSelBoxes(){
+  while(selBoxes.children.length){ const c=selBoxes.children.pop(); if(c.geometry) c.geometry.dispose(); if(c.material) c.material.dispose(); }
+  selection.forEach(id=>{
+    const dev=DEVREG[id]; if(!dev) return;
+    const h=new THREE.BoxHelper(dev,0xf7981d); h.material.depthTest=false; h.renderOrder=30; selBoxes.add(h);
+  });
+}
+function clearGhost(){ while(ghostGroup.children.length){ const c=ghostGroup.children.pop(); c.geometry.dispose(); c.material.dispose(); } }
+function showGhost(rack, cand, ok){
+  clearGhost();
+  const m=CATALOG[modelOfCell(cand)]; if(!m) return;
+  const span=spanOf(cand), bottom=cand.top-span+1;
+  const w=EQ_W*Math.min(1,(m.widthIn||19)/19);
+  const g=box(w, Math.max(0.008,span*U-0.004), 0.10,
+    own(new THREE.MeshBasicMaterial({color: ok?0x39d353:0xe5484d, transparent:true, opacity:0.34, depthWrite:false})));
+  const rot=rackRot(rack), base=rackPos(rack);
+  const local=new THREE.Vector3(0, yOfU(bottom,span), (cand.side==='hot'?BACK_Z+0.06:FRONT_Z-0.06));
+  local.applyAxisAngle(new THREE.Vector3(0,1,0),rot); local.add(base);
+  g.position.copy(local); g.rotation.y=rot;
+  ghostGroup.add(g);
+}
+
+// ---- edits ----
+function addCell(rackId, modelId, top, side, channel){
+  const r=RACKS.find(r=>r.id===rackId); if(!r) return null;
+  const m=CATALOG[modelId]; if(!m) return null;
+  const zero = m.mount==='zeroU';
+  const cand={ id:uid(), model:modelId, top, side:zero?'full':(side||'full'), span:zero?0:(m.u||1),
+    name:'', kind:m.category, channel:zero?(channel||'left'):undefined };
+  if(!zero){
+    const hit=collides(r,cand,null);
+    if(hit) return null;
+  }
+  pushUndo(); r.cells.push(cand); commit();
+  return cand.id;
+}
+function deleteSelection(){
+  if(!selection.length) return;
+  pushUndo();
+  RACKS.forEach(r=>{ r.cells=r.cells.filter(c=>selection.indexOf(c.id)<0); });
+  selection=[]; commit();
+}
+function moveSelection(dU){
+  const items=selCells(); if(!items.length) return;
+  const ids=items.map(i=>i.cell.id);
+  for(const {rack,cell} of items){
+    const cand={...cell, top:cell.top+dU};
+    if(isZeroU(cell)) continue;
+    if(collides(rack,cand,ids)) return;
+  }
+  pushUndo();
+  items.forEach(({cell})=>{ if(!isZeroU(cell)) cell.top+=dU; });
+  commit();
+}
+function resizeSelection(dSpan){
+  const items=selCells(); if(!items.length) return;
+  const ids=items.map(i=>i.cell.id);
+  for(const {rack,cell} of items){
+    if(isZeroU(cell)) continue;
+    const ns=Math.max(1,(cell.span||1)+dSpan);
+    if(collides(rack,{...cell,span:ns},ids)) return;
+  }
+  pushUndo();
+  items.forEach(({cell})=>{ if(!isZeroU(cell)) cell.span=Math.max(1,(cell.span||1)+dSpan); });
+  commit();
+}
+function flipSelection(){
+  const items=selCells(); if(!items.length) return;
+  const ids=items.map(i=>i.cell.id);
+  for(const {rack,cell} of items){
+    if(isZeroU(cell)) continue;
+    const ns=(cell.side==='hot')?'cold':'hot';
+    if(collides(rack,{...cell,side:ns},ids)) return;
+  }
+  pushUndo();
+  items.forEach(({cell})=>{ if(!isZeroU(cell)) cell.side=(cell.side==='hot')?'cold':'hot'; });
+  commit();
+}
+function copySelection(){
+  clipboard=selCells().map(({cell})=>({...cell}));
+  hint(clipboard.length ? clipboard.length+' copied — Ctrl/Cmd+V to paste' : 'nothing to copy');
+  syncUI();
+}
+function pasteClipboard(){
+  if(!clipboard.length || !selRack) return;
+  const r=RACKS.find(r=>r.id===selRack); if(!r) return;
+  pushUndo();
+  const added=[];
+  clipboard.forEach(src=>{
+    const c={...src, id:uid()};
+    // drop into the first free position at or below the copied U
+    let placed=false;
+    for(let t=c.top; t>=spanOf(c); t--){
+      if(!collides(r,{...c,top:t},null)){ c.top=t; placed=true; break; }
+    }
+    if(!placed) for(let t=N_U; t>spanOf(c); t--){ if(!collides(r,{...c,top:t},null)){ c.top=t; placed=true; break; } }
+    if(placed){ r.cells.push(c); added.push(c.id); }
+  });
+  selection=added; commit();
+  hint(added.length ? added.length+' pasted into '+r.name : 'no free space in '+r.name);
+}
+function fillBlanks(){
+  if(!selRack) return;
+  const r=RACKS.find(r=>r.id===selRack); if(!r) return;
+  if(!CATALOG['blank-1u']) return;
+  pushUndo();
+  let n=0;
+  for(let u=1;u<=N_U;u++){
+    const cand={id:'tmp',model:'blank-1u',top:u,span:1,side:'full'};
+    if(!collides(r,cand,null)){ r.cells.push({id:uid(),model:'blank-1u',top:u,span:1,side:'full',name:'',kind:'blank'}); n++; }
+  }
+  commit(); hint(n+' blanking panel'+(n===1?'':'s')+' added');
+}
+
+// ============================================================ cabinets
+function addCabinet(){
+  pushUndo();
+  const cols=RACKS.filter(r=>(r.row||0)===(RACKS.length?Math.max(...RACKS.map(x=>x.row||0)):0));
+  const row = RACKS.length ? Math.max(...RACKS.map(r=>r.row||0)) : 0;
+  const col = cols.length ? Math.max(...cols.map(r=>r.col||0))+1 : 0;
+  const r={ id:uid(), name:'Cabinet '+(RACKS.length+1), row, col, cells:[] };
+  RACKS.push(r); selRack=r.id; selection=[]; commit(); focusRack(r);
+}
+function duplicateCabinet(id){
+  const src=RACKS.find(r=>r.id===id); if(!src) return;
+  pushUndo();
+  const cols=RACKS.filter(r=>(r.row||0)===(src.row||0));
+  const r={ id:uid(), name:src.name+' copy', row:src.row||0, col:Math.max(...cols.map(x=>x.col||0))+1,
+    cells:src.cells.map(c=>({...c,id:uid()})) };
+  RACKS.push(r); selRack=r.id; selection=[]; commit(); focusRack(r);
+}
+function removeCabinet(id){
+  const r=RACKS.find(r=>r.id===id); if(!r) return;
+  if(r.cells.length && !confirm('Delete "'+r.name+'" and its '+r.cells.length+' item'+(r.cells.length===1?'':'s')+'?')) return;
+  pushUndo();
+  RACKS=RACKS.filter(x=>x.id!==id);
+  if(!RACKS.length) RACKS=[{id:uid(),name:'Cabinet 1',row:0,col:0,cells:[]}];
+  if(selRack===id) selRack=RACKS[0].id;
+  selection=[]; commit();
+}
+function focusRack(r){
+  const p=rackPos(r);
+  flyTgt=new THREE.Vector3(p.x,1.05,p.z);
+  const dir=(r.row||0)%2!==0 ? -1 : 1;
+  flyPos=new THREE.Vector3(p.x,1.4,p.z+dir*2.6);
+}
+
+// ============================================================ validation
+function pduCapacityW(m){
+  if(!m.capacityA) return 0;
+  return m.capacityA * (m.volts||208) * (m.derate!=null?m.derate:0.8);
+}
+function runChecks(){
+  const out=[];
+  RACKS.forEach(r=>{
+    const seen=[];
+    let draw=0, weight=0, pduW=0, est=false;
+    const airflow={};
+    r.cells.forEach(cell=>{
+      const id=modelOfCell(cell); if(!id) return;
+      const m=CATALOG[id], sp=specOf(id);
+      // overlap (loaded layouts can contain them)
+      if(!isZeroU(cell)){
+        const [b1,t1]=rangeOf(cell);
+        seen.forEach(o=>{
+          if(!sidesOverlap(cell.side,o.cell.side)) return;
+          const [b2,t2]=o.range;
+          if(b1<=t2&&b2<=t1) out.push({sev:'err',rack:r,cell,
+            msg:r.name+': '+(m.short||id)+' at U'+cell.top+' overlaps '+(CATALOG[modelOfCell(o.cell)].short||'')+' at U'+o.cell.top});
+        });
+        seen.push({cell,range:[b1,t1]});
+      }
+      // depth
+      if(sp.depth.value!=null){
+        const usable=(RACK_D*1000)-90;
+        if(sp.depth.value>usable) out.push({sev:'err',rack:r,cell,
+          msg:r.name+': '+(m.short||id)+' is '+sp.depth.value+' mm deep'+(sp.depth.est?' (estimate)':'')+' — deeper than the '+Math.round(usable)+' mm of usable rail depth'});
+      }
+      if(sp.watts.value){ draw+=sp.watts.value; if(sp.watts.est) est=true; }
+      if(sp.weight.value) weight+=sp.weight.value;
+      if(m.capacityA) pduW+=pduCapacityW(m);
+      if(sp.airflow && sp.airflow!=='none') airflow[sp.airflow]=(airflow[sp.airflow]||0)+1;
+    });
+    // PDU load
+    if(pduW>0 && draw>pduW) out.push({sev:'err',rack:r,cell:null,
+      msg:r.name+': load '+Math.round(draw)+' W exceeds derated PDU capacity '+Math.round(pduW)+' W'});
+    else if(pduW>0 && draw>pduW*0.85) out.push({sev:'warn',rack:r,cell:null,
+      msg:r.name+': load '+Math.round(draw)+' W is over 85% of the '+Math.round(pduW)+' W derated PDU capacity'});
+    else if(pduW===0 && draw>0) out.push({sev:'warn',rack:r,cell:null, msg:r.name+': '+Math.round(draw)+' W of gear and no PDU in the cabinet'});
+    // airflow
+    const dirs=Object.keys(airflow);
+    if(dirs.length>1) out.push({sev:'warn',rack:r,cell:null,
+      msg:r.name+': mixed airflow — '+dirs.map(d=>airflow[d]+'× '+d).join(', ')+'. One of them exhausts into the cold aisle.'});
+    // redundancy: both PSUs on one PDU
+    r.cells.forEach(cell=>{
+      const id=modelOfCell(cell); if(!id) return;
+      const m=CATALOG[id]; if(!(m.psuCount>=2)) return;
+      const dev=conn.devices.find(d=>d.src && d.src.split('#')[2]===cell.id); if(!dev) return;
+      const pdus=new Set();
+      conn.links.forEach(l=>{
+        if(netOf(l)!=='power') return;
+        let other=null;
+        if(l.a.devId===dev.id) other=l.b.devId; else if(l.b.devId===dev.id) other=l.a.devId;
+        if(!other) return;
+        const oc=cellOfDev[other]; const om=oc?CELLMETA[oc]:null;
+        if(om) pdus.add(modelOfCell(om.cell)+'#'+oc);
+      });
+      if(pdus.size===1){
+        const n=conn.links.filter(l=>netOf(l)==='power'&&(l.a.devId===dev.id||l.b.devId===dev.id)).length;
+        if(n>=2) out.push({sev:'warn',rack:r,cell,
+          msg:r.name+': '+(dev.name||m.short)+' has both PSU cords on the same PDU — no A/B feed'});
+      }
+    });
+  });
+  return out;
+}
+
+// ============================================================ UI
+const paletteEl=document.getElementById('palette');
+const cabListEl=document.getElementById('cabList');
+const inspectorEl=document.getElementById('inspector');
+const checksEl=document.getElementById('checks');
+const totalsEl=document.getElementById('totals');
+const warnCountEl=document.getElementById('warnCount');
+const hintEl=document.getElementById('hint');
+const tip=document.getElementById('tip');
+let hintTimer=null;
+function hint(msg){
+  hintEl.innerHTML = msg || defaultHint();
+  if(hintTimer) clearTimeout(hintTimer);
+  if(msg) hintTimer=setTimeout(()=>{ hintEl.innerHTML=defaultHint(); },2600);
+}
+function defaultHint(){
+  if(wireMode && armed) return 'armed <b>'+armed.port+'</b> — click a compatible port on either face · <b>Esc</b> cancel';
+  if(wireMode) return 'wire mode · click a port to start — front or rear face · <b>W</b> to exit';
+  if(placing) return 'placing <b>'+(CATALOG[placing.modelId].short||placing.modelId)+'</b> — click a U · <b>Esc</b> cancel';
+  if(selection.length>1) return selection.length+' selected · <b>↑↓</b> move · <b>Del</b> remove · <b>Ctrl+C/V</b> copy';
+  if(selection.length===1) return '<b>↑↓</b> move · <b>[ ]</b> span · <b>F</b> flip side · <b>Del</b> remove';
+  return 'drag from the key into a U · click gear to select · <b>shift-click</b> multi-select · <b>W</b> wire';
+}
+
+const CAT_LABEL={ spine:'Spine', network:'Network', dist:'Distribution', mgmt:'Management', pdu:'Power', chassis:'Chassis',
+  generic:'Generic', blank:'Blanking', other:'Other' };
+function buildPalette(){
+  paletteEl.innerHTML='';
+  const byCat=modelsByCategory();
+  const order=['spine','network','dist','mgmt','chassis','generic','pdu','blank','other'];
+  const cats=[...new Set([...order.filter(c=>byCat[c]), ...Object.keys(byCat)])];
+  cats.forEach(cat=>{
+    const ids=byCat[cat]; if(!ids||!ids.length) return;
+    const h=document.createElement('div'); h.className='cat'; h.textContent=CAT_LABEL[cat]||cat; paletteEl.appendChild(h);
+    ids.forEach(id=>{
+      const m=CATALOG[id];
+      const el=document.createElement('div'); el.className='item'; el.dataset.model=id;
+      const n=(m.groups||[]).reduce((s,g)=>s+(g.count||0),0);
+      el.innerHTML='<span class="sw" style="background:'+(m.accent||'#8296b3')+'"></span>'+
+        '<span class="tx"><span class="nm">'+(m.short||id)+'</span>'+
+        '<span class="mt">'+n+' ports'+(m.user?' · custom':m.generic?' · generic':'')+'</span></span>'+
+        '<span class="u">'+(m.mount==='zeroU'?'0U':(m.u||1)+'U')+'</span>';
+      el.addEventListener('pointerdown',e=>{ e.preventDefault(); armPlace(id); });
+      paletteEl.appendChild(el);
+    });
+  });
+  const foot=document.createElement('div'); foot.style.cssText='display:flex; gap:6px; margin-top:6px;';
+  const nb=document.createElement('button'); nb.className='tb'; nb.style.flex='1'; nb.textContent='+ New model';
+  nb.onclick=()=>openModelEditor(null);
+  foot.appendChild(nb);
+  paletteEl.appendChild(foot);
+}
+function armPlace(id){
+  if(wireMode) setWireMode(false);
+  placing = placing && placing.modelId===id ? null : { modelId:id };
+  controls.enabled=!placing;
+  [...paletteEl.querySelectorAll('.item')].forEach(n=>n.classList.toggle('arm', !!placing && n.dataset.model===placing.modelId));
+  if(!placing) clearGhost();
+  hint();
+}
+function buildCabList(){
+  cabListEl.innerHTML='';
+  RACKS.slice().sort((a,b)=>(a.row-b.row)||(a.col-b.col)).forEach(r=>{
+    const used=r.cells.filter(c=>!isZeroU(c)).reduce((n,c)=>n+spanOf(c),0);
+    const el=document.createElement('div');
+    el.className='cab'+(r.id===selRack?' sel':'');
+    el.innerHTML='<span class="nm">'+r.name+'</span><span class="mt">'+used+'/'+N_U+'U</span>';
+    el.onclick=()=>{ selRack=r.id; selection=[]; applyIsolate(); focusRack(r); syncUI(); };
+    const dup=document.createElement('button'); dup.className='tb'; dup.style.cssText='padding:3px 6px; font-size:9.5px;'; dup.textContent='⧉';
+    dup.title='Duplicate cabinet';
+    dup.onclick=(e)=>{ e.stopPropagation(); duplicateCabinet(r.id); };
+    const del=document.createElement('button'); del.className='tb danger'; del.style.cssText='padding:3px 6px; font-size:9.5px;'; del.textContent='✕';
+    del.title='Delete cabinet';
+    del.onclick=(e)=>{ e.stopPropagation(); removeCabinet(r.id); };
+    el.appendChild(dup); el.appendChild(del);
+    cabListEl.appendChild(el);
+  });
+}
+function fieldRow(label, node){
+  const l=document.createElement('label'); l.className='f';
+  const s=document.createElement('span'); s.textContent=label; l.appendChild(s); l.appendChild(node); return l;
+}
+function buildInspector(){
+  inspectorEl.innerHTML='';
+  const items=selCells();
+  if(!items.length){
+    const r=RACKS.find(r=>r.id===selRack);
+    const d=document.createElement('div'); d.className='empty';
+    d.innerHTML = r
+      ? '<b>'+r.name+'</b> selected. Drag hardware from the key into a U, or click a device to edit it.'
+      : 'Pick a cabinet, then drag hardware from the key into a U.';
+    inspectorEl.appendChild(d);
+    if(r){
+      const nm=document.createElement('input'); nm.className='f'; nm.value=r.name;
+      nm.onchange=()=>{ pushUndo(); r.name=nm.value.trim()||r.name; commit(); };
+      inspectorEl.appendChild(fieldRow('Cabinet name',nm));
+      const pos=document.createElement('div'); pos.className='row2';
+      const row=document.createElement('input'); row.className='f'; row.type='number'; row.value=r.row||0;
+      row.onchange=()=>{ pushUndo(); r.row=parseInt(row.value)||0; commit(); focusRack(r); };
+      const col=document.createElement('input'); col.className='f'; col.type='number'; col.value=r.col||0;
+      col.onchange=()=>{ pushUndo(); r.col=parseInt(col.value)||0; commit(); focusRack(r); };
+      pos.appendChild(fieldRow('Row',row)); pos.appendChild(fieldRow('Position',col));
+      inspectorEl.appendChild(pos);
+      const note=document.createElement('div'); note.className='empty'; note.style.fontSize='11px';
+      note.textContent='Odd rows face the opposite way, so fronts meet across a cold aisle.';
+      inspectorEl.appendChild(note);
+      const fb=document.createElement('button'); fb.className='tb'; fb.textContent='Fill empty Us with blanks';
+      fb.onclick=fillBlanks; inspectorEl.appendChild(fb);
+    }
+    return;
+  }
+  if(items.length>1){
+    const d=document.createElement('div'); d.className='empty';
+    d.innerHTML='<b>'+items.length+' items</b> selected across '+new Set(items.map(i=>i.rack.id)).size+' cabinet(s).';
+    inspectorEl.appendChild(d);
+    const acts=document.createElement('div'); acts.className='row2';
+    [['Move up',()=>moveSelection(1)],['Move down',()=>moveSelection(-1)],
+     ['Flip side',flipSelection],['Delete',deleteSelection]].forEach(([t,fn])=>{
+      const b=document.createElement('button'); b.className='tb'+(t==='Delete'?' danger':''); b.textContent=t; b.onclick=fn; acts.appendChild(b); });
+    inspectorEl.appendChild(acts);
+    return;
+  }
+  const {rack,cell}=items[0];
+  const modelId=modelOfCell(cell), m=CATALOG[modelId], sp=specOf(modelId);
+  const zero=isZeroU(cell);
+
+  const nm=document.createElement('input'); nm.className='f'; nm.placeholder=DEVREG[cell.id]?DEVREG[cell.id].userData.name:'';
+  nm.value=cell.name||'';
+  nm.onchange=()=>{ pushUndo(); cell.name=nm.value.trim(); commit(); };
+  inspectorEl.appendChild(fieldRow('Name',nm));
+
+  const ms=document.createElement('select'); ms.className='f';
+  Object.keys(CATALOG).sort((a,b)=>(CATALOG[a].short||a).localeCompare(CATALOG[b].short||b)).forEach(id=>{
+    const o=document.createElement('option'); o.value=id; o.textContent=CATALOG[id].short||id;
+    if(id===modelId) o.selected=true; ms.appendChild(o); });
+  ms.onchange=()=>{
+    const next=CATALOG[ms.value];
+    const cand={...cell, model:ms.value, span:next.mount==='zeroU'?0:(next.u||1)};
+    if(next.mount!=='zeroU' && collides(rack,cand,[cell.id])){ hint('no room for a '+(next.u||1)+'U model there'); ms.value=modelId; return; }
+    pushUndo(); cell.model=ms.value; cell.kind=next.category;
+    cell.span=next.mount==='zeroU'?0:(next.u||1); commit();
+  };
+  inspectorEl.appendChild(fieldRow('Model',ms));
+
+  if(!zero){
+    const g=document.createElement('div'); g.className='row3';
+    const top=document.createElement('input'); top.className='f'; top.type='number'; top.min=1; top.max=N_U; top.value=cell.top;
+    top.onchange=()=>{ const v=parseInt(top.value); const cand={...cell,top:v};
+      if(collides(rack,cand,[cell.id])){ hint('U'+v+' is occupied'); top.value=cell.top; return; }
+      pushUndo(); cell.top=v; commit(); };
+    const spn=document.createElement('input'); spn.className='f'; spn.type='number'; spn.min=1; spn.max=12; spn.value=cell.span||1;
+    spn.onchange=()=>{ const v=Math.max(1,parseInt(spn.value)||1);
+      if(collides(rack,{...cell,span:v},[cell.id])){ hint('not enough clear Us'); spn.value=cell.span||1; return; }
+      pushUndo(); cell.span=v; commit(); };
+    const sd=document.createElement('select'); sd.className='f';
+    [['full','Full'],['cold','Cold (front)'],['hot','Hot (rear)']].forEach(([v,t])=>{
+      const o=document.createElement('option'); o.value=v; o.textContent=t; if((cell.side||'full')===v) o.selected=true; sd.appendChild(o); });
+    sd.onchange=()=>{ if(collides(rack,{...cell,side:sd.value},[cell.id])){ hint('that side is occupied'); sd.value=cell.side||'full'; return; }
+      pushUndo(); cell.side=sd.value; commit(); };
+    g.appendChild(fieldRow('Top U',top)); g.appendChild(fieldRow('Span',spn)); g.appendChild(fieldRow('Side',sd));
+    inspectorEl.appendChild(g);
+  } else {
+    const ch=document.createElement('select'); ch.className='f';
+    [['left','Left channel'],['right','Right channel']].forEach(([v,t])=>{
+      const o=document.createElement('option'); o.value=v; o.textContent=t; if((cell.channel||'left')===v) o.selected=true; ch.appendChild(o); });
+    ch.onchange=()=>{ pushUndo(); cell.channel=ch.value; commit(); };
+    inspectorEl.appendChild(fieldRow('Mounting',ch));
+  }
+
+  const facts=document.createElement('div'); facts.style.cssText='display:flex; flex-direction:column; gap:5px; padding-top:4px;';
+  const rows=[
+    ['Depth', sp.depth.value!=null ? (sp.depth.est?'~':'')+sp.depth.value+' mm' : 'TBC', sp.depth.est],
+    ['Draw', sp.watts.value!=null ? (sp.watts.est?'~':'')+sp.watts.value+' W' : '—', sp.watts.est],
+    ['Weight', sp.weight.value!=null ? (sp.weight.est?'~':'')+sp.weight.value+' kg' : '—', sp.weight.est],
+    ['Airflow', sp.airflow||'—', false],
+    ['PSUs', sp.psuCount||'—', false],
+  ];
+  if(m.capacityA) rows.push(['PDU capacity', m.capacityA+'A '+(m.volts||208)+'V → '+Math.round(pduCapacityW(m))+' W usable', false]);
+  rows.forEach(([k,v,est])=>{ const d=document.createElement('div'); d.className='kv';
+    d.innerHTML='<span>'+k+'</span><b'+(est?' class="est"':'')+'>'+v+'</b>'; facts.appendChild(d); });
+  inspectorEl.appendChild(facts);
+  if(m.est && (sp.depth.est||sp.watts.est||sp.weight.est)){
+    const n=document.createElement('div'); n.className='empty'; n.style.fontSize='11px';
+    n.textContent='Values marked ~ are estimates, not datasheet figures.';
+    inspectorEl.appendChild(n);
+  }
+  const acts=document.createElement('div'); acts.className='row2';
+  [['Flip side',flipSelection],['Delete',deleteSelection]].forEach(([t,fn])=>{
+    const b=document.createElement('button'); b.className='tb'+(t==='Delete'?' danger':''); b.textContent=t; b.onclick=fn; acts.appendChild(b); });
+  inspectorEl.appendChild(acts);
+  if(m.user){
+    const eb=document.createElement('button'); eb.className='tb'; eb.textContent='Edit this model';
+    eb.onclick=()=>openModelEditor(modelId); inspectorEl.appendChild(eb);
+  }
+}
+function buildChecks(){
+  const list=runChecks();
+  checksEl.innerHTML='';
+  const errs=list.filter(w=>w.sev==='err').length;
+  warnCountEl.textContent = list.length ? (errs?errs+' err · ':'')+(list.length-errs)+' warn' : '';
+  warnCountEl.style.color = errs?'#ff8589':'#eab308';
+  if(!list.length){
+    const d=document.createElement('div'); d.className='ok'; d.textContent='✓ No collisions, depth, load or airflow problems';
+    checksEl.appendChild(d); return;
+  }
+  list.slice(0,24).forEach(w=>{
+    const d=document.createElement('div'); d.className='warn'+(w.sev==='err'?' err':'');
+    d.innerHTML='<span class="d"></span><span>'+w.msg+'</span>';
+    d.onclick=()=>{
+      selRack=w.rack.id;
+      if(w.cell){ selection=[w.cell.id]; const dev=DEVREG[w.cell.id];
+        if(dev){ const p=new THREE.Vector3(); dev.getWorldPosition(p);
+          flyTgt=p.clone(); flyPos=new THREE.Vector3(p.x,p.y,p.z+facing(dev)*0.55); } }
+      else focusRack(w.rack);
+      syncUI();
+    };
+    checksEl.appendChild(d);
+  });
+}
+function buildTotals(){
+  const r=RACKS.find(r=>r.id===selRack);
+  totalsEl.innerHTML='';
+  if(!r){ totalsEl.innerHTML='<div class="empty">No cabinet selected.</div>'; return; }
+  let used=0, draw=0, weight=0, pduW=0, est=false;
+  r.cells.forEach(c=>{ const id=modelOfCell(c); if(!id) return; const m=CATALOG[id], sp=specOf(id);
+    if(!isZeroU(c)) used+=spanOf(c);
+    if(sp.watts.value){ draw+=sp.watts.value; if(sp.watts.est) est=true; }
+    if(sp.weight.value) weight+=sp.weight.value;
+    if(m.capacityA) pduW+=pduCapacityW(m); });
+  const rows=[['Cabinet',r.name],['Occupied',used+' of '+N_U+'U'],['Free',(N_U-used)+'U'],
+    ['Devices',r.cells.length],['Draw',(est?'~':'')+Math.round(draw)+' W'],
+    ['Weight',(weight?Math.round(weight)+' kg':'—')],
+    ['PDU headroom', pduW? Math.round(pduW-draw)+' W of '+Math.round(pduW)+' W' : 'no PDU']];
+  rows.forEach(([k,v])=>{ const d=document.createElement('div'); d.className='kv'; d.innerHTML='<span>'+k+'</span><b>'+v+'</b>'; totalsEl.appendChild(d); });
+}
+function syncUI(){
+  buildCabList(); buildInspector(); buildChecks(); buildTotals(); refreshSelBoxes(); rebuildAisles();
+  document.getElementById('bUndo').disabled=!UNDO.length;
+  document.getElementById('bRedo').disabled=!REDO.length;
+  document.getElementById('bDel').disabled=!selection.length;
+  document.getElementById('bCopy').disabled=!selection.length;
+  document.getElementById('bPaste').disabled=!clipboard.length;
+  hintEl.innerHTML=defaultHint();
+}
+
+// ============================================================ model editor
+const modal=document.getElementById('modal'), modalBox=document.getElementById('modalBox');
+function closeModal(){ modal.classList.remove('open'); modalBox.innerHTML=''; }
+modal.addEventListener('pointerdown',e=>{ if(e.target===modal) closeModal(); });
+function openModelEditor(existingId){
+  const src = existingId ? CATALOG[existingId] : null;
+  const groups = src ? JSON.parse(JSON.stringify(src.groups||[])) : [];
+  modalBox.innerHTML='';
+  const h=document.createElement('h2'); h.textContent = src ? 'Edit model — '+(src.short||existingId) : 'New hardware model';
+  const sub=document.createElement('div'); sub.className='sub';
+  sub.textContent='Saved to this browser and merged into the catalog, so it shows up in the planner, port catalog and connections too. Anything you cannot source, leave blank rather than guessing.';
+  modalBox.appendChild(h); modalBox.appendChild(sub);
+
+  const F={};
+  function inp(key,label,type,val,attrs){
+    const i=document.createElement('input'); i.className='f'; i.type=type||'text';
+    if(val!=null) i.value=val; Object.assign(i,attrs||{}); F[key]=i; return fieldRow(label,i);
+  }
+  const g1=document.createElement('div'); g1.className='row2';
+  g1.appendChild(inp('name','Full name','text',src?src.name:''));
+  g1.appendChild(inp('short','Short label','text',src?src.short:''));
+  modalBox.appendChild(g1);
+  const g2=document.createElement('div'); g2.className='row3';
+  const cat=document.createElement('select'); cat.className='f';
+  ['generic','spine','network','dist','mgmt','pdu','chassis','blank','other'].forEach(c=>{
+    const o=document.createElement('option'); o.value=c; o.textContent=CAT_LABEL[c]||c;
+    if(src&&src.category===c) o.selected=true; cat.appendChild(o); });
+  F.category=cat;
+  g2.appendChild(fieldRow('Category',cat));
+  g2.appendChild(inp('u','Rack units','number',src?src.u:1,{min:0,max:24}));
+  g2.appendChild(inp('widthIn','Width (in)','number',src?src.widthIn:19,{step:0.1}));
+  modalBox.appendChild(g2);
+  const g3=document.createElement('div'); g3.className='row3';
+  g3.appendChild(inp('depthMm','Depth (mm)','number',src?(src.depthMm??''):''));
+  g3.appendChild(inp('weightKg','Weight (kg)','number',src?(src.est&&src.est.weightKg)||'':'' ,{step:0.1}));
+  g3.appendChild(inp('watts','Draw (W)','number',src?(src.est&&src.est.watts)||'':''));
+  modalBox.appendChild(g3);
+  const g4=document.createElement('div'); g4.className='row3';
+  const af=document.createElement('select'); af.className='f';
+  [['','—'],['AFO','AFO front-to-back'],['AFI','AFI back-to-front'],['none','No airflow']].forEach(([v,t])=>{
+    const o=document.createElement('option'); o.value=v; o.textContent=t; if(src&&src.airflow===v) o.selected=true; af.appendChild(o); });
+  F.airflow=af;
+  g4.appendChild(fieldRow('Airflow',af));
+  g4.appendChild(inp('psuCount','PSU count','number',src?(src.psuCount??0):0,{min:0,max:8}));
+  const mnt=document.createElement('select'); mnt.className='f';
+  [['rack','Rack-mount (uses U)'],['zeroU','0U vertical']].forEach(([v,t])=>{
+    const o=document.createElement('option'); o.value=v; o.textContent=t; if(src&&src.mount===v) o.selected=true; mnt.appendChild(o); });
+  F.mount=mnt;
+  g4.appendChild(fieldRow('Mounting',mnt));
+  modalBox.appendChild(g4);
+  const g5=document.createElement('div'); g5.className='row3';
+  g5.appendChild(inp('capacityA','PDU amps','number',src?(src.capacityA??''):''));
+  g5.appendChild(inp('volts','PDU volts','number',src?(src.volts??''):''));
+  g5.appendChild(inp('accent','Accent colour','text',src?(src.accent||'#8296b3'):'#8296b3'));
+  modalBox.appendChild(g5);
+  modalBox.appendChild(fieldRow('Note (say what is verified and what is not)',
+    (()=>{ const i=document.createElement('input'); i.className='f'; i.value=src?(src.note||''):''; F.note=i; return i; })()));
+
+  const gs=document.createElement('div'); gs.className='sec'; gs.textContent='Port groups'; modalBox.appendChild(gs);
+  const gWrap=document.createElement('div'); gWrap.style.cssText='display:flex; flex-direction:column; gap:7px;'; modalBox.appendChild(gWrap);
+  function drawGroups(){
+    gWrap.innerHTML='';
+    groups.forEach((gr,i)=>{
+      const row=document.createElement('div'); row.className='grpRow';
+      const lb=document.createElement('input'); lb.className='f'; lb.value=gr.label||''; lb.oninput=()=>gr.label=lb.value;
+      const ty=document.createElement('select'); ty.className='f';
+      Object.keys(PORT_TYPES).forEach(t=>{ const o=document.createElement('option'); o.value=t; o.textContent=t;
+        if(gr.type===t) o.selected=true; ty.appendChild(o); });
+      ty.onchange=()=>gr.type=ty.value; gr.type=gr.type||Object.keys(PORT_TYPES)[0];
+      const ct=document.createElement('input'); ct.className='f'; ct.type='number'; ct.min=1; ct.value=gr.count||1; ct.oninput=()=>gr.count=Math.max(1,parseInt(ct.value)||1);
+      const rw=document.createElement('input'); rw.className='f'; rw.type='number'; rw.min=1; rw.value=gr.rows||1; rw.oninput=()=>gr.rows=Math.max(1,parseInt(rw.value)||1);
+      const cl=document.createElement('input'); cl.className='f'; cl.type='number'; cl.min=1; cl.value=gr.cols||1; cl.oninput=()=>gr.cols=Math.max(1,parseInt(cl.value)||1);
+      const px=document.createElement('input'); px.className='f'; px.value=(gr.naming&&gr.naming.prefix)||''; px.oninput=()=>gr.naming={prefix:px.value,start:parseInt(st.value)||0};
+      const st=document.createElement('input'); st.className='f'; st.type='number'; st.value=(gr.naming&&gr.naming.start)||0; st.oninput=()=>gr.naming={prefix:px.value,start:parseInt(st.value)||0};
+      const rr=document.createElement('button'); rr.className='tb'+(gr.rear?' on':''); rr.textContent='rear'; rr.style.padding='7px 6px';
+      rr.onclick=()=>{ gr.rear=!gr.rear; drawGroups(); };
+      const dl=document.createElement('button'); dl.className='tb danger'; dl.textContent='✕'; dl.style.padding='7px 6px';
+      dl.onclick=()=>{ groups.splice(i,1); drawGroups(); };
+      [[ 'Label',lb],['Type',ty],['Qty',ct],['Rows',rw],['Cols',cl],['Prefix',px],['From',st]].forEach(([l,n])=>row.appendChild(fieldRow(l,n)));
+      const acts=document.createElement('div'); acts.style.cssText='display:flex; gap:4px;'; acts.appendChild(rr); acts.appendChild(dl);
+      row.appendChild(acts);
+      gWrap.appendChild(row);
+    });
+    if(!groups.length){ const d=document.createElement('div'); d.className='empty';
+      d.textContent='No port groups. A model with no ports is fine for blanks and shelves.'; gWrap.appendChild(d); }
+  }
+  drawGroups();
+  const ag=document.createElement('button'); ag.className='tb'; ag.textContent='+ Add port group'; ag.style.marginTop='8px';
+  ag.onclick=()=>{ groups.push({id:'g'+(groups.length+1),label:'Ports',type:'RJ45',count:1,rows:1,cols:1,
+    naming:{prefix:'p',start:1}, region:[0.1,0.25,0.8,0.5]}); drawGroups(); };
+  modalBox.appendChild(ag);
+
+  const foot=document.createElement('div'); foot.style.cssText='display:flex; gap:8px; margin-top:20px; padding-top:16px; border-top:1px solid var(--border);';
+  const sv=document.createElement('button'); sv.className='tb on'; sv.textContent=src?'Save model':'Create model'; sv.style.padding='10px 18px';
+  sv.onclick=()=>{
+    const name=(F.name.value||'').trim(); if(!name){ F.name.focus(); return; }
+    const id = existingId || ('user-'+name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''));
+    const num=(el)=>{ const v=parseFloat(el.value); return isFinite(v)?v:null; };
+    const est={};
+    if(num(F.weightKg)!=null) est.weightKg=num(F.weightKg);
+    if(num(F.watts)!=null) est.watts=num(F.watts);
+    const mount=F.mount.value;
+    const model={ id, name, short:(F.short.value||name).trim(), category:F.category.value,
+      accent:(F.accent.value||'#8296b3').trim(),
+      u: mount==='zeroU' ? 0 : Math.max(0,parseInt(F.u.value)||1),
+      mount, widthIn:num(F.widthIn)||19, depthMm:num(F.depthMm),
+      psuCount:parseInt(F.psuCount.value)||0,
+      airflow:F.airflow.value||null,
+      note:(F.note.value||'').trim(),
+      groups: groups.map((g,i)=>({ id:g.id||('g'+i), label:g.label||'Ports', type:g.type, count:g.count||1,
+        rows:g.rows||1, cols:g.cols||1, rear:!!g.rear, assumed:true,
+        naming:g.naming||{prefix:'p',start:1},
+        region:g.region||[0.1,0.25,0.8,0.5] })) };
+    if(Object.keys(est).length) model.est=est;
+    if(num(F.capacityA)!=null){ model.capacityA=num(F.capacityA); model.volts=num(F.volts)||208; model.derate=0.8; }
+    saveUserModel(model);
+    buildPalette(); rebuildScene(); syncUI(); closeModal();
+    hint('"'+model.short+'" saved to the catalog');
+  };
+  const cn=document.createElement('button'); cn.className='tb'; cn.textContent='Cancel'; cn.style.padding='10px 18px'; cn.onclick=closeModal;
+  foot.appendChild(sv); foot.appendChild(cn);
+  if(existingId && CATALOG[existingId] && CATALOG[existingId].user){
+    const rm=document.createElement('button'); rm.className='tb danger'; rm.textContent='Delete model'; rm.style.cssText='padding:10px 18px; margin-left:auto;';
+    rm.onclick=()=>{ if(!confirm('Delete this model from the catalog?')) return;
+      removeUserModel(existingId); buildPalette(); rebuildScene(); syncUI(); closeModal(); };
+    foot.appendChild(rm);
+  }
+  modalBox.appendChild(foot);
+  modal.classList.add('open');
+}
+
+// ============================================================ picking
+const ray=new THREE.Raycaster(), mouse=new THREE.Vector2();
+let flyPos=null, flyTgt=null;
+function deviceOf(obj){ let o=obj; while(o){ if(o.userData && o.userData.cellId) return o; o=o.parent; } return null; }
+function setMouse(e){ mouse.x=(e.clientX/innerWidth)*2-1; mouse.y=-(e.clientY/innerHeight)*2+1; ray.setFromCamera(mouse,camera); }
+function pickDrop(e){
+  setMouse(e);
+  const hits=ray.intersectObjects(dropTargets.children,false);
+  if(!hits.length) return null;
+  const h=hits[0], pl=h.object;
+  const r=RACKS.find(r=>r.id===pl.userData.rackId); if(!r) return null;
+  const local=h.point.clone().sub(rackPos(r)).applyAxisAngle(new THREE.Vector3(0,1,0),-rackRot(r));
+  const u=Math.floor((local.y-BASE_Y)/U)+1;
+  return { rack:r, face:pl.userData.dropFace, u:Math.min(N_U,Math.max(1,u)), point:h.point };
+}
+function pickScene(e){
+  setMouse(e);
+  const hits=ray.intersectObjects(allRacks.children,true);
+  for(const h of hits){
+    if(h.object.userData && h.object.userData.isPorts && h.instanceId!=null)
+      return { port:h.object.userData.ports[h.instanceId], dev:deviceOf(h.object), point:h.point };
+    if(h.object.visible===false) continue;
+    return { dev:deviceOf(h.object), port:null, point:h.point };
+  }
+  return null;
+}
+
+renderer.domElement.addEventListener('pointermove',e=>{
+  lastInteract=performance.now();
+  if(wireMode){
+    if(performance.now()-lastRay<45) return;
+    lastRay=performance.now();
+    const hit=pickScene(e);
+    if(hit && hit.port && hit.dev){
+      const cellId=hit.dev.userData.cellId;
+      const wired=portIsWired(cellId, hit.port.addr);
+      const lp=hit.dev.userData.portPos[hit.port.addr];
+      tip.innerHTML='<div class="pa">'+hit.port.addr+' <span class="pt">· '+hit.port.typeLabel+'</span></div>'+
+        '<div class="pt">'+hit.port.group+'</div><div>'+hit.dev.userData.label+'</div>'+
+        '<div class="pt">'+((lp&&lp.z<0)?'rear face':'front face')+'</div>'+
+        (wired?'<div class="pw">wired → '+wired+'</div>':'<div class="pt">free</div>');
+      tip.style.display='block';
+      tip.style.left=Math.min(e.clientX+14,innerWidth-330)+'px'; tip.style.top=Math.min(e.clientY+10,innerHeight-150)+'px';
+      if(armed && (cellId!==armed.cellId || hit.port.addr!==armed.port)){
+        clearCableGhost();
+        if(compatible(armed.cellId,armed.port,cellId,hit.port.addr)){
+          const pa=portWorld(armed.cellId,armed.port), pb=portWorld(cellId,hit.port.addr);
+          const curve=routeCurve(pa,portFacing(DEVREG[armed.cellId],armed.port),pb,portFacing(hit.dev,hit.port.addr),armed.net);
+          cableGhost=new THREE.Mesh(new THREE.TubeGeometry(curve,40,0.0042,8,false),
+            new THREE.MeshBasicMaterial({color:NET_COLOR[armed.net],transparent:true,opacity:0.5,toneMapped:false}));
+          scene.add(cableGhost);
+        }
+      }
+    } else { tip.style.display='none'; clearCableGhost(); }
+    return;
+  }
+  if(placing){
+    const d=pickDrop(e);
+    if(d){
+      const m=CATALOG[placing.modelId];
+      const cand={ id:'tmp', model:placing.modelId, top:d.u, span:m.mount==='zeroU'?0:(m.u||1),
+        side: m.mount==='zeroU' ? 'full' : (d.face==='hot'?'hot':'cold') };
+      const bad=collides(d.rack,cand,null);
+      showGhost(d.rack,cand,!bad);
+      tip.innerHTML='<div class="pa">'+(m.short||placing.modelId)+'</div><div class="pt">'+d.rack.name+' · U'+d.u+
+        (m.mount==='zeroU'?' · 0U channel':' · '+(d.face==='hot'?'hot (rear)':'cold (front)'))+'</div>'+
+        (bad ? '<div class="wr">'+(bad.oob?'past the end of the rack':'occupied')+'</div>' : '<div class="pw">click to place</div>');
+      tip.style.display='block'; tip.style.left=Math.min(e.clientX+14,innerWidth-260)+'px'; tip.style.top=(e.clientY+12)+'px';
+    } else { clearGhost(); tip.style.display='none'; }
+    return;
+  }
+  if(moving){
+    const d=pickDrop(e);
+    if(d && d.rack.id===moving.rackId){
+      const {cell}=cellById(moving.ids[0]);
+      const cand={...cell, top:d.u, side:(isZeroU(cell)?cell.side:(d.face==='hot'?'hot':'cold'))};
+      const bad=collides(d.rack,cand,moving.ids);
+      showGhost(d.rack,cand,!bad);
+      moving.target={u:d.u,face:d.face,ok:!bad};
+    }
+    return;
+  }
+  if(performance.now()-lastRay<45) return;
+  lastRay=performance.now();
+  const hit=pickScene(e);
+  if(hit && hit.port && hit.dev){
+    tip.innerHTML='<div class="pa">'+hit.port.addr+' <span class="pt">· '+hit.port.typeLabel+'</span></div>'+
+      '<div class="pt">'+hit.port.group+'</div><div>'+hit.dev.userData.label+'</div>'+
+      (hit.port.assumed?'<div class="wr">assumed — confirm on hardware</div>':'');
+    tip.style.display='block';
+    tip.style.left=Math.min(e.clientX+14,innerWidth-330)+'px'; tip.style.top=Math.min(e.clientY+10,innerHeight-130)+'px';
+  } else if(hit && hit.dev){
+    tip.innerHTML='<div>'+hit.dev.userData.label+'</div>';
+    tip.style.display='block'; tip.style.left=(e.clientX+14)+'px'; tip.style.top=(e.clientY+10)+'px';
+  } else tip.style.display='none';
+});
+
+let downAt=null, downDev=null;
+renderer.domElement.addEventListener('pointerdown',e=>{
+  lastInteract=performance.now();
+  if(e.button!==0) return;
+  if(wireMode){
+    const hit=pickScene(e);
+    if(hit && hit.port && hit.dev){
+      const cellId=hit.dev.userData.cellId;
+      if(!armed) armPort(cellId, hit.port.addr);
+      else if(cellId!==armed.cellId || hit.port.addr!==armed.port) completeWire(cellId, hit.port.addr);
+    } else closeWire();
+    return;
+  }
+  if(placing){
+    const d=pickDrop(e);
+    if(d){
+      const m=CATALOG[placing.modelId];
+      const id=addCell(d.rack.id, placing.modelId, d.u, m.mount==='zeroU'?'full':(d.face==='hot'?'hot':'cold'));
+      if(id){ selRack=d.rack.id; selection=[id]; syncUI(); hint((m.short||'')+' placed at U'+d.u); }
+      else hint('U'+d.u+' is occupied');
+      if(!e.shiftKey){ placing=null; controls.enabled=true;
+        [...paletteEl.querySelectorAll('.item')].forEach(n=>n.classList.remove('arm')); clearGhost(); }
+    }
+    return;
+  }
+  const hit=pickScene(e);
+  downAt={x:e.clientX,y:e.clientY};
+  downDev = hit && hit.dev ? hit.dev : null;
+  if(downDev){
+    const id=downDev.userData.cellId;
+    if(e.shiftKey){ selection = selection.indexOf(id)>=0 ? selection.filter(s=>s!==id) : [...selection,id]; }
+    else if(selection.indexOf(id)<0) selection=[id];
+    selRack=downDev.userData.rackId;
+    applyIsolate(); syncUI();
+  } else { selection=[]; syncUI(); }
+});
+renderer.domElement.addEventListener('pointerup',e=>{
+  if(moving){
+    if(moving.target && moving.target.ok){
+      const items=selCells();
+      const first=cellById(moving.ids[0]);
+      const dU=moving.target.u-first.cell.top;
+      pushUndo();
+      items.forEach(({cell})=>{ if(isZeroU(cell)) return;
+        cell.top+=dU;
+        if(moving.target.face) cell.side = moving.target.face==='hot'?'hot':'cold'; });
+      commit();
+    }
+    moving=null; clearGhost(); controls.enabled=true; hint(); return;
+  }
+  downAt=null; downDev=null;
+});
+// drag a selected device to a new U
+renderer.domElement.addEventListener('pointermove',e=>{
+  if(placing||moving||!downAt||!downDev) return;
+  if(Math.hypot(e.clientX-downAt.x,e.clientY-downAt.y)<7) return;
+  const id=downDev.userData.cellId;
+  if(isZeroU(cellById(id).cell)) return;
+  moving={ ids: selection.length?selection:[id], rackId: downDev.userData.rackId, target:null };
+  controls.enabled=false;
+  hint('drop on a free U · release to place');
+});
+renderer.domElement.addEventListener('dblclick',e=>{
+  const hit=pickScene(e); if(!hit||!hit.dev) return;
+  const p=new THREE.Vector3(); hit.dev.getWorldPosition(p);
+  const f=facing(hit.dev);
+  flyTgt=p.clone(); flyPos=new THREE.Vector3(p.x,p.y,p.z+f*0.45);
+});
+
+// ============================================================ keyboard
+addEventListener('keydown',e=>{
+  if(/^(INPUT|SELECT|TEXTAREA)$/.test(document.activeElement.tagName)) return;
+  const meta=e.metaKey||e.ctrlKey;
+  if(e.key==='Escape'){ if(armed) { closeWire(); return; } if(placing) armPlace(placing.modelId); else { selection=[]; syncUI(); } clearGhost(); return; }
+  if(e.key.toLowerCase()==='w'){ e.preventDefault(); setWireMode(!wireMode); return; }
+  if(meta && e.key.toLowerCase()==='z'){ e.preventDefault(); e.shiftKey?redo():undo(); return; }
+  if(meta && e.key.toLowerCase()==='c'){ e.preventDefault(); copySelection(); return; }
+  if(meta && e.key.toLowerCase()==='v'){ e.preventDefault(); pasteClipboard(); return; }
+  if(meta && e.key.toLowerCase()==='a'){ e.preventDefault();
+    const r=RACKS.find(r=>r.id===selRack); if(r){ selection=r.cells.map(c=>c.id); syncUI(); } return; }
+  if(e.key==='Delete'||e.key==='Backspace'){ e.preventDefault(); deleteSelection(); return; }
+  if(e.key==='ArrowUp'){ e.preventDefault(); moveSelection(e.shiftKey?5:1); return; }
+  if(e.key==='ArrowDown'){ e.preventDefault(); moveSelection(e.shiftKey?-5:-1); return; }
+  if(e.key===']'){ e.preventDefault(); resizeSelection(1); return; }
+  if(e.key==='['){ e.preventDefault(); resizeSelection(-1); return; }
+  if(e.key.toLowerCase()==='f'){ e.preventDefault(); flipSelection(); return; }
+});
+
+// ============================================================ wiring
+const wirePanel=document.getElementById('wire');
+const wireSrcEl=document.getElementById('wireSrc');
+const wireSubEl=document.getElementById('wireSub');
+const wireTypesEl=document.getElementById('wireTypes');
+function hexCss(n){ return '#'+n.toString(16).padStart(6,'0'); }
+function clearCableGhost(){ if(cableGhost){ scene.remove(cableGhost); cableGhost.geometry.dispose(); cableGhost.material.dispose(); cableGhost=null; } }
+function closeWire(){ armed=null; wireMarker.visible=false; clearCableGhost(); renderWirePanel(); }
+function renderWirePanel(){
+  if(!armed){ wirePanel.style.display='none'; return; }
+  const dev=DEVREG[armed.cellId];
+  const lp=dev && dev.userData.portPos[armed.port];
+  const face=(lp && lp.z<0) ? 'rear face' : 'front face';
+  wireSrcEl.textContent=armed.port;
+  wireSubEl.textContent=(dev?dev.userData.name:'')+' \u00b7 '+face+' \u00b7 pick a compatible port';
+  wireTypesEl.innerHTML='';
+  ['ipmi','public','private','power'].forEach(net=>{
+    const b=document.createElement('button');
+    b.className='tb';
+    b.style.cssText='display:flex; align-items:center; gap:6px; justify-content:center;'+
+      (armed.net===net?' border-color:'+hexCss(NET_COLOR[net])+'; border-width:2px;':'');
+    b.innerHTML='<span style="width:9px;height:9px;border-radius:50%;background:'+hexCss(NET_COLOR[net])+'"></span>'+
+      (net==='public'?'Public':net==='ipmi'?'IPMI':net==='private'?'Private':'Power');
+    b.onclick=()=>{ armed.net=net; renderWirePanel(); };
+    wireTypesEl.appendChild(b);
+  });
+  wirePanel.style.display='block';
+}
+document.getElementById('wireCancel').onclick=closeWire;
+function setWireMode(on){
+  wireMode=on;
+  document.getElementById('bWire').classList.toggle('on', wireMode);
+  controls.enabled = !placing;
+  if(!wireMode) closeWire();
+  if(wireMode && placing) armPlace(placing.modelId);
+  hint();
+}
+function armPort(cellId, addr){
+  armed={ cellId, port:addr, net:suggestNet(cellId,addr) };
+  const dev=DEVREG[cellId];
+  const p=portWorld(cellId,addr), f=portFacing(dev,addr);
+  wireMarker.position.copy(p); wireMarker.position.z += f*0.004;
+  wireMarker.rotation.set(0, f>0?0:Math.PI, 0);
+  wireMarker.visible=true;
+  renderWirePanel();
+}
+function completeWire(cellId, addr){
+  if(!compatible(armed.cellId,armed.port,cellId,addr)){
+    wireSubEl.textContent='Incompatible \u2014 a data port cannot join a power port.';
+    return;
+  }
+  const a=ensureDevice(armed.cellId), b=ensureDevice(cellId);
+  conn.links.push({ id:connUid(), kind: armed.net==='power'?'power':'data', net:armed.net,
+    a:{devId:a.id, port:armed.port}, b:{devId:b.id, port:addr}, label:'' });
+  saveConn(); rebuildCables(); syncUI();
+  hint('cable run \u00b7 '+armed.port+' \u2192 '+addr);
+  closeWire();
+}
+
+// ============================================================ toolbar
+const $=id=>document.getElementById(id);
+$('bUndo').onclick=undo; $('bRedo').onclick=redo;
+$('bDel').onclick=deleteSelection; $('bCopy').onclick=copySelection; $('bPaste').onclick=pasteClipboard;
+$('bAddCab').onclick=addCabinet;
+$('bWire').onclick=()=>setWireMode(!wireMode);
+if (window.CabTheme) window.CabTheme.bind($('bTheme'));
+$('bShadow').onclick=()=>{
+  shadowsOn=!shadowsOn;
+  $('bShadow').classList.toggle('on',shadowsOn);
+  renderer.shadowMap.enabled=shadowsOn;
+  allRacks.traverse(o=>{ if(o.isMesh||o.isInstancedMesh){ o.castShadow=shadowsOn; o.receiveShadow=shadowsOn; } });
+  renderer.shadowMap.needsUpdate=true;
+};
+$('bCables').onclick=()=>{ cablesGroup.visible=!cablesGroup.visible; $('bCables').classList.toggle('on',cablesGroup.visible); };
+$('bGhost').onclick=()=>{ isolate=!isolate; $('bGhost').classList.toggle('on',isolate); applyIsolate(); };
+function viewFor(r,mode){
+  const p=r?rackPos(r):new THREE.Vector3();
+  const dir=r&&(r.row||0)%2!==0 ? -1 : 1;
+  if(mode==='front'){ flyPos=new THREE.Vector3(p.x,1.05,p.z+dir*2.5); flyTgt=new THREE.Vector3(p.x,1.05,p.z); }
+  if(mode==='rear'){ flyPos=new THREE.Vector3(p.x,1.1,p.z-dir*2.2); flyTgt=new THREE.Vector3(p.x,1.05,p.z); }
+  if(mode==='aisle'){ flyPos=new THREE.Vector3(p.x-2.4,1.6,p.z+dir*2.2); flyTgt=new THREE.Vector3(p.x,1.0,p.z); }
+}
+$('bFront').onclick=()=>viewFor(RACKS.find(r=>r.id===selRack),'front');
+$('bRear').onclick=()=>viewFor(RACKS.find(r=>r.id===selRack),'rear');
+$('bTop').onclick=()=>viewFor(RACKS.find(r=>r.id===selRack),'aisle');
+$('bFit').onclick=()=>{
+  const bb=new THREE.Box3();
+  RACKS.forEach(r=>{ const p=rackPos(r); bb.expandByPoint(new THREE.Vector3(p.x-RACK_W,0,p.z-RACK_D)); bb.expandByPoint(new THREE.Vector3(p.x+RACK_W,rackH,p.z+RACK_D)); });
+  const c=bb.getCenter(new THREE.Vector3()), s=bb.getSize(new THREE.Vector3());
+  const dist=Math.max(3.7, Math.max(s.x,s.z)*1.5);
+  flyTgt=new THREE.Vector3(c.x,rackH*0.5,c.z); flyPos=new THREE.Vector3(c.x+dist*0.45,rackH*1.05,c.z+dist);
+};
+$('bSave').onclick=()=>{
+  const blob=new Blob([JSON.stringify(RACKS,null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='cabinet-layout.json'; a.click(); URL.revokeObjectURL(a.href);
+};
+$('bOpen').onclick=()=>{
+  const i=document.createElement('input'); i.type='file'; i.accept='.json,application/json';
+  i.onchange=()=>{ const f=i.files[0]; if(!f) return;
+    const fr=new FileReader();
+    fr.onload=()=>{ try{
+      const d=JSON.parse(fr.result);
+      if(!Array.isArray(d)) throw new Error('not a layout');
+      pushUndo();
+      RACKS=d.map((r,n)=>({ id:r.id||uid(), name:r.name||('Cabinet '+(n+1)), row:r.row||0, col:(r.col!=null?r.col:n),
+        cells:(r.cells||[]).map(c=>({...c,id:c.id||uid()})) }));
+      selRack=RACKS[0]?RACKS[0].id:null; selection=[]; commit();
+      hint('loaded '+RACKS.length+' cabinet'+(RACKS.length===1?'':'s'));
+    }catch(err){ hint('could not read that file'); } };
+    fr.readAsText(f); };
+  i.click();
+};
+// The toolbar wraps on narrow windows, so the sidebars must start below it.
+function syncBarHeight(){
+  document.documentElement.style.setProperty('--barH', document.getElementById('bar').offsetHeight+'px');
+}
+addEventListener('resize',()=>{ camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth,innerHeight); syncBarHeight(); });
+
+// Flipping the theme repaints the room without a reload.
+addEventListener('cabthemechange', ()=>{
+  readSceneTheme();
+  scene.background = new THREE.Color(SCENE_THEME.bg);
+  scene.fog.color = new THREE.Color(SCENE_THEME.fog);
+  floor.material.color = new THREE.Color(SCENE_THEME.floor);
+  ceil.material.color = new THREE.Color(SCENE_THEME.bg);
+  renderer.shadowMap.needsUpdate = true;
+});
+
+// ============================================================ loop
+let lastRay=0, lastInteract=performance.now();
+let lodTimer=null, lastCamKey='';
+function maybeRelod(){
+  if(RACKS.length<=6) return;
+  const k=RACKS.map(r=>detailLevel(r)).join('');
+  if(k===lastCamKey) return;
+  lastCamKey=k;
+  if(lodTimer) clearTimeout(lodTimer);
+  lodTimer=setTimeout(()=>{ rebuildScene(); refreshSelBoxes(); },160);
+}
+let frameN=0;
+function blink(){
+  frameN++; if(frameN%16!==0) return;
+  const COLS=[new THREE.Color(0x39d353),new THREE.Color(0x39d353),new THREE.Color(0x0d1f12),new THREE.Color(0xf5a623)];
+  for(const {inst,n} of ACT){
+    if(!inst.instanceColor) continue;
+    const flips=Math.max(1,n>>4);
+    for(let k=0;k<flips;k++) inst.setColorAt((Math.random()*n)|0, COLS[(Math.random()*4)|0]);
+    inst.instanceColor.needsUpdate=true;
+  }
+}
+let started=false;
+function animate(){
+  requestAnimationFrame(animate);
+  const idle = performance.now()-lastInteract > 900;
+  if(idle && frameN%2===1 && !flyPos){ frameN++; return; }
+  if(flyPos){ camera.position.lerp(flyPos,0.12); controls.target.lerp(flyTgt,0.12);
+    if(camera.position.distanceTo(flyPos)<0.02){ flyPos=null; flyTgt=null; } }
+  for(const f of FANS) f.rotation.z+=0.3;
+  controls.update(); blink(); maybeRelod();
+  selBoxes.children.forEach(h=>h.update());
+  renderer.render(scene,camera);
+  if(!started){ started=true; document.getElementById('loading').classList.add('hide'); }
+}
+
+// ============================================================ boot
+RACKS=loadLayout();
+selRack=RACKS[0]?RACKS[0].id:null;
+if(RACKS.length && !RACKS.some(r=>r.cells.length)) hint('empty layout — drag hardware from the key to start');
+buildPalette();
+rebuildScene();
+syncUI();
+syncBarHeight();
+$('bFit').click();
+animate();
+</script>
+</body>
+</html>
