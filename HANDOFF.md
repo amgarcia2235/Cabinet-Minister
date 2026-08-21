@@ -368,9 +368,15 @@ the reference.
   being listed as an importable layout because it shares the key prefix — the
   exclusion list is `['connections','theme','models']`.
 - The catalog has **12** models, not 14 — the v0.7.0 notes said 14 and are corrected.
-- `Hub (export).dc.html` renamed `Hub-export.dc.html` (parentheses broke the
-  script tooling). It is the bundler input for `cabinetminister Hub (offline).html`
-  and carries the `__bundler_thumbnail` template the bundler requires.
+- **Standalone builds: all six tools, rebuilt at v0.8.0.** `Hub`, `Cabinet Layout`,
+  `Hardware Catalog`, `Connections`, `Cabinet 3D`, `Cabinet 3D Editor` — each
+  `(standalone).html`. Previously only two existed and both predated the reskin.
+  The two plain `.html` tools bundle directly; the four DCs need a bundler input
+  copy carrying a `__bundler_thumbnail` template, and those inputs are named
+  `Hub-export` / `Layout-export` / `Catalog-export` / `Wiring-export`.dc.html
+  (parentheses in a filename break the script tooling). Inputs are gitignored —
+  they are build artefacts. **Regenerate every standalone after any change to a
+  tool, `catalog.js` or `theme.css`, or they silently ship the previous look.**
 
 ## Shipped after the reskin
 - **Editor wiring, both faces.** `Wire` mode (toolbar or `W`) arms a port and runs

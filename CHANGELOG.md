@@ -18,6 +18,7 @@ All notable changes to cabinetminister. Features bump the minor (0.x); fixes, re
 - Connections: stale-entry detection. Deleting gear does not delete its cables, so devices whose cell no longer exists in the layout are listed with a one-click clear that leaves the layout untouched. Also fixed cabplanner.v1.theme appearing as an importable layout.
 - New `DATAFLOW.md`: what a cabinet and a cell actually are, which of the three stores holds what, how wiring joins back to the layout, where the Hub's numbers come from, and the model-vs-kind gotcha behind both bugs above.
 - Buttons: one filled primary per view, grey outlines elsewhere, red outline on destructive actions. Decorative graph-paper backgrounds removed. PCFSoftShadowMap deprecation warning cleared in both 3D tools.
+- All six tools now ship as standalone single files, rebuilt at v0.8.0 - previously only the planner and 3D view had one and both predated the reskin.
 - Open: BH chassis plate still needs a redraw (missing power button and PSU section, blocked on a straight-on photo); higher-res faceplate images pending; Supermicro 1U unmapped; no server, so JSON files remain the unit of collaboration.
 
 ## v0.7.0 — 3D editing suite, catalog expansion, measured faceplates

@@ -134,6 +134,15 @@ both bugs above. Read it before changing anything that touches saved data.
 - **No server.** Both stores are browser-local; JSON files are the unit of
   collaboration. `DATAFLOW.md` §8 covers what replacing that would involve.
 
+## Standalone builds
+
+All six tools now ship as self-contained single files — `Hub`, `Cabinet Layout`,
+`Hardware Catalog`, `Connections`, `Cabinet 3D` and `Cabinet 3D Editor`, each
+`(standalone).html`. Previously only two existed and both predated the reskin.
+Fonts, runtime, catalog and theme are inlined, so each opens offline with no
+network. Links between tools are page navigations and stay inert inside a single
+file; use the repo files for the linked toolkit.
+
 ## Upgrade notes
 
 No migration. The same three storage keys, plus `cabplanner.v1.theme` for the

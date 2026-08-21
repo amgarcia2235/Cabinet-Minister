@@ -31,6 +31,5 @@ date: 2026-08-21T00:00:00Z
 | Theme | theme.css, theme.js |
 | Release notes | RELEASE-v0.8.0.md, RELEASE-v0.7.0.md, CHANGELOG.md, Hub.dc.html |
 | Data flow doc | DATAFLOW.md |
-| Offline bundle | cabinetminister Hub (offline).html (built from Hub.dc.html) |
+| Standalone bundles | Hub / Cabinet Layout / Hardware Catalog / Connections / Cabinet 3D / Cabinet 3D Editor — each "(standalone).html", all six rebuilt at v0.8.0 |
 | Handoff | HANDOFF.md |
-| Standalone bundles | Cabinet Layout (standalone).html, Cabinet 3D (standalone).html |

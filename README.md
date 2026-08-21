@@ -19,7 +19,7 @@ Data-center cabinet planning toolkit — plan a rack, inspect ports, wire connec
 | `theme.css` | **Every colour, radius and font token.** Light + dark. Change the palette here, all six pages follow |
 | `theme.js` | Theme boot (applied before first paint) + the light/dark toggle |
 | `DATAFLOW.md` | How a cabinet is stored and which tool reads what — read before touching saved data |
-| `* (standalone).html` | Self-contained copies for sharing — regenerate after edits, don't edit directly |
+| `* (standalone).html` | Self-contained offline copy of each tool (all six) — regenerate after edits, don't edit directly |
 
 ## Quick start (newbies)
 

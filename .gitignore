@@ -9,3 +9,10 @@ Thumbs.db
 # scratch
 uploads/
 screenshots/
+scraps/
+
+# standalone bundler inputs (regenerate from the matching tool)
+Hub-export.dc.html
+Layout-export.dc.html
+Catalog-export.dc.html
+Wiring-export.dc.html
